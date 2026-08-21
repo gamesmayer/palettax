@@ -1,0 +1,216 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #1e1e1e;
+  color: #f0f0f0;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  background: #252526;
+  border-bottom: 1px solid #3c3c3c;
+  overflow-x: auto;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #2d2d2d;
+  border: 1px solid transparent;
+  color: inherit;
+}
+
+.tab--active {
+  background: #3a3d41;
+  border-color: #007acc;
+}
+
+.tab__name {
+  cursor: text;
+}
+
+.tab__name-input {
+  background: #1e1e1e;
+  color: inherit;
+  border: 1px solid #007acc;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: inherit;
+  width: 10ch;
+}
+
+.tab__close {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+}
+
+.palette-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.palette-view__hint {
+  color: #999;
+  font-size: 13px;
+}
+
+.palette-view--empty {
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.palette-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.palette-toolbar button {
+  background: #0e639c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.color-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.color-swatch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: #2d2d2d;
+  border-radius: 4px;
+}
+
+.color-swatch__drag-handle {
+  cursor: grab;
+  color: #888;
+}
+
+.color-swatch__chip {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid #555;
+  flex-shrink: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.color-swatch__hex {
+  font-family: monospace;
+  color: #aaa;
+}
+
+.color-swatch__label {
+  flex: 1;
+  cursor: text;
+}
+
+.color-swatch__name-input {
+  flex: 1;
+  background: #1e1e1e;
+  color: inherit;
+  border: 1px solid #007acc;
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+.color-swatch__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.color-swatch__actions button {
+  background: #3c3c3c;
+  color: inherit;
+  border: none;
+  border-radius: 3px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+}
+
+.color-swatch__actions button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog {
+  background: #252526;
+  padding: 20px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 280px;
+}
+
+.dialog input {
+  background: #1e1e1e;
+  color: inherit;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dialog__actions button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}

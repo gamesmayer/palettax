@@ -1,0 +1,17 @@
+appId: com.wejungle.palettax
+productName: Palettax
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**/*
+mac:
+  target: dmg
+  category: public.app-category.graphics-design
+win:
+  target: nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+publish:
+  provider: github
