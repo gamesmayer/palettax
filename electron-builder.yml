@@ -8,6 +8,7 @@ files:
 mac:
   target: dmg
   category: public.app-category.graphics-design
+  hardenedRuntime: true
 win:
   target: nsis
 nsis:
@@ -15,3 +16,4 @@ nsis:
   allowToChangeInstallationDirectory: true
 publish:
   provider: github
+  releaseType: release
