@@ -40,6 +40,30 @@ Columns: 4
 255 255 255	White
 ```
 
+### Hex List (`.txt`)
+
+Lista de texto plano, un color hexadecimal por línea. No admite nombres de color.
+
+```
+#FF0000
+#00FF00
+#0000FF
+#FFFFFF
+```
+
+### CSS Custom Properties (`.css`)
+
+Genera un bloque `:root` con una variable por color. Al importar solo se leen los valores hexadecimales; el nombre de la variable no se conserva (los colores importados no llevan nombre).
+
+```
+:root {
+  --color-1: #FF0000;
+  --color-2: #00FF00;
+  --color-3: #0000FF;
+  --color-4: #FFFFFF;
+}
+```
+
 ## Requisitos
 
 - Node.js 20 (LTS) y npm.
@@ -64,7 +88,7 @@ Abre la app con hot-reload sobre Electron.
 npm test
 ```
 
-Ejecuta la suite de Jest sobre las funciones puras de `src/shared` (parsers/serializers de `.pal`/`.gpl` y utilidades de color), ubicada en `/test` en espejo de `src/shared`.
+Ejecuta la suite de Jest sobre las funciones puras de `src/shared` (parsers/serializers de `.pal`/`.gpl`/`.txt`/`.css` y utilidades de color), ubicada en `/test` en espejo de `src/shared`.
 
 ## Compilación local
 
@@ -88,12 +112,12 @@ Los instaladores quedarán disponibles para descargar desde Releases sin necesid
 
 ## Uso
 
-1. **Importar**: pulsa "Importar" (o "+ Importar" en la barra de pestañas) y selecciona uno o varios ficheros `.pal`/`.gpl`. Cada uno se abre en una pestaña nueva.
+1. **Importar**: pulsa "Importar" (o "+ Importar" en la barra de pestañas) y selecciona uno o varios ficheros `.pal`/`.gpl`/`.txt`/`.css`. Cada uno se abre en una pestaña nueva.
 2. **Cambiar de paleta**: haz clic en la pestaña correspondiente. Puedes cerrar una pestaña con la "×".
 3. **Añadir color**: con la pestaña deseada activa, pulsa "Añadir color", elige el color con el selector y, opcionalmente, ponle un nombre.
 4. **Borrar color**: pulsa la "✕" del color a eliminar.
 5. **Reordenar colores**: arrastra un color a su nueva posición, o usa los botones ↑/↓.
-6. **Exportar**: con la paleta activa lista, pulsa "Exportar como .pal" o "Exportar como .gpl" y elige dónde guardarlo.
+6. **Exportar**: con la paleta activa lista, elige uno de los formatos disponibles (`.pal`, `.gpl`, `.txt`, `.css`) desde "File → Export Palette as" y elige dónde guardarlo.
 
 ## Estructura del proyecto
 
@@ -101,7 +125,7 @@ Los instaladores quedarán disponibles para descargar desde Releases sin necesid
 src/
 ├── main/       # proceso principal de Electron (ventanas, menú, diálogos de fichero)
 ├── preload/    # puente seguro entre main y renderer
-├── shared/     # código puro: modelos de datos, parsers/serializers .pal/.gpl, utilidades
+├── shared/     # código puro: modelos de datos, parsers/serializers .pal/.gpl/.txt/.css, utilidades
 └── renderer/   # interfaz en React (pestañas, lista de colores, diálogos)
 test/           # tests de Jest, en espejo de src/shared
 ```

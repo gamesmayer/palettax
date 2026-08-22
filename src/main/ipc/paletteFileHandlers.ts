@@ -8,11 +8,18 @@ import {
   ImportPaletteResult
 } from '../../shared/ipc-contract';
 
+const EXPORT_FILTER_NAMES: Record<ExportPaletteRequest['format'], string> = {
+  pal: 'JASC Palette',
+  gpl: 'GIMP Palette',
+  txt: 'Hex List',
+  css: 'CSS Stylesheet'
+};
+
 export function registerPaletteFileHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.IMPORT_PALETTE, async (): Promise<ImportPaletteResult> => {
     const result = await dialog.showOpenDialog({
       properties: ['openFile', 'multiSelections'],
-      filters: [{ name: 'Palette Files', extensions: ['pal', 'gpl'] }]
+      filters: [{ name: 'Palette Files', extensions: ['pal', 'gpl', 'txt', 'css'] }]
     });
 
     if (result.canceled || result.filePaths.length === 0) {
@@ -36,7 +43,7 @@ export function registerPaletteFileHandlers(): void {
         defaultPath: join(req.defaultDirectory ?? app.getPath('documents'), req.suggestedFileName),
         filters: [
           {
-            name: req.format === 'pal' ? 'JASC Palette' : 'GIMP Palette',
+            name: EXPORT_FILTER_NAMES[req.format],
             extensions: [req.format]
           }
         ]

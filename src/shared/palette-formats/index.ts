@@ -1,20 +1,29 @@
 export * from './types';
 export * from './jascPal';
 export * from './gimpGpl';
+export * from './hexList';
+export * from './css';
 export * from './detectFormat';
 
 import { Palette, PaletteFormat, PaletteParseError } from './types';
 import { parsePal, serializePal } from './jascPal';
 import { parseGpl, serializeGpl } from './gimpGpl';
+import { parseHexTxt, serializeHexTxt } from './hexList';
+import { parseCss, serializeCss } from './css';
 import { detectFormatByExtension } from './detectFormat';
 
 export function parsePaletteFile(filePath: string, content: string): Palette {
   const format = detectFormatByExtension(filePath);
   if (format === 'pal') return parsePal(content, filePath);
   if (format === 'gpl') return parseGpl(content, filePath);
+  if (format === 'txt') return parseHexTxt(content, filePath);
+  if (format === 'css') return parseCss(content, filePath);
   throw new PaletteParseError(`Extensión no soportada: ${filePath}`);
 }
 
 export function serializePaletteFile(palette: Palette, format: PaletteFormat): string {
-  return format === 'pal' ? serializePal(palette) : serializeGpl(palette);
+  if (format === 'pal') return serializePal(palette);
+  if (format === 'gpl') return serializeGpl(palette);
+  if (format === 'txt') return serializeHexTxt(palette);
+  return serializeCss(palette);
 }

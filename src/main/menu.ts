@@ -29,6 +29,14 @@ export function buildMenu(mainWindow: BrowserWindow): Menu {
             {
               label: 'GIMP Palette (.gpl)',
               click: () => mainWindow.webContents.send('menu:trigger-export', 'gpl')
+            },
+            {
+              label: 'Hex List (.txt)',
+              click: () => mainWindow.webContents.send('menu:trigger-export', 'txt')
+            },
+            {
+              label: 'CSS Stylesheet (.css)',
+              click: () => mainWindow.webContents.send('menu:trigger-export', 'css')
             }
           ]
         },

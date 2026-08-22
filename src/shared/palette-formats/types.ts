@@ -1,4 +1,4 @@
-export type PaletteFormat = 'pal' | 'gpl';
+export type PaletteFormat = 'pal' | 'gpl' | 'txt' | 'css';
 
 export interface PaletteColor {
   id: string;
