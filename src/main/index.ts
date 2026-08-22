@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron';
 import { join } from 'node:path';
 import { registerPaletteFileHandlers } from './ipc/paletteFileHandlers';
 import { buildMenu } from './menu';
@@ -22,6 +22,26 @@ function createWindow(): void {
   });
 
   Menu.setApplicationMenu(buildMenu(mainWindow));
+
+  let allowClose = false;
+
+  function handleConfirmClose(event: Electron.IpcMainEvent): void {
+    if (event.sender !== mainWindow.webContents) return;
+    allowClose = true;
+    mainWindow.close();
+  }
+
+  ipcMain.on('app:confirm-close', handleConfirmClose);
+
+  mainWindow.on('close', (event) => {
+    if (allowClose) return;
+    event.preventDefault();
+    mainWindow.webContents.send('app:request-close');
+  });
+
+  mainWindow.on('closed', () => {
+    ipcMain.removeListener('app:confirm-close', handleConfirmClose);
+  });
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show();

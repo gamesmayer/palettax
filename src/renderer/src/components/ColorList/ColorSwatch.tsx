@@ -1,3 +1,4 @@
+import { Button, Frame, Input } from '@react95/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { KeyboardEvent, MouseEvent, useState } from 'react';
@@ -54,26 +55,27 @@ export function ColorSwatch({
   }
 
   return (
-    <div className="color-swatch" ref={setNodeRef} style={style}>
+    <Frame className="color-swatch" ref={setNodeRef} style={style}>
       <span className="color-swatch__drag-handle" {...attributes} {...listeners}>
         ⠿
       </span>
-      <button
+      <Frame
+        as="button"
         className="color-swatch__chip"
         style={{ backgroundColor: color.hex }}
         onClick={(event) => {
           event.stopPropagation();
           onEdit();
         }}
-        aria-label={`Editar color ${color.hex}`}
+        aria-label={`Edit color ${color.hex}`}
       />
       <span className="color-swatch__hex">{color.hex}</span>
       {isEditing ? (
-        <input
+        <Input
           className="color-swatch__name-input"
           value={draft}
           autoFocus
-          placeholder="Nombre (opcional)"
+          placeholder="Name (optional)"
           onClick={(event) => event.stopPropagation()}
           onChange={(event) => setDraft(event.target.value)}
           onBlur={commit}
@@ -81,20 +83,20 @@ export function ColorSwatch({
         />
       ) : (
         <span className="color-swatch__label" onDoubleClick={startEditing}>
-          {color.name ?? 'Sin nombre'}
+          {color.name ?? 'Unnamed'}
         </span>
       )}
-      <div className="color-swatch__actions">
-        <button onClick={onMoveUp} disabled={!canMoveUp} aria-label="Subir color">
+      <Frame className="color-swatch__actions">
+        <Button className="color-swatch__icon-btn" onClick={onMoveUp} disabled={!canMoveUp} aria-label="Move color up">
           ↑
-        </button>
-        <button onClick={onMoveDown} disabled={!canMoveDown} aria-label="Bajar color">
+        </Button>
+        <Button className="color-swatch__icon-btn" onClick={onMoveDown} disabled={!canMoveDown} aria-label="Move color down">
           ↓
-        </button>
-        <button onClick={onRemove} aria-label="Borrar color">
+        </Button>
+        <Button className="color-swatch__icon-btn" onClick={onRemove} aria-label="Remove color">
           ✕
-        </button>
-      </div>
-    </div>
+        </Button>
+      </Frame>
+    </Frame>
   );
 }

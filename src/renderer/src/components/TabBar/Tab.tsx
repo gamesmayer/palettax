@@ -1,3 +1,4 @@
+import { Button, Frame, Input } from '@react95/core';
 import { KeyboardEvent, MouseEvent, useState } from 'react';
 
 interface TabProps {
@@ -36,9 +37,9 @@ export function Tab({ label, active, onSelect, onClose, onRename }: TabProps): J
   }
 
   return (
-    <div className={`tab ${active ? 'tab--active' : ''}`} onClick={onSelect}>
+    <Frame as="li" className={`tab ${active ? 'tab--active' : ''}`} onClick={onSelect}>
       {isEditing ? (
-        <input
+        <Input
           className="tab__name-input"
           value={draft}
           autoFocus
@@ -52,16 +53,16 @@ export function Tab({ label, active, onSelect, onClose, onRename }: TabProps): J
           {label}
         </span>
       )}
-      <button
+      <Button
         className="tab__close"
         onClick={(event) => {
           event.stopPropagation();
           onClose();
         }}
-        aria-label={`Cerrar ${label}`}
+        aria-label={`Close ${label}`}
       >
         ×
-      </button>
-    </div>
+      </Button>
+    </Frame>
   );
 }

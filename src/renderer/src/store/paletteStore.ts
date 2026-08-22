@@ -32,8 +32,8 @@ function insertPalette(
 }
 
 function nextUntitledName(palettes: Record<string, Palette>): string {
-  const untitledCount = Object.values(palettes).filter((palette) => /^Sin título( \d+)?$/.test(palette.name)).length;
-  return untitledCount === 0 ? 'Sin título' : `Sin título ${untitledCount + 1}`;
+  const untitledCount = Object.values(palettes).filter((palette) => /^Untitled( \d+)?$/.test(palette.name)).length;
+  return untitledCount === 0 ? 'Untitled' : `Untitled ${untitledCount + 1}`;
 }
 
 export const usePaletteStore = create<PaletteStoreState>((set, get) => ({

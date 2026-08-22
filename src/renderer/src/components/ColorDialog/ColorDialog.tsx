@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { Input, Modal, TitleBar } from '@react95/core';
+import { MouseEvent, useState } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import { hexToRgb } from '../../../../shared/color';
 import { PaletteColor } from '../../../../shared/palette-formats';
@@ -27,28 +28,42 @@ export function ColorDialog({ paletteId, color, onClose }: ColorDialogProps): JS
     onClose();
   }
 
+  function handleBackdropMouseDown(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  }
+
   return (
-    <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog" onClick={(event) => event.stopPropagation()}>
-        <h3>{color ? 'Editar color' : 'Añadir color'}</h3>
-        <HexColorPicker color={hex} onChange={setHex} />
-        <input
-          type="text"
-          value={hex}
-          onChange={(event) => setHex(event.target.value)}
-          aria-label="Código hexadecimal"
-        />
-        <input
-          type="text"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="Nombre (opcional)"
-        />
-        <div className="dialog__actions">
-          <button onClick={onClose}>Cancelar</button>
-          <button onClick={handleSubmit}>{color ? 'Guardar' : 'Añadir'}</button>
-        </div>
-      </div>
+    <div className="dialog-backdrop" onMouseDown={handleBackdropMouseDown}>
+      <Modal
+        className="color-dialog"
+        title={color ? 'Edit color' : 'Add color'}
+        hasWindowButton={false}
+        titleBarOptions={[<TitleBar.Close key="close" onClick={onClose} />]}
+        buttons={[
+          { value: 'Cancel', onClick: onClose },
+          { value: color ? 'Save' : 'Add', onClick: handleSubmit }
+        ]}
+      >
+        <Modal.Content>
+          <div className="color-dialog__picker">
+            <HexColorPicker color={hex} onChange={setHex} />
+          </div>
+          <Input
+            type="text"
+            value={hex}
+            onChange={(event) => setHex(event.target.value)}
+            aria-label="Hex code"
+          />
+          <Input
+            type="text"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Name (optional)"
+          />
+        </Modal.Content>
+      </Modal>
     </div>
   );
 }

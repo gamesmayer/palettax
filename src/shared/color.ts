@@ -11,7 +11,7 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const normalized = hex.replace('#', '').trim();
   const match = normalized.match(/^([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/);
   if (!match) {
-    throw new Error(`Color hexadecimal inválido: ${hex}`);
+    throw new Error(`Invalid hex color: ${hex}`);
   }
   return {
     r: parseInt(match[1], 16),

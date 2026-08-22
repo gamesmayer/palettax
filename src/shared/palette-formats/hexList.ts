@@ -29,7 +29,7 @@ export function parseHexTxt(content: string, filePath: string): Palette {
   }
 
   if (colors.length === 0) {
-    throw new PaletteParseError('El archivo no contiene ningún color hexadecimal válido.');
+    throw new PaletteParseError('The file does not contain any valid hexadecimal color.');
   }
 
   return {

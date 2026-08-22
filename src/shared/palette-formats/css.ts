@@ -30,7 +30,7 @@ export function parseCss(content: string, filePath: string): Palette {
   }
 
   if (colors.length === 0) {
-    throw new PaletteParseError('El archivo no contiene ninguna declaración de color válida.');
+    throw new PaletteParseError('The file does not contain any valid color declaration.');
   }
 
   return {

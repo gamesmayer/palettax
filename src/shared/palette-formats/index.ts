@@ -18,7 +18,7 @@ export function parsePaletteFile(filePath: string, content: string): Palette {
   if (format === 'gpl') return parseGpl(content, filePath);
   if (format === 'txt') return parseHexTxt(content, filePath);
   if (format === 'css') return parseCss(content, filePath);
-  throw new PaletteParseError(`Extensión no soportada: ${filePath}`);
+  throw new PaletteParseError(`Unsupported extension: ${filePath}`);
 }
 
 export function serializePaletteFile(palette: Palette, format: PaletteFormat): string {

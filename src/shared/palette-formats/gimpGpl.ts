@@ -10,7 +10,7 @@ export function parseGpl(content: string, filePath: string): Palette {
   const lines = content.split(/\r?\n/);
 
   if (lines[0]?.trim() !== 'GIMP Palette') {
-    throw new PaletteParseError('El archivo no tiene una cabecera GIMP Palette válida.');
+    throw new PaletteParseError('The file does not have a valid GIMP Palette header.');
   }
 
   let name: string | undefined;

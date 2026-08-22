@@ -1,3 +1,4 @@
+import { Frame } from '@react95/core';
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { PaletteColor } from '../../../../shared/palette-formats';
@@ -36,23 +37,27 @@ export function ColorList({ paletteId, colors, onEditColor }: ColorListProps): J
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      <SortableContext items={colorIds} strategy={verticalListSortingStrategy}>
-        <div className="color-list">
-          {colors.map((color, index) => (
-            <ColorSwatch
-              key={color.id}
-              color={color}
-              canMoveUp={index > 0}
-              canMoveDown={index < colors.length - 1}
-              onMoveUp={() => moveColor(color.id, -1)}
-              onMoveDown={() => moveColor(color.id, 1)}
-              onRemove={() => removeColor(paletteId, color.id)}
-              onRename={(newName) => renameColor(paletteId, color.id, newName)}
-              onEdit={() => onEditColor(color)}
-            />
-          ))}
-        </div>
-      </SortableContext>
+      <Frame className="color-list">
+        {colors.length === 0 ? (
+          <p className="color-list__empty">This palette has no colors yet.</p>
+        ) : (
+          <SortableContext items={colorIds} strategy={verticalListSortingStrategy}>
+            {colors.map((color, index) => (
+              <ColorSwatch
+                key={color.id}
+                color={color}
+                canMoveUp={index > 0}
+                canMoveDown={index < colors.length - 1}
+                onMoveUp={() => moveColor(color.id, -1)}
+                onMoveDown={() => moveColor(color.id, 1)}
+                onRemove={() => removeColor(paletteId, color.id)}
+                onRename={(newName) => renameColor(paletteId, color.id, newName)}
+                onEdit={() => onEditColor(color)}
+              />
+            ))}
+          </SortableContext>
+        )}
+      </Frame>
     </DndContext>
   );
 }

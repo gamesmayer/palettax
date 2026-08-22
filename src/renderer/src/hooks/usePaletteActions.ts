@@ -17,7 +17,7 @@ export function usePaletteActions(): {
         const palette = parsePaletteFile(file.filePath, file.content);
         addPalette(palette);
       } catch (error) {
-        window.alert(`No se pudo importar ${file.filePath}: ${(error as Error).message}`);
+        window.alert(`Could not import ${file.filePath}: ${(error as Error).message}`);
       }
     }
   }, [addPalette]);
@@ -38,7 +38,7 @@ export function usePaletteActions(): {
     });
 
     if (!result.canceled) {
-      window.alert(`Paleta exportada a ${result.filePath}`);
+      window.alert(`Palette exported to ${result.filePath}`);
     }
   }, []);
 

@@ -13,7 +13,7 @@ export function parsePal(content: string, filePath: string): Palette {
   }
 
   if (lines[0] !== 'JASC-PAL') {
-    throw new PaletteParseError('El archivo no tiene una cabecera JASC-PAL válida.');
+    throw new PaletteParseError('The file does not have a valid JASC-PAL header.');
   }
 
   const colorLines = lines.slice(3).filter((line) => line.length > 0);

@@ -1,3 +1,4 @@
+import { Button } from '@react95/core';
 import { useState } from 'react';
 import { PaletteColor } from '../../../../shared/palette-formats';
 import { usePaletteStore } from '../../store/paletteStore';
@@ -15,9 +16,9 @@ export function PaletteView(): JSX.Element {
   if (!activePalette) {
     return (
       <div className="palette-view palette-view--empty">
-        <p>No hay ninguna paleta abierta.</p>
-        <button onClick={createPalette}>Crear paleta nueva</button>
-        <p className="palette-view__hint">También puedes importar una paleta desde File → Import Palette…</p>
+        <p>No palette is open.</p>
+        <Button onClick={createPalette}>Create new palette</Button>
+        <p className="palette-view__hint">You can also import a palette from File → Import Palette…</p>
       </div>
     );
   }
