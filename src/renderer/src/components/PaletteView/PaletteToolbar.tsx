@@ -1,4 +1,5 @@
 import { Button, Dropdown, Frame } from '@react95/core';
+import { ChangeEvent } from 'react';
 import { ColorSystem } from '../../../../shared/color';
 
 interface PaletteToolbarProps {
@@ -29,7 +30,9 @@ export function PaletteToolbar({ colorSystem, onColorSystemChange, onAddColor }:
         className="palette-toolbar__color-system"
         options={Object.values(COLOR_SYSTEM_LABELS)}
         value={COLOR_SYSTEM_LABELS[colorSystem]}
-        onChange={(event) => onColorSystemChange(COLOR_SYSTEM_BY_LABEL[event.target.value])}
+        onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+          onColorSystemChange(COLOR_SYSTEM_BY_LABEL[event.target.value])
+        }
         aria-label="Color system"
       />
     </Frame>

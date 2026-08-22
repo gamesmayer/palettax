@@ -1,9 +1,17 @@
 import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron';
 import { join } from 'node:path';
 import { registerPaletteFileHandlers } from './ipc/paletteFileHandlers';
+import { registerUpdateHandlers } from './ipc/updateHandlers';
 import { buildMenu } from './menu';
+import { checkForUpdates } from './updates/checkForUpdates';
 
 app.setName('Palettax');
+
+app.setAboutPanelOptions({
+  applicationName: 'Palettax',
+  applicationVersion: app.getVersion(),
+  copyright: `© ${new Date().getFullYear()} Palettax`
+});
 
 const devIconPath = join(__dirname, '../../build/icon.png');
 
@@ -45,6 +53,7 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show();
+    void checkForUpdates(mainWindow, app.getVersion());
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -66,6 +75,7 @@ app.whenReady().then(() => {
   }
 
   registerPaletteFileHandlers();
+  registerUpdateHandlers();
   createWindow();
 
   app.on('activate', () => {

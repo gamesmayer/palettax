@@ -3,7 +3,8 @@ import {
   ExportPaletteRequest,
   ExportPaletteResult,
   IPC_CHANNELS,
-  ImportPaletteResult
+  ImportPaletteResult,
+  UpdateInfo
 } from '../shared/ipc-contract';
 import { PaletteFormat } from '../shared/palette-formats/types';
 
@@ -33,6 +34,14 @@ const paletteApi = {
   },
   confirmClose: (): void => {
     ipcRenderer.send('app:confirm-close');
+  },
+  onUpdateAvailable: (callback: (info: UpdateInfo) => void): (() => void) => {
+    const listener = (_event: IpcRendererEvent, info: UpdateInfo): void => callback(info);
+    ipcRenderer.on(IPC_CHANNELS.UPDATE_AVAILABLE, listener);
+    return () => ipcRenderer.removeListener(IPC_CHANNELS.UPDATE_AVAILABLE, listener);
+  },
+  openExternalUrl: (url: string): void => {
+    ipcRenderer.send(IPC_CHANNELS.OPEN_EXTERNAL_URL, url);
   }
 };
 

@@ -2,7 +2,9 @@ import { PaletteFormat } from './palette-formats/types';
 
 export const IPC_CHANNELS = {
   IMPORT_PALETTE: 'palette:import',
-  EXPORT_PALETTE: 'palette:export'
+  EXPORT_PALETTE: 'palette:export',
+  UPDATE_AVAILABLE: 'update:available',
+  OPEN_EXTERNAL_URL: 'update:open-external-url'
 } as const;
 
 export interface ImportedFile {
@@ -25,4 +27,12 @@ export interface ExportPaletteRequest {
 export interface ExportPaletteResult {
   canceled: boolean;
   filePath?: string;
+}
+
+export interface UpdateInfo {
+  version: string;
+  tagName: string;
+  releaseUrl: string;
+  releaseNotes?: string;
+  publishedAt?: string;
 }

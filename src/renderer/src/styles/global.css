@@ -202,3 +202,16 @@ body {
   margin: 0;
   padding: var(--r95-space-4) 0;
 }
+
+.update-dialog {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  margin-left: -140px;
+  width: 300px;
+}
+
+.update-dialog__message {
+  margin: 0;
+  padding: var(--r95-space-4) 0;
+}

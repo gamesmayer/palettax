@@ -13,7 +13,7 @@ const VALID_GPL = [
 ].join('\n');
 
 describe('parseGpl', () => {
-  it('parsea Name, Columns y colores con nombre, ignorando comentarios', () => {
+  it('parses Name, Columns and named colors, ignoring comments', () => {
     const palette = parseGpl(VALID_GPL, '/tmp/test.gpl');
     expect(palette.name).toBe('My Palette');
     expect(palette.columns).toBe(4);
@@ -22,19 +22,19 @@ describe('parseGpl', () => {
     expect(palette.colors[3]).toMatchObject({ r: 255, g: 255, b: 255, name: 'White' });
   });
 
-  it('usa el nombre de fichero si no hay línea Name:', () => {
+  it('uses the file name if there is no Name: line', () => {
     const content = ['GIMP Palette', '255 0 0 Red'].join('\n');
-    const palette = parseGpl(content, '/tmp/sin-nombre.gpl');
-    expect(palette.name).toBe('sin-nombre');
+    const palette = parseGpl(content, '/tmp/no-name.gpl');
+    expect(palette.name).toBe('no-name');
   });
 
-  it('lanza PaletteParseError si falta la cabecera GIMP Palette', () => {
+  it('throws PaletteParseError if the GIMP Palette header is missing', () => {
     expect(() => parseGpl('not a gpl file', 'test.gpl')).toThrow(PaletteParseError);
   });
 });
 
 describe('serializeGpl', () => {
-  it('preserva Name, Columns y nombres de color', () => {
+  it('preserves Name, Columns and color names', () => {
     const palette = parseGpl(VALID_GPL, 'test.gpl');
     const serialized = serializeGpl(palette);
     expect(serialized).toContain('Name: My Palette');
@@ -42,7 +42,7 @@ describe('serializeGpl', () => {
     expect(serialized).toContain('Red');
   });
 
-  it('hace round-trip manteniendo colores, nombres y orden', () => {
+  it('round-trips keeping colors, names and order', () => {
     const original = parseGpl(VALID_GPL, 'test.gpl');
     const roundTripped = parseGpl(serializeGpl(original), 'test.gpl');
     expect(roundTripped.colors.map(({ r, g, b, name }) => ({ r, g, b, name }))).toEqual(

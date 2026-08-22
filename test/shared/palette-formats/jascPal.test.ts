@@ -4,7 +4,7 @@ import { PaletteParseError } from '../../../src/shared/palette-formats/types';
 const VALID_PAL = ['JASC-PAL', '0100', '4', '255 0 0', '0 255 0', '0 0 255', '255 255 255'].join('\r\n');
 
 describe('parsePal', () => {
-  it('parsea cabecera, count y colores en orden', () => {
+  it('parses the header, count and colors in order', () => {
     const palette = parsePal(VALID_PAL, '/tmp/MyPalette.pal');
     expect(palette.name).toBe('MyPalette');
     expect(palette.sourceFormat).toBe('pal');
@@ -13,32 +13,32 @@ describe('parsePal', () => {
     expect(palette.colors[3]).toMatchObject({ r: 255, g: 255, b: 255, hex: '#FFFFFF' });
   });
 
-  it('es tolerante si el count declarado no coincide con las líneas reales', () => {
+  it('is tolerant when the declared count does not match the actual lines', () => {
     const content = ['JASC-PAL', '0100', '99', '10 20 30'].join('\r\n');
     const palette = parsePal(content, 'test.pal');
     expect(palette.colors).toHaveLength(1);
   });
 
-  it('lanza PaletteParseError si falta la cabecera JASC-PAL', () => {
+  it('throws PaletteParseError if the JASC-PAL header is missing', () => {
     expect(() => parsePal('not a pal file', 'test.pal')).toThrow(PaletteParseError);
   });
 });
 
 describe('serializePal', () => {
-  it('produce cabecera, versión y count correctos, descartando nombres', () => {
+  it('produces the correct header, version and count, discarding names', () => {
     const palette = parsePal(VALID_PAL, 'test.pal');
     const serialized = serializePal({
       ...palette,
-      colors: palette.colors.map((color) => ({ ...color, name: 'Ignorado' }))
+      colors: palette.colors.map((color) => ({ ...color, name: 'Ignored' }))
     });
     const lines = serialized.trim().split(/\r?\n/);
     expect(lines[0]).toBe('JASC-PAL');
     expect(lines[1]).toBe('0100');
     expect(lines[2]).toBe('4');
-    expect(serialized).not.toContain('Ignorado');
+    expect(serialized).not.toContain('Ignored');
   });
 
-  it('hace round-trip manteniendo los mismos colores y orden', () => {
+  it('round-trips keeping the same colors and order', () => {
     const original = parsePal(VALID_PAL, 'test.pal');
     const roundTripped = parsePal(serializePal(original), 'test.pal');
     expect(roundTripped.colors.map(({ r, g, b }) => ({ r, g, b }))).toEqual(

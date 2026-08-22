@@ -1,7 +1,7 @@
 import { parseCss, serializeCss } from '../../../src/shared/palette-formats/css';
 import { Palette, PaletteParseError } from '../../../src/shared/palette-formats/types';
 
-const VALID_CSS = [':root {', '  --rojo: #FF0000;', '  --verde: #00FF00;', '}'].join('\n');
+const VALID_CSS = [':root {', '  --red: #FF0000;', '  --green: #00FF00;', '}'].join('\n');
 
 function makePalette(colors: Array<{ r: number; g: number; b: number; name?: string }>): Palette {
   return {
@@ -20,7 +20,7 @@ function makePalette(colors: Array<{ r: number; g: number; b: number; name?: str
 }
 
 describe('parseCss', () => {
-  it('extrae solo los valores hexadecimales, descartando el nombre de variable', () => {
+  it('extracts only the hex values, discarding the variable name', () => {
     const palette = parseCss(VALID_CSS, '/tmp/MyPalette.css');
     expect(palette.name).toBe('MyPalette');
     expect(palette.sourceFormat).toBe('css');
@@ -29,24 +29,24 @@ describe('parseCss', () => {
     expect(palette.colors.every((color) => color.name === undefined)).toBe(true);
   });
 
-  it('ignora líneas que no son declaraciones de color', () => {
-    const content = [':root {', '  /* comentario */', '  --spacing: 4px;', '  --azul: #0000FF;', '}'].join('\n');
+  it('ignores lines that are not color declarations', () => {
+    const content = [':root {', '  /* comment */', '  --spacing: 4px;', '  --blue: #0000FF;', '}'].join('\n');
     const palette = parseCss(content, 'test.css');
     expect(palette.colors).toHaveLength(1);
   });
 
-  it('es insensible a mayúsculas en el hexadecimal', () => {
+  it('is case-insensitive for the hex value', () => {
     const palette = parseCss('--x: #ff0000;', 'test.css');
     expect(palette.colors[0].hex).toBe('#FF0000');
   });
 
-  it('lanza PaletteParseError si no hay ninguna declaración de color válida', () => {
+  it('throws PaletteParseError if there is no valid color declaration', () => {
     expect(() => parseCss(':root {\n}', 'test.css')).toThrow(PaletteParseError);
   });
 });
 
 describe('serializeCss', () => {
-  it('produce un bloque :root con una variable por color', () => {
+  it('produces a :root block with one variable per color', () => {
     const palette = makePalette([{ r: 255, g: 0, b: 0 }]);
     const serialized = serializeCss(palette);
     expect(serialized.startsWith(':root {\n')).toBe(true);
@@ -54,39 +54,39 @@ describe('serializeCss', () => {
     expect(serialized).toContain('  --color-1: #FF0000;');
   });
 
-  it('genera el slug a partir del nombre del color', () => {
-    const palette = makePalette([{ r: 255, g: 0, b: 0, name: 'Rojo Vivo' }]);
-    expect(serializeCss(palette)).toContain('--rojo-vivo:');
+  it('generates the slug from the color name', () => {
+    const palette = makePalette([{ r: 255, g: 0, b: 0, name: 'Bright Red' }]);
+    expect(serializeCss(palette)).toContain('--bright-red:');
   });
 
-  it('elimina acentos y símbolos al generar el slug', () => {
-    const palette = makePalette([{ r: 0, g: 0, b: 0, name: 'Café Claro!' }]);
-    expect(serializeCss(palette)).toContain('--cafe-claro:');
+  it('strips accents and symbols when generating the slug', () => {
+    const palette = makePalette([{ r: 0, g: 0, b: 0, name: 'Café Noir!' }]);
+    expect(serializeCss(palette)).toContain('--cafe-noir:');
   });
 
-  it('usa color-N por posición para colores sin nombre, intercalados con nombrados', () => {
+  it('uses color-N by position for unnamed colors, interleaved with named ones', () => {
     const palette = makePalette([
-      { r: 255, g: 0, b: 0, name: 'Rojo' },
+      { r: 255, g: 0, b: 0, name: 'Red' },
       { r: 0, g: 255, b: 0 },
-      { r: 0, g: 0, b: 255, name: 'Azul' }
+      { r: 0, g: 0, b: 255, name: 'Blue' }
     ]);
     const serialized = serializeCss(palette);
-    expect(serialized).toContain('--rojo:');
+    expect(serialized).toContain('--red:');
     expect(serialized).toContain('--color-2:');
-    expect(serialized).toContain('--azul:');
+    expect(serialized).toContain('--blue:');
   });
 
-  it('desambigua nombres duplicados añadiendo la posición', () => {
+  it('disambiguates duplicate names by appending the position', () => {
     const palette = makePalette([
-      { r: 255, g: 0, b: 0, name: 'Rojo' },
-      { r: 200, g: 0, b: 0, name: 'Rojo' }
+      { r: 255, g: 0, b: 0, name: 'Red' },
+      { r: 200, g: 0, b: 0, name: 'Red' }
     ]);
     const serialized = serializeCss(palette);
-    expect(serialized).toContain('--rojo:');
-    expect(serialized).toContain('--rojo-2:');
+    expect(serialized).toContain('--red:');
+    expect(serialized).toContain('--red-2:');
   });
 
-  it('serializa una paleta vacía como un bloque :root sin variables', () => {
+  it('serializes an empty palette as a :root block with no variables', () => {
     const palette = makePalette([]);
     expect(serializeCss(palette)).toBe(':root {\n\n}\n');
   });

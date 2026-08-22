@@ -83,7 +83,7 @@ export function ColorSwatch({
         as="button"
         className="color-swatch__chip"
         style={{ backgroundColor: color.hex }}
-        onClick={(event) => {
+        onClick={(event: MouseEvent<HTMLButtonElement>) => {
           event.stopPropagation();
           onEdit();
         }}

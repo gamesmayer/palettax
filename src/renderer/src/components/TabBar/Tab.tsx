@@ -55,7 +55,7 @@ export function Tab({ label, active, onSelect, onClose, onRename }: TabProps): J
       )}
       <Button
         className="tab__close"
-        onClick={(event) => {
+        onClick={(event: MouseEvent<HTMLButtonElement>) => {
           event.stopPropagation();
           onClose();
         }}
