@@ -2,7 +2,7 @@ import { Button, Frame, Input } from '@react95/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { KeyboardEvent, MouseEvent, useState } from 'react';
-import { ColorSystem, rgbToHsl, rgbToHsv } from '../../../../shared/color';
+import { ColorSystem, rgbToCmyk, rgbToHsl, rgbToHsv } from '../../../../shared/color';
 import { PaletteColor } from '../../../../shared/palette-formats';
 
 interface ColorSwatchProps {
@@ -30,6 +30,10 @@ function formatColorValue(color: PaletteColor, system: ColorSystem): string {
     case 'hsb': {
       const { h, s, v } = rgbToHsv(color.r, color.g, color.b);
       return `HSB(${h}, ${s}%, ${v}%)`;
+    }
+    case 'cmyk': {
+      const { c, m, y, k } = rgbToCmyk(color.r, color.g, color.b);
+      return `CMYK(${c}%, ${m}%, ${y}%, ${k}%)`;
     }
   }
 }

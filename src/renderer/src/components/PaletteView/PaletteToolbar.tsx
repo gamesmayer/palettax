@@ -12,14 +12,16 @@ const COLOR_SYSTEM_LABELS: Record<ColorSystem, string> = {
   hex: 'Hex',
   rgb: 'RGB',
   hsl: 'HSL',
-  hsb: 'HSB'
+  hsb: 'HSB',
+  cmyk: 'CMYK'
 };
 
 const COLOR_SYSTEM_BY_LABEL: Record<string, ColorSystem> = {
   Hex: 'hex',
   RGB: 'rgb',
   HSL: 'hsl',
-  HSB: 'hsb'
+  HSB: 'hsb',
+  CMYK: 'cmyk'
 };
 
 export function PaletteToolbar({ colorSystem, onColorSystemChange, onAddColor }: PaletteToolbarProps): JSX.Element {

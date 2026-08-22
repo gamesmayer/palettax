@@ -1,4 +1,14 @@
-import { clampByte, hexToRgb, hslToRgb, hsvToRgb, rgbToHex, rgbToHsl, rgbToHsv } from '../../src/shared/color';
+import {
+  clampByte,
+  cmykToRgb,
+  hexToRgb,
+  hslToRgb,
+  hsvToRgb,
+  rgbToCmyk,
+  rgbToHex,
+  rgbToHsl,
+  rgbToHsv
+} from '../../src/shared/color';
 
 describe('clampByte', () => {
   it('leaves values within range unchanged', () => {
@@ -121,6 +131,58 @@ describe('hsvToRgb', () => {
     const original = { r: 200, g: 80, b: 40 };
     const { h, s, v } = rgbToHsv(original.r, original.g, original.b);
     const roundTripped = hsvToRgb(h, s, v);
+    expect(roundTripped.r).toBeGreaterThanOrEqual(original.r - 1);
+    expect(roundTripped.r).toBeLessThanOrEqual(original.r + 1);
+    expect(roundTripped.g).toBeGreaterThanOrEqual(original.g - 1);
+    expect(roundTripped.g).toBeLessThanOrEqual(original.g + 1);
+    expect(roundTripped.b).toBeGreaterThanOrEqual(original.b - 1);
+    expect(roundTripped.b).toBeLessThanOrEqual(original.b + 1);
+  });
+});
+
+describe('rgbToCmyk', () => {
+  it('converts 255,0,0 to cmyk(0,100,100,0)', () => {
+    expect(rgbToCmyk(255, 0, 0)).toEqual({ c: 0, m: 100, y: 100, k: 0 });
+  });
+
+  it('converts 0,255,0 to cmyk(100,0,100,0)', () => {
+    expect(rgbToCmyk(0, 255, 0)).toEqual({ c: 100, m: 0, y: 100, k: 0 });
+  });
+
+  it('converts 0,0,255 to cmyk(100,100,0,0)', () => {
+    expect(rgbToCmyk(0, 0, 255)).toEqual({ c: 100, m: 100, y: 0, k: 0 });
+  });
+
+  it('converts 255,255,255 to cmyk(0,0,0,0)', () => {
+    expect(rgbToCmyk(255, 255, 255)).toEqual({ c: 0, m: 0, y: 0, k: 0 });
+  });
+
+  it('converts 0,0,0 to cmyk(0,0,0,100)', () => {
+    expect(rgbToCmyk(0, 0, 0)).toEqual({ c: 0, m: 0, y: 0, k: 100 });
+  });
+
+  it('converts 128,128,128 to cmyk(0,0,0,50)', () => {
+    expect(rgbToCmyk(128, 128, 128)).toEqual({ c: 0, m: 0, y: 0, k: 50 });
+  });
+});
+
+describe('cmykToRgb', () => {
+  it('converts cmyk(0,100,100,0) to 255,0,0', () => {
+    expect(cmykToRgb(0, 100, 100, 0)).toEqual({ r: 255, g: 0, b: 0 });
+  });
+
+  it('converts cmyk(0,0,0,0) to 255,255,255', () => {
+    expect(cmykToRgb(0, 0, 0, 0)).toEqual({ r: 255, g: 255, b: 255 });
+  });
+
+  it('converts cmyk(0,0,0,100) to 0,0,0', () => {
+    expect(cmykToRgb(0, 0, 0, 100)).toEqual({ r: 0, g: 0, b: 0 });
+  });
+
+  it('round-trips with rgbToCmyk for a non-trivial color', () => {
+    const original = { r: 200, g: 80, b: 40 };
+    const { c, m, y, k } = rgbToCmyk(original.r, original.g, original.b);
+    const roundTripped = cmykToRgb(c, m, y, k);
     expect(roundTripped.r).toBeGreaterThanOrEqual(original.r - 1);
     expect(roundTripped.r).toBeLessThanOrEqual(original.r + 1);
     expect(roundTripped.g).toBeGreaterThanOrEqual(original.g - 1);

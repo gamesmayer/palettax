@@ -14,6 +14,18 @@
 - Export the active palette in any of the supported formats.
 - Add colors (with a color picker and an optional name), remove them, and reorder them (by dragging or with the ↑/↓ buttons) within the active palette.
 
+## Supported color systems
+
+Each color can be viewed and edited in any of these systems, selectable from the palette toolbar:
+
+- **Hex** — `#RRGGBB`
+- **RGB** — red, green, blue (0–255)
+- **HSL** — hue (0–360), saturation, lightness (%)
+- **HSB** — hue (0–360), saturation, brightness (%)
+- **CMYK** — cyan, magenta, yellow, key/black (%)
+
+These are per-color display/edit representations, independent of the palette import/export file formats below.
+
 ## Supported formats
 
 ### JASC-PAL (`.pal`)

@@ -180,14 +180,36 @@ body {
   margin-bottom: var(--r95-space-8);
 }
 
+.color-dialog__cmyk-preview {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
 .color-dialog__channels {
   display: flex;
   gap: var(--r95-space-4);
 }
 
-.color-dialog__channels input {
+.color-dialog__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--r95-space-2);
+}
+
+.color-dialog__channels .color-dialog__field {
   width: 0;
   flex: 1;
+}
+
+.color-dialog__field-label {
+  font-size: 11px;
+  color: var(--r95-color-materialTextDisabled);
+}
+
+.color-dialog__field input {
+  width: 100%;
 }
 
 .confirm-dialog {

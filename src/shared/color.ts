@@ -27,7 +27,7 @@ export function generateId(): string {
   return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 
-export type ColorSystem = 'hex' | 'rgb' | 'hsl' | 'hsb';
+export type ColorSystem = 'hex' | 'rgb' | 'hsl' | 'hsb' | 'cmyk';
 
 export function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
   const rn = r / 255;
@@ -145,5 +145,35 @@ export function hsvToRgb(h: number, s: number, v: number): { r: number; g: numbe
     r: clampByte((r1 + m) * 255),
     g: clampByte((g1 + m) * 255),
     b: clampByte((b1 + m) * 255)
+  };
+}
+
+export function rgbToCmyk(r: number, g: number, b: number): { c: number; m: number; y: number; k: number } {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const k = 1 - Math.max(rn, gn, bn);
+
+  if (k === 1) {
+    return { c: 0, m: 0, y: 0, k: 100 };
+  }
+
+  const c = (1 - rn - k) / (1 - k);
+  const m = (1 - gn - k) / (1 - k);
+  const y = (1 - bn - k) / (1 - k);
+
+  return { c: Math.round(c * 100), m: Math.round(m * 100), y: Math.round(y * 100), k: Math.round(k * 100) };
+}
+
+export function cmykToRgb(c: number, m: number, y: number, k: number): { r: number; g: number; b: number } {
+  const cn = c / 100;
+  const mn = m / 100;
+  const yn = y / 100;
+  const kn = k / 100;
+
+  return {
+    r: clampByte(255 * (1 - cn) * (1 - kn)),
+    g: clampByte(255 * (1 - mn) * (1 - kn)),
+    b: clampByte(255 * (1 - yn) * (1 - kn))
   };
 }
