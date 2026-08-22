@@ -165,6 +165,23 @@ export function rgbToCmyk(r: number, g: number, b: number): { c: number; m: numb
   return { c: Math.round(c * 100), m: Math.round(m * 100), y: Math.round(y * 100), k: Math.round(k * 100) };
 }
 
+export function blendRgb(
+  start: { r: number; g: number; b: number },
+  end: { r: number; g: number; b: number },
+  steps: number
+): { r: number; g: number; b: number }[] {
+  const result: { r: number; g: number; b: number }[] = [];
+  for (let i = 0; i < steps; i++) {
+    const t = i / (steps - 1);
+    result.push({
+      r: clampByte(start.r + (end.r - start.r) * t),
+      g: clampByte(start.g + (end.g - start.g) * t),
+      b: clampByte(start.b + (end.b - start.b) * t)
+    });
+  }
+  return result;
+}
+
 export function cmykToRgb(c: number, m: number, y: number, k: number): { r: number; g: number; b: number } {
   const cn = c / 100;
   const mn = m / 100;

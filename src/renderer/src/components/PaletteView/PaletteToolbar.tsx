@@ -6,6 +6,7 @@ interface PaletteToolbarProps {
   colorSystem: ColorSystem;
   onColorSystemChange: (system: ColorSystem) => void;
   onAddColor: () => void;
+  onAddBlend: () => void;
 }
 
 const COLOR_SYSTEM_LABELS: Record<ColorSystem, string> = {
@@ -24,10 +25,14 @@ const COLOR_SYSTEM_BY_LABEL: Record<string, ColorSystem> = {
   CMYK: 'cmyk'
 };
 
-export function PaletteToolbar({ colorSystem, onColorSystemChange, onAddColor }: PaletteToolbarProps): JSX.Element {
+export function PaletteToolbar({
+  colorSystem,
+  onColorSystemChange,
+  onAddColor,
+  onAddBlend
+}: PaletteToolbarProps): JSX.Element {
   return (
     <Frame className="palette-toolbar">
-      <Button onClick={onAddColor}>Add color</Button>
       <Dropdown
         className="palette-toolbar__color-system"
         options={Object.values(COLOR_SYSTEM_LABELS)}
@@ -37,6 +42,8 @@ export function PaletteToolbar({ colorSystem, onColorSystemChange, onAddColor }:
         }
         aria-label="Color system"
       />
+      <Button onClick={onAddColor}>Add color</Button>
+      <Button onClick={onAddBlend}>Add blending</Button>
     </Frame>
   );
 }

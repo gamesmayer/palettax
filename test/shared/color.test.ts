@@ -1,4 +1,5 @@
 import {
+  blendRgb,
   clampByte,
   cmykToRgb,
   hexToRgb,
@@ -189,5 +190,30 @@ describe('cmykToRgb', () => {
     expect(roundTripped.g).toBeLessThanOrEqual(original.g + 1);
     expect(roundTripped.b).toBeGreaterThanOrEqual(original.b - 1);
     expect(roundTripped.b).toBeLessThanOrEqual(original.b + 1);
+  });
+});
+
+describe('blendRgb', () => {
+  it('returns the requested number of steps', () => {
+    expect(blendRgb({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 }, 5)).toHaveLength(5);
+  });
+
+  it('starts and ends exactly on the source colors', () => {
+    const start = { r: 255, g: 0, b: 0 };
+    const end = { r: 0, g: 0, b: 255 };
+    const result = blendRgb(start, end, 5);
+    expect(result[0]).toEqual(start);
+    expect(result[result.length - 1]).toEqual(end);
+  });
+
+  it('interpolates linearly in RGB space for the midpoint of 3 steps', () => {
+    const result = blendRgb({ r: 0, g: 0, b: 0 }, { r: 100, g: 200, b: 50 }, 3);
+    expect(result[1]).toEqual({ r: 50, g: 100, b: 25 });
+  });
+
+  it('produces the same color at every step when blending a color with itself', () => {
+    const color = { r: 128, g: 64, b: 32 };
+    const result = blendRgb(color, color, 4);
+    result.forEach((step) => expect(step).toEqual(color));
   });
 });

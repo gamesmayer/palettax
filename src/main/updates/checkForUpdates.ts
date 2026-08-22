@@ -70,8 +70,9 @@ export async function checkForUpdates(
     }
 
     const release = await fetchLatestRelease();
+    if (!release) return;
     await writeCache({ lastCheckedAt: new Date().toISOString() });
-    if (!release || release.draft || release.prerelease) return;
+    if (release.draft || release.prerelease) return;
 
     const latestVersion = release.tag_name.replace(/^v/, '');
     if (!isNewerVersion(latestVersion, currentVersion)) return;

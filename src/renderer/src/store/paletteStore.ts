@@ -15,6 +15,7 @@ interface PaletteStoreState {
   setColorSystem: (paletteId: string, system: ColorSystem) => void;
   renamePalette: (paletteId: string, name: string) => void;
   addColor: (paletteId: string, color: Omit<PaletteColor, 'id'>) => void;
+  addColors: (paletteId: string, colors: Omit<PaletteColor, 'id'>[]) => void;
   removeColor: (paletteId: string, colorId: string) => void;
   renameColor: (paletteId: string, colorId: string, name: string) => void;
   updateColor: (paletteId: string, colorId: string, changes: Partial<Omit<PaletteColor, 'id'>>) => void;
@@ -90,6 +91,19 @@ export const usePaletteStore = create<PaletteStoreState>((set, get) => ({
         palettes: {
           ...state.palettes,
           [paletteId]: { ...palette, colors: [...palette.colors, newColor] }
+        }
+      };
+    }),
+
+  addColors: (paletteId, colors) =>
+    set((state) => {
+      const palette = state.palettes[paletteId];
+      if (!palette) return state;
+      const newColors: PaletteColor[] = colors.map((color) => ({ ...color, id: generateId() }));
+      return {
+        palettes: {
+          ...state.palettes,
+          [paletteId]: { ...palette, colors: [...palette.colors, ...newColors] }
         }
       };
     }),

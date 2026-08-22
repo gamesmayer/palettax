@@ -9,6 +9,15 @@ body {
   background: var(--r95-color-material);
 }
 
+button {
+    user-select: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .app {
   display: flex;
   flex-direction: column;
@@ -174,42 +183,108 @@ body {
   width: 320px;
 }
 
-.color-dialog__picker {
+.color-picker__picker {
   display: flex;
   justify-content: center;
   margin-bottom: var(--r95-space-8);
 }
 
-.color-dialog__cmyk-preview {
+.color-picker__cmyk-preview {
   width: 200px;
   height: 200px;
   border-radius: 8px;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
-.color-dialog__channels {
+.color-picker__channels {
   display: flex;
   gap: var(--r95-space-4);
 }
 
-.color-dialog__field {
+.color-picker__field {
   display: flex;
   flex-direction: column;
   gap: var(--r95-space-2);
 }
 
-.color-dialog__channels .color-dialog__field {
+.color-picker__channels .color-picker__field {
   width: 0;
   flex: 1;
 }
 
-.color-dialog__field-label {
+.color-picker__field-label {
   font-size: 11px;
   color: var(--r95-color-materialTextDisabled);
 }
 
-.color-dialog__field input {
+.color-picker__field input {
   width: 100%;
+}
+
+.blend-dialog {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  margin-left: -220px;
+  width: 440px;
+}
+
+.blend-dialog__endpoints {
+  display: flex;
+  gap: var(--r95-space-8);
+  margin-bottom: var(--r95-space-8);
+}
+
+.blend-dialog__endpoints > .blend-dialog__field {
+  flex: 1;
+  width: 0;
+  margin-bottom: 0;
+}
+
+.blend-dialog__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--r95-space-2);
+  margin-bottom: var(--r95-space-8);
+}
+
+.blend-dialog__field-label {
+  font-size: 11px;
+  color: var(--r95-color-materialTextDisabled);
+}
+
+.blend-dialog__swatch-picker,
+.blend-dialog__preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--r95-space-2);
+}
+
+.blend-dialog__mode-toggle {
+  display: flex;
+  gap: var(--r95-space-2);
+  margin-bottom: var(--r95-space-2);
+}
+
+.blend-dialog__mode-btn--active {
+  box-shadow: inset 0 0 0 2px var(--r95-color-materialText);
+}
+
+.blend-dialog__chip {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  min-width: 0;
+}
+
+.blend-dialog__chip--selected {
+  box-shadow: 0 0 0 2px var(--r95-color-materialText);
+}
+
+.blend-dialog__preview-swatch {
+  width: 24px;
+  height: 24px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
 }
 
 .confirm-dialog {

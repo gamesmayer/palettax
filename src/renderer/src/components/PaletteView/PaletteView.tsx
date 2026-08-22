@@ -2,6 +2,7 @@ import { Button } from '@react95/core';
 import { useState } from 'react';
 import { PaletteColor } from '../../../../shared/palette-formats';
 import { usePaletteStore } from '../../store/paletteStore';
+import { BlendDialog } from '../BlendDialog/BlendDialog';
 import { ColorDialog } from '../ColorDialog/ColorDialog';
 import { ColorList } from '../ColorList/ColorList';
 import { PaletteToolbar } from './PaletteToolbar';
@@ -16,6 +17,7 @@ export function PaletteView(): JSX.Element {
   );
   const setColorSystem = usePaletteStore((state) => state.setColorSystem);
   const [colorDialog, setColorDialog] = useState<ColorDialogState>(null);
+  const [isBlendDialogOpen, setIsBlendDialogOpen] = useState(false);
 
   if (!activePalette) {
     return (
@@ -33,6 +35,7 @@ export function PaletteView(): JSX.Element {
         colorSystem={colorSystem}
         onColorSystemChange={(system) => setColorSystem(activePalette.id, system)}
         onAddColor={() => setColorDialog({ mode: 'add' })}
+        onAddBlend={() => setIsBlendDialogOpen(true)}
       />
       <ColorList
         paletteId={activePalette.id}
@@ -46,6 +49,14 @@ export function PaletteView(): JSX.Element {
           color={colorDialog.mode === 'edit' ? colorDialog.color : undefined}
           colorSystem={colorSystem}
           onClose={() => setColorDialog(null)}
+        />
+      )}
+      {isBlendDialogOpen && (
+        <BlendDialog
+          paletteId={activePalette.id}
+          colors={activePalette.colors}
+          colorSystem={colorSystem}
+          onClose={() => setIsBlendDialogOpen(false)}
         />
       )}
     </div>
