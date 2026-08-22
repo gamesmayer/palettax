@@ -1,25 +1,38 @@
 import { Input, Modal, TitleBar } from '@react95/core';
 import { MouseEvent, useState } from 'react';
-import { HexColorPicker } from 'react-colorful';
-import { hexToRgb } from '../../../../shared/color';
+import { HexColorPicker, HslColorPicker, HsvColorPicker, RgbColorPicker } from 'react-colorful';
+import {
+  ColorSystem,
+  clampByte,
+  hexToRgb,
+  hslToRgb,
+  hsvToRgb,
+  rgbToHex,
+  rgbToHsl,
+  rgbToHsv
+} from '../../../../shared/color';
 import { PaletteColor } from '../../../../shared/palette-formats';
 import { usePaletteStore } from '../../store/paletteStore';
 
 interface ColorDialogProps {
   paletteId: string;
   color?: PaletteColor;
+  colorSystem: ColorSystem;
   onClose: () => void;
 }
 
-export function ColorDialog({ paletteId, color, onClose }: ColorDialogProps): JSX.Element {
+export function ColorDialog({ paletteId, color, colorSystem, onClose }: ColorDialogProps): JSX.Element {
   const addColor = usePaletteStore((state) => state.addColor);
   const updateColor = usePaletteStore((state) => state.updateColor);
-  const [hex, setHex] = useState(color?.hex ?? '#FFFFFF');
+  const [rgb, setRgb] = useState({ r: color?.r ?? 255, g: color?.g ?? 255, b: color?.b ?? 255 });
   const [name, setName] = useState(color?.name ?? '');
 
+  const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+
   function handleSubmit(): void {
-    const { r, g, b } = hexToRgb(hex);
-    const changes = { r, g, b, hex: hex.toUpperCase(), name: name.trim() ? name.trim() : undefined };
+    const changes = { r: rgb.r, g: rgb.g, b: rgb.b, hex, name: name.trim() ? name.trim() : undefined };
     if (color) {
       updateColor(paletteId, color.id, changes);
     } else {
@@ -48,14 +61,118 @@ export function ColorDialog({ paletteId, color, onClose }: ColorDialogProps): JS
       >
         <Modal.Content>
           <div className="color-dialog__picker">
-            <HexColorPicker color={hex} onChange={setHex} />
+            {colorSystem === 'hex' && (
+              <HexColorPicker color={hex} onChange={(value) => setRgb(hexToRgb(value))} />
+            )}
+            {colorSystem === 'rgb' && (
+              <RgbColorPicker
+                color={rgb}
+                onChange={(value) =>
+                  setRgb({ r: clampByte(value.r), g: clampByte(value.g), b: clampByte(value.b) })
+                }
+              />
+            )}
+            {colorSystem === 'hsl' && (
+              <HslColorPicker color={hsl} onChange={(value) => setRgb(hslToRgb(value.h, value.s, value.l))} />
+            )}
+            {colorSystem === 'hsb' && (
+              <HsvColorPicker color={hsv} onChange={(value) => setRgb(hsvToRgb(value.h, value.s, value.v))} />
+            )}
           </div>
-          <Input
-            type="text"
-            value={hex}
-            onChange={(event) => setHex(event.target.value)}
-            aria-label="Hex code"
-          />
+
+          {colorSystem === 'hex' && (
+            <Input
+              type="text"
+              value={hex}
+              onChange={(event) => setRgb(hexToRgb(event.target.value))}
+              aria-label="Hex code"
+            />
+          )}
+          {colorSystem === 'rgb' && (
+            <div className="color-dialog__channels">
+              <Input
+                type="number"
+                min={0}
+                max={255}
+                value={rgb.r}
+                onChange={(event) => setRgb({ ...rgb, r: clampByte(Number(event.target.value)) })}
+                aria-label="Red"
+              />
+              <Input
+                type="number"
+                min={0}
+                max={255}
+                value={rgb.g}
+                onChange={(event) => setRgb({ ...rgb, g: clampByte(Number(event.target.value)) })}
+                aria-label="Green"
+              />
+              <Input
+                type="number"
+                min={0}
+                max={255}
+                value={rgb.b}
+                onChange={(event) => setRgb({ ...rgb, b: clampByte(Number(event.target.value)) })}
+                aria-label="Blue"
+              />
+            </div>
+          )}
+          {colorSystem === 'hsl' && (
+            <div className="color-dialog__channels">
+              <Input
+                type="number"
+                min={0}
+                max={360}
+                value={hsl.h}
+                onChange={(event) => setRgb(hslToRgb(Number(event.target.value), hsl.s, hsl.l))}
+                aria-label="Hue"
+              />
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={hsl.s}
+                onChange={(event) => setRgb(hslToRgb(hsl.h, Number(event.target.value), hsl.l))}
+                aria-label="Saturation"
+              />
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={hsl.l}
+                onChange={(event) => setRgb(hslToRgb(hsl.h, hsl.s, Number(event.target.value)))}
+                aria-label="Lightness"
+              />
+            </div>
+          )}
+          {colorSystem === 'hsb' && (
+            <div className="color-dialog__channels">
+              <Input
+                type="number"
+                min={0}
+                max={360}
+                value={hsv.h}
+                onChange={(event) => setRgb(hsvToRgb(Number(event.target.value), hsv.s, hsv.v))}
+                aria-label="Hue"
+              />
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={hsv.s}
+                onChange={(event) => setRgb(hsvToRgb(hsv.h, Number(event.target.value), hsv.v))}
+                aria-label="Saturation"
+              />
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={hsv.v}
+                onChange={(event) => setRgb(hsvToRgb(hsv.h, hsv.s, Number(event.target.value)))}
+                aria-label="Brightness"
+              />
+            </div>
+          )}
+
           <Input
             type="text"
             value={name}

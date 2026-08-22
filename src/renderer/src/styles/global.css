@@ -128,7 +128,7 @@ body {
   box-shadow: var(--r95-shadow-in);
 }
 
-.color-swatch__hex {
+.color-swatch__value {
   font-family: monospace;
 }
 
@@ -178,6 +178,16 @@ body {
   display: flex;
   justify-content: center;
   margin-bottom: var(--r95-space-8);
+}
+
+.color-dialog__channels {
+  display: flex;
+  gap: var(--r95-space-4);
+}
+
+.color-dialog__channels input {
+  width: 0;
+  flex: 1;
 }
 
 .confirm-dialog {

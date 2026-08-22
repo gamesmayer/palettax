@@ -1,16 +1,18 @@
 import { create } from 'zustand';
-import { generateId } from '../../../shared/color';
+import { ColorSystem, generateId } from '../../../shared/color';
 import { Palette, PaletteColor } from '../../../shared/palette-formats';
 
 interface PaletteStoreState {
   palettes: Record<string, Palette>;
   tabOrder: string[];
   activeId: string | null;
+  colorSystemByPalette: Record<string, ColorSystem>;
 
   addPalette: (palette: Palette) => void;
   createPalette: () => void;
   closeTab: (id: string) => void;
   setActive: (id: string) => void;
+  setColorSystem: (paletteId: string, system: ColorSystem) => void;
   renamePalette: (paletteId: string, name: string) => void;
   addColor: (paletteId: string, color: Omit<PaletteColor, 'id'>) => void;
   removeColor: (paletteId: string, colorId: string) => void;
@@ -40,6 +42,7 @@ export const usePaletteStore = create<PaletteStoreState>((set, get) => ({
   palettes: {},
   tabOrder: [],
   activeId: null,
+  colorSystemByPalette: {},
 
   addPalette: (palette) => set((state) => insertPalette(state, palette)),
 
@@ -57,12 +60,18 @@ export const usePaletteStore = create<PaletteStoreState>((set, get) => ({
   closeTab: (id) =>
     set((state) => {
       const { [id]: _removed, ...palettes } = state.palettes;
+      const { [id]: _removedColorSystem, ...colorSystemByPalette } = state.colorSystemByPalette;
       const tabOrder = state.tabOrder.filter((tabId) => tabId !== id);
       const activeId = state.activeId === id ? tabOrder[tabOrder.length - 1] ?? null : state.activeId;
-      return { palettes, tabOrder, activeId };
+      return { palettes, colorSystemByPalette, tabOrder, activeId };
     }),
 
   setActive: (id) => set({ activeId: id }),
+
+  setColorSystem: (paletteId, system) =>
+    set((state) => ({
+      colorSystemByPalette: { ...state.colorSystemByPalette, [paletteId]: system }
+    })),
 
   renamePalette: (paletteId, name) =>
     set((state) => {

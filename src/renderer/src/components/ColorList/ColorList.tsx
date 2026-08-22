@@ -1,6 +1,7 @@
 import { Frame } from '@react95/core';
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { ColorSystem } from '../../../../shared/color';
 import { PaletteColor } from '../../../../shared/palette-formats';
 import { usePaletteStore } from '../../store/paletteStore';
 import { ColorSwatch } from './ColorSwatch';
@@ -8,10 +9,11 @@ import { ColorSwatch } from './ColorSwatch';
 interface ColorListProps {
   paletteId: string;
   colors: PaletteColor[];
+  colorSystem: ColorSystem;
   onEditColor: (color: PaletteColor) => void;
 }
 
-export function ColorList({ paletteId, colors, onEditColor }: ColorListProps): JSX.Element {
+export function ColorList({ paletteId, colors, colorSystem, onEditColor }: ColorListProps): JSX.Element {
   const reorderColors = usePaletteStore((state) => state.reorderColors);
   const removeColor = usePaletteStore((state) => state.removeColor);
   const renameColor = usePaletteStore((state) => state.renameColor);
@@ -46,6 +48,7 @@ export function ColorList({ paletteId, colors, onEditColor }: ColorListProps): J
               <ColorSwatch
                 key={color.id}
                 color={color}
+                colorSystem={colorSystem}
                 canMoveUp={index > 0}
                 canMoveDown={index < colors.length - 1}
                 onMoveUp={() => moveColor(color.id, -1)}

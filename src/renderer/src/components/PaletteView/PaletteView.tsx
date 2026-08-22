@@ -11,6 +11,10 @@ type ColorDialogState = { mode: 'add' } | { mode: 'edit'; color: PaletteColor } 
 export function PaletteView(): JSX.Element {
   const activePalette = usePaletteStore((state) => (state.activeId ? state.palettes[state.activeId] ?? null : null));
   const createPalette = usePaletteStore((state) => state.createPalette);
+  const colorSystem = usePaletteStore((state) =>
+    state.activeId ? state.colorSystemByPalette[state.activeId] ?? 'hex' : 'hex'
+  );
+  const setColorSystem = usePaletteStore((state) => state.setColorSystem);
   const [colorDialog, setColorDialog] = useState<ColorDialogState>(null);
 
   if (!activePalette) {
@@ -25,16 +29,22 @@ export function PaletteView(): JSX.Element {
 
   return (
     <div className="palette-view">
-      <PaletteToolbar onAddColor={() => setColorDialog({ mode: 'add' })} />
+      <PaletteToolbar
+        colorSystem={colorSystem}
+        onColorSystemChange={(system) => setColorSystem(activePalette.id, system)}
+        onAddColor={() => setColorDialog({ mode: 'add' })}
+      />
       <ColorList
         paletteId={activePalette.id}
         colors={activePalette.colors}
+        colorSystem={colorSystem}
         onEditColor={(color) => setColorDialog({ mode: 'edit', color })}
       />
       {colorDialog && (
         <ColorDialog
           paletteId={activePalette.id}
           color={colorDialog.mode === 'edit' ? colorDialog.color : undefined}
+          colorSystem={colorSystem}
           onClose={() => setColorDialog(null)}
         />
       )}

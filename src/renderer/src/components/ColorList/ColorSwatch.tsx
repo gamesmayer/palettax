@@ -2,10 +2,12 @@ import { Button, Frame, Input } from '@react95/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { KeyboardEvent, MouseEvent, useState } from 'react';
+import { ColorSystem, rgbToHsl, rgbToHsv } from '../../../../shared/color';
 import { PaletteColor } from '../../../../shared/palette-formats';
 
 interface ColorSwatchProps {
   color: PaletteColor;
+  colorSystem: ColorSystem;
   canMoveUp: boolean;
   canMoveDown: boolean;
   onMoveUp: () => void;
@@ -15,8 +17,26 @@ interface ColorSwatchProps {
   onEdit: () => void;
 }
 
+function formatColorValue(color: PaletteColor, system: ColorSystem): string {
+  switch (system) {
+    case 'hex':
+      return color.hex;
+    case 'rgb':
+      return `RGB(${color.r}, ${color.g}, ${color.b})`;
+    case 'hsl': {
+      const { h, s, l } = rgbToHsl(color.r, color.g, color.b);
+      return `HSL(${h}, ${s}%, ${l}%)`;
+    }
+    case 'hsb': {
+      const { h, s, v } = rgbToHsv(color.r, color.g, color.b);
+      return `HSB(${h}, ${s}%, ${v}%)`;
+    }
+  }
+}
+
 export function ColorSwatch({
   color,
+  colorSystem,
   canMoveUp,
   canMoveDown,
   onMoveUp,
@@ -69,7 +89,7 @@ export function ColorSwatch({
         }}
         aria-label={`Edit color ${color.hex}`}
       />
-      <span className="color-swatch__hex">{color.hex}</span>
+      <span className="color-swatch__value">{formatColorValue(color, colorSystem)}</span>
       {isEditing ? (
         <Input
           className="color-swatch__name-input"
