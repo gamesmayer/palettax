@@ -1,8 +1,8 @@
 # Palettax
 
-<div style="display: flex; align-items: center; gap: 24px;">
-  <img src="./build/icon.png" alt="" style="max-width: 64px;" />
-  <div style="font-size: 18px;">Manage color palettes: import, edit and export palettes in the most popular formats.</div>
+<div align="center">
+  <img src="./build/icon.png" alt="" style="max-width: 128px;" />
+  <p style="font-size: 18px;">Manage color palettes: import, edit and export palettes in the most popular formats.</p>
 </div>
 
 
