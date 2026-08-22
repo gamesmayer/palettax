@@ -1,6 +1,6 @@
 {
   "name": "palettax",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "description": "Gestor de paletas de colores para Windows y macOS",
   "main": "./out/main/index.js",
   "private": true,
