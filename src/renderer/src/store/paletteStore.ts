@@ -7,6 +7,8 @@ interface PaletteStoreState {
   tabOrder: string[];
   activeId: string | null;
   colorSystemByPalette: Record<string, ColorSystem>;
+  undoStacks: Record<string, Palette[]>;
+  redoStacks: Record<string, Palette[]>;
 
   addPalette: (palette: Palette) => void;
   createPalette: () => void;
@@ -26,8 +28,12 @@ interface PaletteStoreState {
   renameColor: (paletteId: string, colorId: string, name: string) => void;
   updateColor: (paletteId: string, colorId: string, changes: Partial<Omit<PaletteColor, 'id'>>) => void;
   reorderColors: (paletteId: string, orderedColorIds: string[]) => void;
+  undo: (paletteId: string) => void;
+  redo: (paletteId: string) => void;
   getActivePalette: () => Palette | null;
 }
+
+type HistoryState = Pick<PaletteStoreState, 'palettes' | 'undoStacks' | 'redoStacks'>;
 
 function insertPalette(
   state: Pick<PaletteStoreState, 'palettes' | 'tabOrder'>,
@@ -45,11 +51,25 @@ function nextUntitledName(palettes: Record<string, Palette>): string {
   return untitledCount === 0 ? 'Untitled' : `Untitled ${untitledCount + 1}`;
 }
 
+function withHistory(state: HistoryState, paletteId: string, mutate: (palette: Palette) => Palette): HistoryState {
+  const palette = state.palettes[paletteId];
+  if (!palette) return state;
+  const updated = mutate(palette);
+  if (updated === palette) return state;
+  return {
+    palettes: { ...state.palettes, [paletteId]: updated },
+    undoStacks: { ...state.undoStacks, [paletteId]: [...(state.undoStacks[paletteId] ?? []), palette] },
+    redoStacks: { ...state.redoStacks, [paletteId]: [] }
+  };
+}
+
 export const usePaletteStore = create<PaletteStoreState>((set, get) => ({
   palettes: {},
   tabOrder: [],
   activeId: null,
   colorSystemByPalette: {},
+  undoStacks: {},
+  redoStacks: {},
 
   addPalette: (palette) => set((state) => insertPalette(state, palette)),
 
@@ -68,9 +88,11 @@ export const usePaletteStore = create<PaletteStoreState>((set, get) => ({
     set((state) => {
       const { [id]: _removed, ...palettes } = state.palettes;
       const { [id]: _removedColorSystem, ...colorSystemByPalette } = state.colorSystemByPalette;
+      const { [id]: _removedUndo, ...undoStacks } = state.undoStacks;
+      const { [id]: _removedRedo, ...redoStacks } = state.redoStacks;
       const tabOrder = state.tabOrder.filter((tabId) => tabId !== id);
       const activeId = state.activeId === id ? tabOrder[tabOrder.length - 1] ?? null : state.activeId;
-      return { palettes, colorSystemByPalette, tabOrder, activeId };
+      return { palettes, colorSystemByPalette, undoStacks, redoStacks, tabOrder, activeId };
     }),
 
   setActive: (id) => set({ activeId: id }),
@@ -82,110 +104,109 @@ export const usePaletteStore = create<PaletteStoreState>((set, get) => ({
 
   renamePalette: (paletteId, name) =>
     set((state) => {
-      const palette = state.palettes[paletteId];
       const trimmed = name.trim();
-      if (!palette || trimmed.length === 0) return state;
-      return { palettes: { ...state.palettes, [paletteId]: { ...palette, name: trimmed } } };
+      if (trimmed.length === 0) return state;
+      return withHistory(state, paletteId, (palette) => ({ ...palette, name: trimmed }));
     }),
 
   addColor: (paletteId, color) =>
-    set((state) => {
-      const palette = state.palettes[paletteId];
-      if (!palette) return state;
-      const newColor: PaletteColor = { ...color, id: generateId() };
-      return {
-        palettes: {
-          ...state.palettes,
-          [paletteId]: { ...palette, colors: [...palette.colors, newColor] }
-        }
-      };
-    }),
+    set((state) =>
+      withHistory(state, paletteId, (palette) => {
+        const newColor: PaletteColor = { ...color, id: generateId() };
+        return { ...palette, colors: [...palette.colors, newColor] };
+      })
+    ),
 
   addColors: (paletteId, colors) =>
-    set((state) => {
-      const palette = state.palettes[paletteId];
-      if (!palette) return state;
-      const newColors: PaletteColor[] = colors.map((color) => ({ ...color, id: generateId() }));
-      return {
-        palettes: {
-          ...state.palettes,
-          [paletteId]: { ...palette, colors: [...palette.colors, ...newColors] }
-        }
-      };
-    }),
+    set((state) =>
+      withHistory(state, paletteId, (palette) => {
+        const newColors: PaletteColor[] = colors.map((color) => ({ ...color, id: generateId() }));
+        return { ...palette, colors: [...palette.colors, ...newColors] };
+      })
+    ),
 
   insertColorsAroundId: (paletteId, anchorColorId, before, after) =>
-    set((state) => {
-      const palette = state.palettes[paletteId];
-      if (!palette) return state;
-      const anchorIndex = palette.colors.findIndex((color) => color.id === anchorColorId);
-      if (anchorIndex === -1) return state;
-      const beforeColors: PaletteColor[] = before.map((color) => ({ ...color, id: generateId() }));
-      const afterColors: PaletteColor[] = after.map((color) => ({ ...color, id: generateId() }));
-      const colors = [
-        ...palette.colors.slice(0, anchorIndex),
-        ...beforeColors,
-        palette.colors[anchorIndex],
-        ...afterColors,
-        ...palette.colors.slice(anchorIndex + 1)
-      ];
-      return { palettes: { ...state.palettes, [paletteId]: { ...palette, colors } } };
-    }),
+    set((state) =>
+      withHistory(state, paletteId, (palette) => {
+        const anchorIndex = palette.colors.findIndex((color) => color.id === anchorColorId);
+        if (anchorIndex === -1) return palette;
+        const beforeColors: PaletteColor[] = before.map((color) => ({ ...color, id: generateId() }));
+        const afterColors: PaletteColor[] = after.map((color) => ({ ...color, id: generateId() }));
+        const colors = [
+          ...palette.colors.slice(0, anchorIndex),
+          ...beforeColors,
+          palette.colors[anchorIndex],
+          ...afterColors,
+          ...palette.colors.slice(anchorIndex + 1)
+        ];
+        return { ...palette, colors };
+      })
+    ),
 
   removeColor: (paletteId, colorId) =>
-    set((state) => {
-      const palette = state.palettes[paletteId];
-      if (!palette) return state;
-      return {
-        palettes: {
-          ...state.palettes,
-          [paletteId]: { ...palette, colors: palette.colors.filter((color) => color.id !== colorId) }
-        }
-      };
-    }),
+    set((state) =>
+      withHistory(state, paletteId, (palette) => ({
+        ...palette,
+        colors: palette.colors.filter((color) => color.id !== colorId)
+      }))
+    ),
 
   renameColor: (paletteId, colorId, name) =>
-    set((state) => {
-      const palette = state.palettes[paletteId];
-      if (!palette) return state;
-      const trimmed = name.trim();
-      return {
-        palettes: {
-          ...state.palettes,
-          [paletteId]: {
-            ...palette,
-            colors: palette.colors.map((color) =>
-              color.id === colorId ? { ...color, name: trimmed.length > 0 ? trimmed : undefined } : color
-            )
-          }
-        }
-      };
-    }),
+    set((state) =>
+      withHistory(state, paletteId, (palette) => {
+        const trimmed = name.trim();
+        return {
+          ...palette,
+          colors: palette.colors.map((color) =>
+            color.id === colorId ? { ...color, name: trimmed.length > 0 ? trimmed : undefined } : color
+          )
+        };
+      })
+    ),
 
   updateColor: (paletteId, colorId, changes) =>
+    set((state) =>
+      withHistory(state, paletteId, (palette) => ({
+        ...palette,
+        colors: palette.colors.map((color) => (color.id === colorId ? { ...color, ...changes } : color))
+      }))
+    ),
+
+  reorderColors: (paletteId, orderedColorIds) =>
+    set((state) =>
+      withHistory(state, paletteId, (palette) => {
+        const byId = new Map(palette.colors.map((color) => [color.id, color]));
+        const colors = orderedColorIds
+          .map((id) => byId.get(id))
+          .filter((color): color is PaletteColor => Boolean(color));
+        return { ...palette, colors };
+      })
+    ),
+
+  undo: (paletteId) =>
     set((state) => {
-      const palette = state.palettes[paletteId];
-      if (!palette) return state;
+      const stack = state.undoStacks[paletteId];
+      const current = state.palettes[paletteId];
+      if (!stack || stack.length === 0 || !current) return state;
+      const previous = stack[stack.length - 1];
       return {
-        palettes: {
-          ...state.palettes,
-          [paletteId]: {
-            ...palette,
-            colors: palette.colors.map((color) => (color.id === colorId ? { ...color, ...changes } : color))
-          }
-        }
+        palettes: { ...state.palettes, [paletteId]: previous },
+        undoStacks: { ...state.undoStacks, [paletteId]: stack.slice(0, -1) },
+        redoStacks: { ...state.redoStacks, [paletteId]: [...(state.redoStacks[paletteId] ?? []), current] }
       };
     }),
 
-  reorderColors: (paletteId, orderedColorIds) =>
+  redo: (paletteId) =>
     set((state) => {
-      const palette = state.palettes[paletteId];
-      if (!palette) return state;
-      const byId = new Map(palette.colors.map((color) => [color.id, color]));
-      const colors = orderedColorIds
-        .map((id) => byId.get(id))
-        .filter((color): color is PaletteColor => Boolean(color));
-      return { palettes: { ...state.palettes, [paletteId]: { ...palette, colors } } };
+      const stack = state.redoStacks[paletteId];
+      const current = state.palettes[paletteId];
+      if (!stack || stack.length === 0 || !current) return state;
+      const next = stack[stack.length - 1];
+      return {
+        palettes: { ...state.palettes, [paletteId]: next },
+        redoStacks: { ...state.redoStacks, [paletteId]: stack.slice(0, -1) },
+        undoStacks: { ...state.undoStacks, [paletteId]: [...(state.undoStacks[paletteId] ?? []), current] }
+      };
     }),
 
   getActivePalette: () => {

@@ -13,6 +13,9 @@
 - Several palettes can be open at the same time.
 - Export the active palette in any of the supported formats.
 - Add colors (with a color picker and an optional name), remove them, and reorder them (by dragging or with the ↑/↓ buttons) within the active palette.
+- Undo/redo actions per palette.
+- Generate a blend (gradient) between two colors.
+- Generate shades and tints around a color.
 
 ## Supported color systems
 

@@ -17,6 +17,10 @@ export function PaletteView(): JSX.Element {
     state.activeId ? state.colorSystemByPalette[state.activeId] ?? 'hex' : 'hex'
   );
   const setColorSystem = usePaletteStore((state) => state.setColorSystem);
+  const canUndo = usePaletteStore((state) => (activePalette ? (state.undoStacks[activePalette.id]?.length ?? 0) > 0 : false));
+  const canRedo = usePaletteStore((state) => (activePalette ? (state.redoStacks[activePalette.id]?.length ?? 0) > 0 : false));
+  const undo = usePaletteStore((state) => state.undo);
+  const redo = usePaletteStore((state) => state.redo);
   const [colorDialog, setColorDialog] = useState<ColorDialogState>(null);
   const [isBlendDialogOpen, setIsBlendDialogOpen] = useState(false);
   const [isShadeTintDialogOpen, setIsShadeTintDialogOpen] = useState(false);
@@ -39,6 +43,10 @@ export function PaletteView(): JSX.Element {
         onAddColor={() => setColorDialog({ mode: 'add' })}
         onAddBlend={() => setIsBlendDialogOpen(true)}
         onAddShadeTint={() => setIsShadeTintDialogOpen(true)}
+        onUndo={() => undo(activePalette.id)}
+        onRedo={() => redo(activePalette.id)}
+        canUndo={canUndo}
+        canRedo={canRedo}
       />
       <ColorList
         paletteId={activePalette.id}
