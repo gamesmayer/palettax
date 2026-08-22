@@ -9,6 +9,7 @@ mac:
   target: dmg
   category: public.app-category.graphics-design
   hardenedRuntime: true
+  notarize: true
 win:
   target: nsis
 nsis:
