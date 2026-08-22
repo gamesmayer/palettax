@@ -9,7 +9,8 @@ mac:
   target: dmg
   category: public.app-category.graphics-design
   hardenedRuntime: true
-  notarize: true
+  notarize:
+    teamId: DN9XYB79A9
 win:
   target: nsis
 nsis:
