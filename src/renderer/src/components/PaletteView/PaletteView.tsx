@@ -5,6 +5,7 @@ import { usePaletteStore } from '../../store/paletteStore';
 import { BlendDialog } from '../BlendDialog/BlendDialog';
 import { ColorDialog } from '../ColorDialog/ColorDialog';
 import { ColorList } from '../ColorList/ColorList';
+import { ShadeTintDialog } from '../ShadeTintDialog/ShadeTintDialog';
 import { PaletteToolbar } from './PaletteToolbar';
 
 type ColorDialogState = { mode: 'add' } | { mode: 'edit'; color: PaletteColor } | null;
@@ -18,6 +19,7 @@ export function PaletteView(): JSX.Element {
   const setColorSystem = usePaletteStore((state) => state.setColorSystem);
   const [colorDialog, setColorDialog] = useState<ColorDialogState>(null);
   const [isBlendDialogOpen, setIsBlendDialogOpen] = useState(false);
+  const [isShadeTintDialogOpen, setIsShadeTintDialogOpen] = useState(false);
 
   if (!activePalette) {
     return (
@@ -36,6 +38,7 @@ export function PaletteView(): JSX.Element {
         onColorSystemChange={(system) => setColorSystem(activePalette.id, system)}
         onAddColor={() => setColorDialog({ mode: 'add' })}
         onAddBlend={() => setIsBlendDialogOpen(true)}
+        onAddShadeTint={() => setIsShadeTintDialogOpen(true)}
       />
       <ColorList
         paletteId={activePalette.id}
@@ -57,6 +60,14 @@ export function PaletteView(): JSX.Element {
           colors={activePalette.colors}
           colorSystem={colorSystem}
           onClose={() => setIsBlendDialogOpen(false)}
+        />
+      )}
+      {isShadeTintDialogOpen && (
+        <ShadeTintDialog
+          paletteId={activePalette.id}
+          colors={activePalette.colors}
+          colorSystem={colorSystem}
+          onClose={() => setIsShadeTintDialogOpen(false)}
         />
       )}
     </div>

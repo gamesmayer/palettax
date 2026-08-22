@@ -2,6 +2,7 @@ import {
   blendRgb,
   clampByte,
   cmykToRgb,
+  generateShadesAndTints,
   hexToRgb,
   hslToRgb,
   hsvToRgb,
@@ -215,5 +216,48 @@ describe('blendRgb', () => {
     const color = { r: 128, g: 64, b: 32 };
     const result = blendRgb(color, color, 4);
     result.forEach((step) => expect(step).toEqual(color));
+  });
+});
+
+describe('generateShadesAndTints', () => {
+  const base = { r: 100, g: 150, b: 200 };
+  const baseHsl = rgbToHsl(base.r, base.g, base.b);
+
+  it('returns the requested number of shades and tints', () => {
+    const { shades, tints } = generateShadesAndTints(base, 3, 2, 10);
+    expect(shades).toHaveLength(3);
+    expect(tints).toHaveLength(2);
+  });
+
+  it('returns empty arrays when a count is 0', () => {
+    const { shades, tints } = generateShadesAndTints(base, 0, 0, 10);
+    expect(shades).toEqual([]);
+    expect(tints).toEqual([]);
+  });
+
+  it('does not jump straight to pure black/white for a small count', () => {
+    const { shades, tints } = generateShadesAndTints(base, 1, 1, 10);
+    expect(shades[0]).not.toEqual({ r: 0, g: 0, b: 0 });
+    expect(tints[0]).not.toEqual({ r: 255, g: 255, b: 255 });
+  });
+
+  it('steps lightness down by the given amount per shade, darkest first', () => {
+    const { shades } = generateShadesAndTints(base, 3, 0, 10);
+    const lightnesses = shades.map((color) => rgbToHsl(color.r, color.g, color.b).l);
+    expect(lightnesses).toEqual([...lightnesses].sort((a, b) => a - b));
+    expect(lightnesses[lightnesses.length - 1]).toBeLessThan(baseHsl.l);
+  });
+
+  it('steps lightness up by the given amount per tint, lightest last', () => {
+    const { tints } = generateShadesAndTints(base, 0, 3, 10);
+    const lightnesses = tints.map((color) => rgbToHsl(color.r, color.g, color.b).l);
+    expect(lightnesses).toEqual([...lightnesses].sort((a, b) => a - b));
+    expect(lightnesses[0]).toBeGreaterThan(baseHsl.l);
+  });
+
+  it('clamps lightness at 0 and 100 instead of overshooting', () => {
+    const { shades, tints } = generateShadesAndTints(base, 10, 10, 10);
+    shades.forEach((color) => expect(rgbToHsl(color.r, color.g, color.b).l).toBeGreaterThanOrEqual(0));
+    tints.forEach((color) => expect(rgbToHsl(color.r, color.g, color.b).l).toBeLessThanOrEqual(100));
   });
 });

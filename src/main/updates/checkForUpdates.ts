@@ -1,13 +1,10 @@
-import { app, BrowserWindow } from 'electron';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { BrowserWindow } from 'electron';
 import { IPC_CHANNELS, UpdateInfo } from '../../shared/ipc-contract';
 
 // See package.json "repository" for the source of truth.
 const REPO_OWNER = 'gamesmayer';
 const REPO_NAME = 'palettax';
 const GITHUB_LATEST_RELEASE_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`;
-const MIN_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 interface GithubReleaseResponse {
   tag_name: string;
@@ -16,27 +13,6 @@ interface GithubReleaseResponse {
   published_at: string;
   draft: boolean;
   prerelease: boolean;
-}
-
-interface UpdateCheckCache {
-  lastCheckedAt: string;
-}
-
-function getCachePath(): string {
-  return join(app.getPath('userData'), 'update-check-cache.json');
-}
-
-async function readCache(): Promise<UpdateCheckCache | null> {
-  try {
-    return JSON.parse(await readFile(getCachePath(), 'utf-8')) as UpdateCheckCache;
-  } catch {
-    return null;
-  }
-}
-
-async function writeCache(cache: UpdateCheckCache): Promise<void> {
-  await mkdir(app.getPath('userData'), { recursive: true });
-  await writeFile(getCachePath(), JSON.stringify(cache), 'utf-8');
 }
 
 export function isNewerVersion(latest: string, current: string): boolean {
@@ -64,14 +40,8 @@ export async function checkForUpdates(
   currentVersion: string
 ): Promise<void> {
   try {
-    const cache = await readCache();
-    if (cache && Date.now() - new Date(cache.lastCheckedAt).getTime() < MIN_CHECK_INTERVAL_MS) {
-      return;
-    }
-
     const release = await fetchLatestRelease();
     if (!release) return;
-    await writeCache({ lastCheckedAt: new Date().toISOString() });
     if (release.draft || release.prerelease) return;
 
     const latestVersion = release.tag_name.replace(/^v/, '');

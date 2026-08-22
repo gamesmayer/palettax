@@ -16,6 +16,12 @@ interface PaletteStoreState {
   renamePalette: (paletteId: string, name: string) => void;
   addColor: (paletteId: string, color: Omit<PaletteColor, 'id'>) => void;
   addColors: (paletteId: string, colors: Omit<PaletteColor, 'id'>[]) => void;
+  insertColorsAroundId: (
+    paletteId: string,
+    anchorColorId: string,
+    before: Omit<PaletteColor, 'id'>[],
+    after: Omit<PaletteColor, 'id'>[]
+  ) => void;
   removeColor: (paletteId: string, colorId: string) => void;
   renameColor: (paletteId: string, colorId: string, name: string) => void;
   updateColor: (paletteId: string, colorId: string, changes: Partial<Omit<PaletteColor, 'id'>>) => void;
@@ -106,6 +112,24 @@ export const usePaletteStore = create<PaletteStoreState>((set, get) => ({
           [paletteId]: { ...palette, colors: [...palette.colors, ...newColors] }
         }
       };
+    }),
+
+  insertColorsAroundId: (paletteId, anchorColorId, before, after) =>
+    set((state) => {
+      const palette = state.palettes[paletteId];
+      if (!palette) return state;
+      const anchorIndex = palette.colors.findIndex((color) => color.id === anchorColorId);
+      if (anchorIndex === -1) return state;
+      const beforeColors: PaletteColor[] = before.map((color) => ({ ...color, id: generateId() }));
+      const afterColors: PaletteColor[] = after.map((color) => ({ ...color, id: generateId() }));
+      const colors = [
+        ...palette.colors.slice(0, anchorIndex),
+        ...beforeColors,
+        palette.colors[anchorIndex],
+        ...afterColors,
+        ...palette.colors.slice(anchorIndex + 1)
+      ];
+      return { palettes: { ...state.palettes, [paletteId]: { ...palette, colors } } };
     }),
 
   removeColor: (paletteId, colorId) =>

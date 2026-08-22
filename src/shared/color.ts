@@ -182,6 +182,27 @@ export function blendRgb(
   return result;
 }
 
+export function generateShadesAndTints(
+  base: { r: number; g: number; b: number },
+  shadeCount: number,
+  tintCount: number,
+  lightnessStep: number
+): { shades: { r: number; g: number; b: number }[]; tints: { r: number; g: number; b: number }[] } {
+  const { h, s, l } = rgbToHsl(base.r, base.g, base.b);
+
+  const shades: { r: number; g: number; b: number }[] = [];
+  for (let i = shadeCount; i >= 1; i--) {
+    shades.push(hslToRgb(h, s, Math.max(0, l - i * lightnessStep)));
+  }
+
+  const tints: { r: number; g: number; b: number }[] = [];
+  for (let i = 1; i <= tintCount; i++) {
+    tints.push(hslToRgb(h, s, Math.min(100, l + i * lightnessStep)));
+  }
+
+  return { shades, tints };
+}
+
 export function cmykToRgb(c: number, m: number, y: number, k: number): { r: number; g: number; b: number } {
   const cn = c / 100;
   const mn = m / 100;

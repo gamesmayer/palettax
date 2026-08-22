@@ -7,6 +7,7 @@ interface PaletteToolbarProps {
   onColorSystemChange: (system: ColorSystem) => void;
   onAddColor: () => void;
   onAddBlend: () => void;
+  onAddShadeTint: () => void;
 }
 
 const COLOR_SYSTEM_LABELS: Record<ColorSystem, string> = {
@@ -29,7 +30,8 @@ export function PaletteToolbar({
   colorSystem,
   onColorSystemChange,
   onAddColor,
-  onAddBlend
+  onAddBlend,
+  onAddShadeTint
 }: PaletteToolbarProps): JSX.Element {
   return (
     <Frame className="palette-toolbar">
@@ -42,8 +44,11 @@ export function PaletteToolbar({
         }
         aria-label="Color system"
       />
-      <Button onClick={onAddColor}>Add color</Button>
-      <Button onClick={onAddBlend}>Add blending</Button>
+      <Button onClick={onAddColor} aria-label="Add color">
+        +
+      </Button>
+      <Button onClick={onAddBlend}>Blending</Button>
+      <Button onClick={onAddShadeTint}>Shades/Tints</Button>
     </Frame>
   );
 }

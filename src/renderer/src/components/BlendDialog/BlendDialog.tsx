@@ -1,9 +1,9 @@
-import { Button, Frame, Input, Modal, TitleBar } from '@react95/core';
+import { Input, Modal, TitleBar } from '@react95/core';
 import { MouseEvent, useState } from 'react';
 import { ColorSystem, blendRgb, rgbToHex } from '../../../../shared/color';
 import { PaletteColor } from '../../../../shared/palette-formats';
 import { usePaletteStore } from '../../store/paletteStore';
-import { ColorSystemFields } from '../ColorPicker/ColorSystemFields';
+import { EndpointMode, EndpointPicker, Rgb } from '../ColorPicker/EndpointPicker';
 
 interface BlendDialogProps {
   paletteId: string;
@@ -12,77 +12,11 @@ interface BlendDialogProps {
   onClose: () => void;
 }
 
-type EndpointMode = 'palette' | 'new';
-type Rgb = { r: number; g: number; b: number };
-
 const MIN_STEPS = 3;
 const MAX_STEPS = 50;
 
 function clampSteps(value: number): number {
   return Math.min(MAX_STEPS, Math.max(MIN_STEPS, Math.round(value)));
-}
-
-interface EndpointPickerProps {
-  label: string;
-  mode: EndpointMode;
-  onModeChange: (mode: EndpointMode) => void;
-  colors: PaletteColor[];
-  colorSystem: ColorSystem;
-  paletteColorId: string;
-  onPaletteColorChange: (colorId: string) => void;
-  customRgb: Rgb;
-  onCustomRgbChange: (rgb: Rgb) => void;
-}
-
-function EndpointPicker({
-  label,
-  mode,
-  onModeChange,
-  colors,
-  colorSystem,
-  paletteColorId,
-  onPaletteColorChange,
-  customRgb,
-  onCustomRgbChange
-}: EndpointPickerProps): JSX.Element {
-  return (
-    <div className="blend-dialog__field">
-      <span className="blend-dialog__field-label">{label}</span>
-      <div className="blend-dialog__mode-toggle">
-        <Button
-          className={mode === 'palette' ? 'blend-dialog__mode-btn blend-dialog__mode-btn--active' : 'blend-dialog__mode-btn'}
-          disabled={colors.length === 0}
-          onClick={() => onModeChange('palette')}
-        >
-          Palette color
-        </Button>
-        <Button
-          className={mode === 'new' ? 'blend-dialog__mode-btn blend-dialog__mode-btn--active' : 'blend-dialog__mode-btn'}
-          onClick={() => onModeChange('new')}
-        >
-          New color
-        </Button>
-      </div>
-      {mode === 'palette' ? (
-        <div className="blend-dialog__swatch-picker">
-          {colors.map((color) => (
-            <Frame
-              key={color.id}
-              as="button"
-              className={
-                color.id === paletteColorId ? 'blend-dialog__chip blend-dialog__chip--selected' : 'blend-dialog__chip'
-              }
-              style={{ backgroundColor: color.hex }}
-              onClick={() => onPaletteColorChange(color.id)}
-              aria-label={`${label}: ${color.hex}`}
-            />
-          ))}
-        </div>
-      ) : (
-        <ColorSystemFields colorSystem={colorSystem} rgb={customRgb} onChange={onCustomRgbChange} />
-      )}
-    </div>
-  );
 }
 
 export function BlendDialog({ paletteId, colors, colorSystem, onClose }: BlendDialogProps): JSX.Element {
