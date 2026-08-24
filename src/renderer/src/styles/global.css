@@ -426,16 +426,26 @@ button:disabled {
 	position: fixed;
 	top: 80px;
 	left: 50%;
-	margin-left: -200px;
-	width: 400px;
+	margin-left: -260px;
+	width: 520px;
 }
 
-.shade-tint-dialog__counts {
+.shade-tint-dialog__section {
+	padding: var(--r95-space-8);
+	margin-bottom: var(--r95-space-8);
+}
+
+.shade-tint-dialog__section-title {
+	font-weight: bold;
+	margin-bottom: var(--r95-space-8);
+}
+
+.shade-tint-dialog__row {
 	display: flex;
 	gap: var(--r95-space-8);
 }
 
-.shade-tint-dialog__counts .endpoint-picker__field {
+.shade-tint-dialog__row .endpoint-picker__field {
 	flex: 1;
 	width: 0;
 }

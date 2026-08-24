@@ -1,10 +1,11 @@
-import { Input, Modal, TitleBar } from "@react95/core";
-import { MouseEvent, useState } from "react";
+import { Dropdown, Frame, Input, Modal, TitleBar } from "@react95/core";
+import { ChangeEvent, MouseEvent, useState } from "react";
 import {
 	ColorSystem,
 	generateShadesAndTints,
 	rgbToHex,
 } from "../../../../shared/color";
+import { Easing } from "../../../../shared/easing";
 import { PaletteColor } from "../../../../shared/palette-formats";
 import { usePaletteStore } from "../../store/paletteStore";
 import {
@@ -23,16 +24,45 @@ interface ShadeTintDialogProps {
 
 const MIN_COUNT = 0;
 const MAX_COUNT = 20;
-const MIN_STEP = 1;
-const MAX_STEP = 50;
-const DEFAULT_LIGHTNESS_STEP = 10;
+const MIN_LIGHTNESS_SHIFT = 0;
+const MAX_LIGHTNESS_SHIFT = 100;
+const MIN_HUE_SHIFT = -180;
+const MAX_HUE_SHIFT = 180;
+const MIN_CHROMA_SHIFT = -100;
+const MAX_CHROMA_SHIFT = 100;
+const DEFAULT_LIGHTNESS_SHIFT = 50;
+
+const EASING_LABELS: Record<Easing, string> = {
+	linear: "Linear",
+	"ease-in": "Ease In",
+	"ease-out": "Ease Out",
+	"ease-in-out": "Ease In-Out",
+	smootherstep: "Smootherstep",
+};
+const EASING_BY_LABEL: Record<string, Easing> = Object.fromEntries(
+	Object.entries(EASING_LABELS).map(([key, label]) => [label, key as Easing])
+);
 
 function clampCount(value: number): number {
 	return Math.min(MAX_COUNT, Math.max(MIN_COUNT, Math.round(value)));
 }
 
-function clampStep(value: number): number {
-	return Math.min(MAX_STEP, Math.max(MIN_STEP, Math.round(value)));
+function clampLightnessShift(value: number): number {
+	return Math.min(
+		MAX_LIGHTNESS_SHIFT,
+		Math.max(MIN_LIGHTNESS_SHIFT, Math.round(value))
+	);
+}
+
+function clampHueShift(value: number): number {
+	return Math.min(MAX_HUE_SHIFT, Math.max(MIN_HUE_SHIFT, Math.round(value)));
+}
+
+function clampChromaShift(value: number): number {
+	return Math.min(
+		MAX_CHROMA_SHIFT,
+		Math.max(MIN_CHROMA_SHIFT, Math.round(value))
+	);
 }
 
 export function ShadeTintDialog({
@@ -56,8 +86,16 @@ export function ShadeTintDialog({
 	);
 
 	const [shadeCount, setShadeCount] = useState(3);
+	const [shadeDarkness, setShadeDarkness] = useState(DEFAULT_LIGHTNESS_SHIFT);
+	const [shadeHueShift, setShadeHueShift] = useState(0);
+	const [shadeChromaShift, setShadeChromaShift] = useState(0);
+
 	const [tintCount, setTintCount] = useState(3);
-	const [lightnessStep, setLightnessStep] = useState(DEFAULT_LIGHTNESS_STEP);
+	const [tintLightness, setTintLightness] = useState(DEFAULT_LIGHTNESS_SHIFT);
+	const [tintHueShift, setTintHueShift] = useState(0);
+	const [tintChromaShift, setTintChromaShift] = useState(0);
+
+	const [easing, setEasing] = useState<Easing>("linear");
 
 	const base =
 		mode === "palette"
@@ -67,7 +105,17 @@ export function ShadeTintDialog({
 		base,
 		shadeCount,
 		tintCount,
-		lightnessStep
+		{
+			lightnessShift: shadeDarkness,
+			hueShift: shadeHueShift,
+			chromaShift: shadeChromaShift,
+		},
+		{
+			lightnessShift: tintLightness,
+			hueShift: tintHueShift,
+			chromaShift: tintChromaShift,
+		},
+		easing
 	);
 	const preview = [...shades, base, ...tints];
 
@@ -135,49 +183,151 @@ export function ShadeTintDialog({
 						onCustomRgbChange={setCustomRgb}
 					/>
 
-					<div className="shade-tint-dialog__counts">
-						<div className="endpoint-picker__field">
-							<span className="endpoint-picker__field-label">Shades</span>
-							<Input
-								type="number"
-								min={MIN_COUNT}
-								max={MAX_COUNT}
-								value={shadeCount}
-								onChange={(event) =>
-									setShadeCount(clampCount(Number(event.target.value)))
-								}
-								aria-label="Number of shades"
-							/>
-						</div>
-						<div className="endpoint-picker__field">
-							<span className="endpoint-picker__field-label">Tints</span>
-							<Input
-								type="number"
-								min={MIN_COUNT}
-								max={MAX_COUNT}
-								value={tintCount}
-								onChange={(event) =>
-									setTintCount(clampCount(Number(event.target.value)))
-								}
-								aria-label="Number of tints"
-							/>
-						</div>
-						<div className="endpoint-picker__field">
-							<span className="endpoint-picker__field-label">
-								Lightness step %
-							</span>
-							<Input
-								type="number"
-								min={MIN_STEP}
-								max={MAX_STEP}
-								value={lightnessStep}
-								onChange={(event) =>
-									setLightnessStep(clampStep(Number(event.target.value)))
-								}
-								aria-label="Lightness step percentage"
-							/>
-						</div>
+					<div className="endpoint-picker__field">
+						<span className="endpoint-picker__field-label">Interpolation</span>
+						<Dropdown
+							options={Object.values(EASING_LABELS)}
+							value={EASING_LABELS[easing]}
+							onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+								setEasing(EASING_BY_LABEL[event.target.value])
+							}
+							aria-label="Interpolation method"
+						/>
 					</div>
+
+					<Frame className="shade-tint-dialog__section">
+						<div className="shade-tint-dialog__section-title">Shades</div>
+						<div className="shade-tint-dialog__row">
+							<div className="endpoint-picker__field">
+								<span className="endpoint-picker__field-label">Amount</span>
+								<Input
+									type="number"
+									min={MIN_COUNT}
+									max={MAX_COUNT}
+									value={shadeCount}
+									onChange={(event) =>
+										setShadeCount(clampCount(Number(event.target.value)))
+									}
+									aria-label="Number of shades"
+								/>
+							</div>
+							<div className="endpoint-picker__field">
+								<span className="endpoint-picker__field-label">Darkness %</span>
+								<Input
+									type="number"
+									min={MIN_LIGHTNESS_SHIFT}
+									max={MAX_LIGHTNESS_SHIFT}
+									value={shadeDarkness}
+									onChange={(event) =>
+										setShadeDarkness(
+											clampLightnessShift(Number(event.target.value))
+										)
+									}
+									aria-label="Shade darkness"
+								/>
+							</div>
+							<div className="endpoint-picker__field">
+								<span className="endpoint-picker__field-label">
+									Hue Shift °
+								</span>
+								<Input
+									type="number"
+									min={MIN_HUE_SHIFT}
+									max={MAX_HUE_SHIFT}
+									value={shadeHueShift}
+									onChange={(event) =>
+										setShadeHueShift(clampHueShift(Number(event.target.value)))
+									}
+									aria-label="Shade hue shift"
+								/>
+							</div>
+							<div className="endpoint-picker__field">
+								<span className="endpoint-picker__field-label">
+									Chroma Shift %
+								</span>
+								<Input
+									type="number"
+									min={MIN_CHROMA_SHIFT}
+									max={MAX_CHROMA_SHIFT}
+									value={shadeChromaShift}
+									onChange={(event) =>
+										setShadeChromaShift(
+											clampChromaShift(Number(event.target.value))
+										)
+									}
+									aria-label="Shade chroma shift"
+								/>
+							</div>
+						</div>
+					</Frame>
+
+					<Frame className="shade-tint-dialog__section">
+						<div className="shade-tint-dialog__section-title">Tints</div>
+						<div className="shade-tint-dialog__row">
+							<div className="endpoint-picker__field">
+								<span className="endpoint-picker__field-label">Amount</span>
+								<Input
+									type="number"
+									min={MIN_COUNT}
+									max={MAX_COUNT}
+									value={tintCount}
+									onChange={(event) =>
+										setTintCount(clampCount(Number(event.target.value)))
+									}
+									aria-label="Number of tints"
+								/>
+							</div>
+							<div className="endpoint-picker__field">
+								<span className="endpoint-picker__field-label">
+									Lightness %
+								</span>
+								<Input
+									type="number"
+									min={MIN_LIGHTNESS_SHIFT}
+									max={MAX_LIGHTNESS_SHIFT}
+									value={tintLightness}
+									onChange={(event) =>
+										setTintLightness(
+											clampLightnessShift(Number(event.target.value))
+										)
+									}
+									aria-label="Tint lightness"
+								/>
+							</div>
+							<div className="endpoint-picker__field">
+								<span className="endpoint-picker__field-label">
+									Hue Shift °
+								</span>
+								<Input
+									type="number"
+									min={MIN_HUE_SHIFT}
+									max={MAX_HUE_SHIFT}
+									value={tintHueShift}
+									onChange={(event) =>
+										setTintHueShift(clampHueShift(Number(event.target.value)))
+									}
+									aria-label="Tint hue shift"
+								/>
+							</div>
+							<div className="endpoint-picker__field">
+								<span className="endpoint-picker__field-label">
+									Chroma Shift %
+								</span>
+								<Input
+									type="number"
+									min={MIN_CHROMA_SHIFT}
+									max={MAX_CHROMA_SHIFT}
+									value={tintChromaShift}
+									onChange={(event) =>
+										setTintChromaShift(
+											clampChromaShift(Number(event.target.value))
+										)
+									}
+									aria-label="Tint chroma shift"
+								/>
+							</div>
+						</div>
+					</Frame>
 
 					<div className="endpoint-picker__field">
 						<span className="endpoint-picker__field-label">

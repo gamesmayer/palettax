@@ -133,15 +133,24 @@ export function HelpDialog({ onClose }: HelpDialogProps): JSX.Element {
 									</div>
 									<p className="help-dialog__section-body">
 										Generates darker shades and lighter tints around a base
-										color by converting its RGB to HSL (hue, saturation,
-										lightness). Hue and saturation are held fixed; only
-										lightness is stepped — down for shades, up for tints — by a
-										configurable percentage per step, clamped at 0%/100% so it
-										never overshoots pure black or white. The result is
-										converted back to RGB. Because hue and saturation never
-										change, every generated shade or tint sits on the exact same
-										"spoke" of the HSL color wheel as the base color — only how
-										light or dark it is differs.
+										color by converting it to OKLCH (lightness, chroma, hue)
+										once. Darkness/Lightness sets a target lightness — a
+										percentage of the way toward black (for shades) or white
+										(for tints); Hue Shift and Chroma Shift set the total
+										hue/chroma displacement reached by the furthest step. All
+										three are interpolated from the base color to that target
+										across the ramp, with hue wrapping correctly around the
+										color wheel (e.g. 350° + 20° lands on 10°, not 370°). If an
+										interpolated color would fall outside the sRGB gamut, chroma
+										is reduced just enough to bring it back in range while
+										keeping its hue and lightness intact, rather than naively
+										clipping each RGB channel — which would visibly distort the
+										hue. An Interpolation setting controls how that progress
+										along the ramp is paced — Linear (the default) spaces steps
+										evenly, while Ease In, Ease Out, Ease In-Out, and
+										Smootherstep bias more of the change toward one end, the
+										middle, or spread it out more gradually, without changing
+										where the ramp starts or ends.
 									</p>
 								</div>
 							</Tab>
