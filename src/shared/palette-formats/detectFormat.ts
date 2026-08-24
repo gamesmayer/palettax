@@ -13,5 +13,6 @@ export function detectFormatByExtension(
 	if (extension === "txt") return "txt";
 	if (extension === "css") return "css";
 	if (extension === "ase") return "ase";
+	if (extension === "aco") return "aco";
 	return null;
 }

@@ -21,11 +21,16 @@ describe('detectFormatByExtension', () => {
     expect(detectFormatByExtension('foo.ase')).toBe('ase');
   });
 
+  it('detects .aco', () => {
+    expect(detectFormatByExtension('foo.aco')).toBe('aco');
+  });
+
   it('is case-insensitive', () => {
     expect(detectFormatByExtension('FOO.PAL')).toBe('pal');
     expect(detectFormatByExtension('FOO.TXT')).toBe('txt');
     expect(detectFormatByExtension('FOO.CSS')).toBe('css');
     expect(detectFormatByExtension('FOO.ASE')).toBe('ase');
+    expect(detectFormatByExtension('FOO.ACO')).toBe('aco');
   });
 
   it('returns null for unsupported extensions', () => {

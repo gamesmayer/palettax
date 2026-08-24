@@ -47,6 +47,11 @@ export function buildMenu(mainWindow: BrowserWindow): Menu {
 							click: () =>
 								mainWindow.webContents.send("menu:trigger-export", "ase"),
 						},
+						{
+							label: "Adobe Color Swatch (.aco)",
+							click: () =>
+								mainWindow.webContents.send("menu:trigger-export", "aco"),
+						},
 					],
 				},
 				{ type: "separator" },

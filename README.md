@@ -34,7 +34,7 @@ These are per-color display/edit representations, independent of the palette imp
 
 A palette is organized into one or more **groups**: named, stacked lists of colors, similar to layer groups or folders.
 
-Only Adobe Swatch Exchange (`.ase`) preserves this structure natively. The other formats have no concept of groups: importing a `.pal`/`.gpl`/`.txt`/`.css` file puts all of its colors into a single group, and exporting to any of them concatenates every group's colors into one flat list, in group order.
+Only Adobe Swatch Exchange (`.ase`) preserves this structure natively. The other formats have no concept of groups: importing a `.pal`/`.gpl`/`.txt`/`.css`/`.aco` file puts all of its colors into a single group, and exporting to any of them concatenates every group's colors into one flat list, in group order.
 
 ## Supported formats
 
@@ -95,6 +95,10 @@ Generates a `:root` block with one variable per color. On import, only the hexad
 
 Adobe's binary swatch format, used by Illustrator, Photoshop and InDesign. The only supported format that preserves **groups**: named groups round-trip exactly, and top-level (ungrouped) swatches are kept ungrouped. On import, swatches can use any of Adobe's four color models — RGB, CMYK, Grayscale and Lab are all converted to RGB (Lab conversion is an approximation, since Lab covers a wider gamut than sRGB). On export, colors are always written as RGB.
 
+### Adobe Color Swatch (`.aco`)
+
+Adobe's binary swatch format used by Photoshop's Swatches panel (also readable by Illustrator and InDesign) — a flat per-swatch list rather than `.ase`'s group-oriented panel format. It does not support **groups**: importing an `.aco` file puts all of its colors into a single group, same as `.pal`/`.gpl`/`.txt`/`.css`. On import, swatches can use any of Adobe's five raw color models — RGB, HSB, CMYK, Grayscale and Lab are all converted to RGB (Lab conversion is an approximation, since Lab covers a wider gamut than sRGB). A file may contain a legacy "version 1" block (no names), a "version 2" block (with names), or both back-to-back as Photoshop typically writes them; when both are present, the version 2 names are used. On export, both a version 1 and a version 2 block are written, always as RGB, for maximum compatibility with older readers.
+
 ## Requirements
 
 - Node.js 20 (LTS) and npm.
@@ -119,7 +123,7 @@ Opens the app with hot-reload on top of Electron.
 npm test
 ```
 
-Runs the Jest suite over the pure functions in `src/shared` (parsers/serializers for `.pal`/`.gpl`/`.txt`/`.css`/`.ase`, group manipulation, and color utilities), located in `/test` mirroring `src/shared`.
+Runs the Jest suite over the pure functions in `src/shared` (parsers/serializers for `.pal`/`.gpl`/`.txt`/`.css`/`.ase`/`.aco`, group manipulation, and color utilities), located in `/test` mirroring `src/shared`.
 
 ## Local build
 
@@ -143,14 +147,14 @@ The installers will be available for download from Releases without needing to b
 
 ## Usage
 
-1. **Import**: click "Import" (or "+ Import" in the tab bar) and select one or more `.pal`/`.gpl`/`.txt`/`.css`/`.ase` files. Each one opens in a new tab.
+1. **Import**: click "Import" (or "+ Import" in the tab bar) and select one or more `.pal`/`.gpl`/`.txt`/`.css`/`.ase`/`.aco` files. Each one opens in a new tab.
 2. **Switch palette**: click the corresponding tab. You can close a tab with the "×".
 3. **Add a group**: click "+ Add group" in the toolbar. Double-click a group's name to rename it.
 4. **Add color**: within a group, click "Add color", pick a color with the picker and, optionally, give it a name.
 5. **Remove color**: click the "✕" on the color to remove.
 6. **Reorder colors**: drag a color to its new position (or into another group), or use the ↑/↓ buttons.
 7. **Reorder or delete groups**: drag a group by its header (⠿) to reorder it, or click the "✕" in its header to delete it.
-8. **Export**: with the active palette ready, pick one of the available formats (`.pal`, `.gpl`, `.txt`, `.css`, `.ase`) from "File → Export Palette as" and choose where to save it.
+8. **Export**: with the active palette ready, pick one of the available formats (`.pal`, `.gpl`, `.txt`, `.css`, `.ase`, `.aco`) from "File → Export Palette as" and choose where to save it.
 
 ## Project structure
 
@@ -158,7 +162,7 @@ The installers will be available for download from Releases without needing to b
 src/
 ├── main/       # Electron main process (windows, menu, file dialogs)
 ├── preload/    # secure bridge between main and renderer
-├── shared/     # pure code: data models, .pal/.gpl/.txt/.css/.ase parsers/serializers, group utilities, color utilities
+├── shared/     # pure code: data models, .pal/.gpl/.txt/.css/.ase/.aco parsers/serializers, group utilities, color utilities
 └── renderer/   # React UI (tabs, groups, color list, dialogs)
 test/           # Jest tests, mirroring src/shared
 ```
