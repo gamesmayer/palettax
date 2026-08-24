@@ -1,11 +1,11 @@
-export * from './types';
+export * from '../types';
 export * from './jascPal';
 export * from './gimpGpl';
 export * from './hexList';
 export * from './css';
 export * from './detectFormat';
 
-import { Palette, PaletteFormat, PaletteParseError } from './types';
+import { Palette, PaletteFormat, PaletteParseError } from '../types';
 import { parsePal, serializePal } from './jascPal';
 import { parseGpl, serializeGpl } from './gimpGpl';
 import { parseHexTxt, serializeHexTxt } from './hexList';

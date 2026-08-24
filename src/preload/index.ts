@@ -6,7 +6,7 @@ import {
   ImportPaletteResult,
   UpdateInfo
 } from '../shared/ipc-contract';
-import { PaletteFormat } from '../shared/palette-formats/types';
+import { PaletteFormat } from '../shared/types';
 
 const paletteApi = {
   importPalette: (): Promise<ImportPaletteResult> => ipcRenderer.invoke(IPC_CHANNELS.IMPORT_PALETTE),

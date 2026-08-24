@@ -2,7 +2,7 @@
 
 <div align="center">
   <img src="./build/icon.png" alt="" width="128" />
-  <p style="font-size: 18px;">Manage color palettes: import, edit and export palettes in the most popular formats.</p>
+  <p style="font-size: 18px;">Manage color palettes in any format.</p>
 </div>
 
 

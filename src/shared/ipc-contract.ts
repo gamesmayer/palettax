@@ -1,4 +1,4 @@
-import { PaletteFormat } from './palette-formats/types';
+import { PaletteFormat } from './types';
 
 export const IPC_CHANNELS = {
   IMPORT_PALETTE: 'palette:import',

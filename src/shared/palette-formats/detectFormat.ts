@@ -1,4 +1,4 @@
-import { PaletteFormat } from './types';
+import { PaletteFormat } from '../types';
 
 export function detectFormatByExtension(fileName: string): PaletteFormat | null {
   const match = fileName.toLowerCase().match(/\.([a-z0-9]+)$/);

@@ -1,5 +1,5 @@
 import { generateId, hexToRgb, rgbToHex } from '../color';
-import { Palette, PaletteColor, PaletteParseError } from './types';
+import { Palette, PaletteColor, PaletteParseError } from '../types';
 
 function baseNameFromPath(filePath: string): string {
   const fileName = filePath.split(/[\\/]/).pop() ?? filePath;

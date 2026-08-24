@@ -1,9 +1,9 @@
-# Iconos de la aplicación
+# Application icons
 
-Coloca aquí los iconos usados por `electron-builder` al empaquetar:
+Place the icons used by `electron-builder` when packaging here:
 
-- `icon.icns` — icono de macOS.
-- `icon.ico` — icono de Windows.
-- `icon.png` (512x512 o mayor) — fuente base para generar los anteriores (por ejemplo con `electron-icon-builder`).
+- `icon.icns` — macOS icon.
+- `icon.ico` — Windows icon.
+- `icon.png` (512x512 or larger) — base source used to generate the previous ones (for example with `electron-icon-builder`).
 
-Si no se proporcionan, `electron-builder` usa el icono por defecto de Electron.
+If not provided, `electron-builder` uses Electron's default icon.
