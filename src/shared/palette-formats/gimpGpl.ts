@@ -1,4 +1,5 @@
 import { clampByte, generateId, rgbToHex } from "../color";
+import { flattenGroups, wrapAsSingleGroup } from "../paletteGroups";
 import { Palette, PaletteColor, PaletteParseError } from "../types";
 
 function baseNameFromPath(filePath: string): string {
@@ -60,7 +61,7 @@ export function parseGpl(content: string, filePath: string): Palette {
 	return {
 		id: generateId(),
 		name: name && name.length > 0 ? name : baseNameFromPath(filePath),
-		colors,
+		groups: wrapAsSingleGroup(colors),
 		sourceFormat: "gpl",
 		filePath,
 		columns,
@@ -74,7 +75,7 @@ export function serializeGpl(palette: Palette): string {
 		`Columns: ${palette.columns ?? 0}`,
 		"#",
 	];
-	for (const color of palette.colors) {
+	for (const color of flattenGroups(palette.groups)) {
 		const line = `${clampByte(color.r)} ${clampByte(color.g)} ${clampByte(color.b)}\t${color.name ?? ""}`;
 		lines.push(line.trimEnd());
 	}

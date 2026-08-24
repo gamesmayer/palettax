@@ -6,6 +6,7 @@ import {
   hexToRgb,
   hslToRgb,
   hsvToRgb,
+  labToRgb,
   rgbToCmyk,
   rgbToHex,
   rgbToHsl,
@@ -191,6 +192,32 @@ describe('cmykToRgb', () => {
     expect(roundTripped.g).toBeLessThanOrEqual(original.g + 1);
     expect(roundTripped.b).toBeGreaterThanOrEqual(original.b - 1);
     expect(roundTripped.b).toBeLessThanOrEqual(original.b + 1);
+  });
+});
+
+describe('labToRgb', () => {
+  it('converts L=0 to black', () => {
+    expect(labToRgb(0, 0, 0)).toEqual({ r: 0, g: 0, b: 0 });
+  });
+
+  it('converts L=100 to white', () => {
+    const { r, g, b } = labToRgb(100, 0, 0);
+    expect(r).toBeGreaterThanOrEqual(254);
+    expect(g).toBeGreaterThanOrEqual(254);
+    expect(b).toBeGreaterThanOrEqual(254);
+  });
+
+  it('approximates pure red for its known CIELAB (D65) value', () => {
+    const { r, g, b } = labToRgb(53.24, 80.09, 67.2);
+    expect(r).toBeGreaterThanOrEqual(250);
+    expect(g).toBeLessThanOrEqual(5);
+    expect(b).toBeLessThanOrEqual(5);
+  });
+
+  it('produces a neutral gray when a and b are 0', () => {
+    const { r, g, b } = labToRgb(50, 0, 0);
+    expect(r).toBe(g);
+    expect(g).toBe(b);
   });
 });
 

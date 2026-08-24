@@ -9,9 +9,11 @@ import {
 	rgbToHsv,
 } from "../../../../shared/color";
 import { PaletteColor } from "../../../../shared/palette-formats";
+import { CloseIcon } from "../icons/CloseIcon";
 
 interface ColorSwatchProps {
 	color: PaletteColor;
+	groupId: string;
 	colorSystem: ColorSystem;
 	canMoveUp: boolean;
 	canMoveDown: boolean;
@@ -45,6 +47,7 @@ function formatColorValue(color: PaletteColor, system: ColorSystem): string {
 
 export function ColorSwatch({
 	color,
+	groupId,
 	colorSystem,
 	canMoveUp,
 	canMoveDown,
@@ -55,7 +58,7 @@ export function ColorSwatch({
 	onEdit,
 }: ColorSwatchProps): JSX.Element {
 	const { attributes, listeners, setNodeRef, transform, transition } =
-		useSortable({ id: color.id });
+		useSortable({ id: color.id, data: { type: "color", groupId } });
 	const [isEditing, setIsEditing] = useState(false);
 	const [draft, setDraft] = useState(color.name ?? "");
 
@@ -118,8 +121,15 @@ export function ColorSwatch({
 					onKeyDown={handleKeyDown}
 				/>
 			) : (
-				<span className="color-swatch__label" onDoubleClick={startEditing}>
-					{color.name ?? "Unnamed"}
+				<span
+					className={
+						color.name
+							? "color-swatch__label"
+							: "color-swatch__label color-swatch__label--unnamed"
+					}
+					onDoubleClick={startEditing}
+				>
+					{color.name ?? color.hex}
 				</span>
 			)}
 			<Frame className="color-swatch__actions">
@@ -144,7 +154,7 @@ export function ColorSwatch({
 					onClick={onRemove}
 					aria-label="Remove color"
 				>
-					✕
+					<CloseIcon />
 				</Button>
 			</Frame>
 		</Frame>

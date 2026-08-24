@@ -1,5 +1,19 @@
 import { create } from "zustand";
 import { ColorSystem, generateId } from "../../../shared/color";
+import {
+	addColorToGroup,
+	addColorsToGroup,
+	addGroup as addGroupToPalette,
+	insertColorsAroundIdInGroup,
+	moveColorBetweenGroups,
+	removeColorFromGroup,
+	removeGroup as removeGroupFromPalette,
+	renameColorInGroup,
+	renameGroup as renameGroupInPalette,
+	reorderColorsInGroup,
+	reorderGroups as reorderGroupsInPalette,
+	updateColorInGroup,
+} from "../../../shared/paletteGroups";
 import { Palette, PaletteColor } from "../../../shared/palette-formats";
 
 interface PaletteStoreState {
@@ -16,22 +30,52 @@ interface PaletteStoreState {
 	setActive: (id: string) => void;
 	setColorSystem: (paletteId: string, system: ColorSystem) => void;
 	renamePalette: (paletteId: string, name: string) => void;
-	addColor: (paletteId: string, color: Omit<PaletteColor, "id">) => void;
-	addColors: (paletteId: string, colors: Omit<PaletteColor, "id">[]) => void;
+	addColor: (
+		paletteId: string,
+		groupId: string,
+		color: Omit<PaletteColor, "id">
+	) => void;
+	addColors: (
+		paletteId: string,
+		groupId: string,
+		colors: Omit<PaletteColor, "id">[]
+	) => void;
 	insertColorsAroundId: (
 		paletteId: string,
+		groupId: string,
 		anchorColorId: string,
 		before: Omit<PaletteColor, "id">[],
 		after: Omit<PaletteColor, "id">[]
 	) => void;
-	removeColor: (paletteId: string, colorId: string) => void;
-	renameColor: (paletteId: string, colorId: string, name: string) => void;
+	removeColor: (paletteId: string, groupId: string, colorId: string) => void;
+	renameColor: (
+		paletteId: string,
+		groupId: string,
+		colorId: string,
+		name: string
+	) => void;
 	updateColor: (
 		paletteId: string,
+		groupId: string,
 		colorId: string,
 		changes: Partial<Omit<PaletteColor, "id">>
 	) => void;
-	reorderColors: (paletteId: string, orderedColorIds: string[]) => void;
+	reorderColors: (
+		paletteId: string,
+		groupId: string,
+		orderedColorIds: string[]
+	) => void;
+	moveColor: (
+		paletteId: string,
+		colorId: string,
+		fromGroupId: string,
+		toGroupId: string,
+		targetIndex: number
+	) => void;
+	addGroup: (paletteId: string, name?: string) => void;
+	renameGroup: (paletteId: string, groupId: string, name: string) => void;
+	removeGroup: (paletteId: string, groupId: string) => void;
+	reorderGroups: (paletteId: string, orderedGroupIds: string[]) => void;
 	undo: (paletteId: string) => void;
 	redo: (paletteId: string) => void;
 	getActivePalette: () => Palette | null;
@@ -94,7 +138,7 @@ export const usePaletteStore = create<PaletteStoreState>((set, get) => ({
 			const palette: Palette = {
 				id: generateId(),
 				name: nextUntitledName(state.palettes),
-				colors: [],
+				groups: [{ id: generateId(), colors: [] }],
 				sourceFormat: "gpl",
 			};
 			return insertPalette(state, palette);
@@ -142,93 +186,112 @@ export const usePaletteStore = create<PaletteStoreState>((set, get) => ({
 			}));
 		}),
 
-	addColor: (paletteId, color) =>
-		set((state) =>
-			withHistory(state, paletteId, (palette) => {
-				const newColor: PaletteColor = { ...color, id: generateId() };
-				return { ...palette, colors: [...palette.colors, newColor] };
-			})
-		),
-
-	addColors: (paletteId, colors) =>
-		set((state) =>
-			withHistory(state, paletteId, (palette) => {
-				const newColors: PaletteColor[] = colors.map((color) => ({
-					...color,
-					id: generateId(),
-				}));
-				return { ...palette, colors: [...palette.colors, ...newColors] };
-			})
-		),
-
-	insertColorsAroundId: (paletteId, anchorColorId, before, after) =>
-		set((state) =>
-			withHistory(state, paletteId, (palette) => {
-				const anchorIndex = palette.colors.findIndex(
-					(color) => color.id === anchorColorId
-				);
-				if (anchorIndex === -1) return palette;
-				const beforeColors: PaletteColor[] = before.map((color) => ({
-					...color,
-					id: generateId(),
-				}));
-				const afterColors: PaletteColor[] = after.map((color) => ({
-					...color,
-					id: generateId(),
-				}));
-				const colors = [
-					...palette.colors.slice(0, anchorIndex),
-					...beforeColors,
-					palette.colors[anchorIndex],
-					...afterColors,
-					...palette.colors.slice(anchorIndex + 1),
-				];
-				return { ...palette, colors };
-			})
-		),
-
-	removeColor: (paletteId, colorId) =>
+	addColor: (paletteId, groupId, color) =>
 		set((state) =>
 			withHistory(state, paletteId, (palette) => ({
 				...palette,
-				colors: palette.colors.filter((color) => color.id !== colorId),
+				groups: addColorToGroup(palette.groups, groupId, color),
 			}))
 		),
 
-	renameColor: (paletteId, colorId, name) =>
-		set((state) =>
-			withHistory(state, paletteId, (palette) => {
-				const trimmed = name.trim();
-				return {
-					...palette,
-					colors: palette.colors.map((color) =>
-						color.id === colorId
-							? { ...color, name: trimmed.length > 0 ? trimmed : undefined }
-							: color
-					),
-				};
-			})
-		),
-
-	updateColor: (paletteId, colorId, changes) =>
+	addColors: (paletteId, groupId, colors) =>
 		set((state) =>
 			withHistory(state, paletteId, (palette) => ({
 				...palette,
-				colors: palette.colors.map((color) =>
-					color.id === colorId ? { ...color, ...changes } : color
+				groups: addColorsToGroup(palette.groups, groupId, colors),
+			}))
+		),
+
+	insertColorsAroundId: (paletteId, groupId, anchorColorId, before, after) =>
+		set((state) =>
+			withHistory(state, paletteId, (palette) => ({
+				...palette,
+				groups: insertColorsAroundIdInGroup(
+					palette.groups,
+					groupId,
+					anchorColorId,
+					before,
+					after
 				),
 			}))
 		),
 
-	reorderColors: (paletteId, orderedColorIds) =>
+	removeColor: (paletteId, groupId, colorId) =>
 		set((state) =>
-			withHistory(state, paletteId, (palette) => {
-				const byId = new Map(palette.colors.map((color) => [color.id, color]));
-				const colors = orderedColorIds
-					.map((id) => byId.get(id))
-					.filter((color): color is PaletteColor => Boolean(color));
-				return { ...palette, colors };
-			})
+			withHistory(state, paletteId, (palette) => ({
+				...palette,
+				groups: removeColorFromGroup(palette.groups, groupId, colorId),
+			}))
+		),
+
+	renameColor: (paletteId, groupId, colorId, name) =>
+		set((state) =>
+			withHistory(state, paletteId, (palette) => ({
+				...palette,
+				groups: renameColorInGroup(palette.groups, groupId, colorId, name),
+			}))
+		),
+
+	updateColor: (paletteId, groupId, colorId, changes) =>
+		set((state) =>
+			withHistory(state, paletteId, (palette) => ({
+				...palette,
+				groups: updateColorInGroup(palette.groups, groupId, colorId, changes),
+			}))
+		),
+
+	reorderColors: (paletteId, groupId, orderedColorIds) =>
+		set((state) =>
+			withHistory(state, paletteId, (palette) => ({
+				...palette,
+				groups: reorderColorsInGroup(palette.groups, groupId, orderedColorIds),
+			}))
+		),
+
+	moveColor: (paletteId, colorId, fromGroupId, toGroupId, targetIndex) =>
+		set((state) =>
+			withHistory(state, paletteId, (palette) => ({
+				...palette,
+				groups: moveColorBetweenGroups(
+					palette.groups,
+					colorId,
+					fromGroupId,
+					toGroupId,
+					targetIndex
+				),
+			}))
+		),
+
+	addGroup: (paletteId, name) =>
+		set((state) =>
+			withHistory(state, paletteId, (palette) => ({
+				...palette,
+				groups: addGroupToPalette(palette.groups, name),
+			}))
+		),
+
+	renameGroup: (paletteId, groupId, name) =>
+		set((state) =>
+			withHistory(state, paletteId, (palette) => ({
+				...palette,
+				groups: renameGroupInPalette(palette.groups, groupId, name),
+			}))
+		),
+
+	removeGroup: (paletteId, groupId) =>
+		set((state) =>
+			withHistory(state, paletteId, (palette) => ({
+				...palette,
+				groups: removeGroupFromPalette(palette.groups, groupId),
+			}))
+		),
+
+	reorderGroups: (paletteId, orderedGroupIds) =>
+		set((state) =>
+			withHistory(state, paletteId, (palette) => ({
+				...palette,
+				groups: reorderGroupsInPalette(palette.groups, orderedGroupIds),
+			}))
 		),
 
 	undo: (paletteId) =>

@@ -1,5 +1,5 @@
 import { parseGpl, serializeGpl } from '../../../src/shared/palette-formats/gimpGpl';
-import { PaletteParseError } from '../../../src/shared/palette-formats/types';
+import { PaletteParseError } from '../../../src/shared/types';
 
 const VALID_GPL = [
   'GIMP Palette',
@@ -17,9 +17,10 @@ describe('parseGpl', () => {
     const palette = parseGpl(VALID_GPL, '/tmp/test.gpl');
     expect(palette.name).toBe('My Palette');
     expect(palette.columns).toBe(4);
-    expect(palette.colors).toHaveLength(4);
-    expect(palette.colors[0]).toMatchObject({ r: 255, g: 0, b: 0, name: 'Red' });
-    expect(palette.colors[3]).toMatchObject({ r: 255, g: 255, b: 255, name: 'White' });
+    expect(palette.groups).toHaveLength(1);
+    expect(palette.groups[0].colors).toHaveLength(4);
+    expect(palette.groups[0].colors[0]).toMatchObject({ r: 255, g: 0, b: 0, name: 'Red' });
+    expect(palette.groups[0].colors[3]).toMatchObject({ r: 255, g: 255, b: 255, name: 'White' });
   });
 
   it('uses the file name if there is no Name: line', () => {
@@ -45,8 +46,8 @@ describe('serializeGpl', () => {
   it('round-trips keeping colors, names and order', () => {
     const original = parseGpl(VALID_GPL, 'test.gpl');
     const roundTripped = parseGpl(serializeGpl(original), 'test.gpl');
-    expect(roundTripped.colors.map(({ r, g, b, name }) => ({ r, g, b, name }))).toEqual(
-      original.colors.map(({ r, g, b, name }) => ({ r, g, b, name }))
+    expect(roundTripped.groups[0].colors.map(({ r, g, b, name }) => ({ r, g, b, name }))).toEqual(
+      original.groups[0].colors.map(({ r, g, b, name }) => ({ r, g, b, name }))
     );
   });
 });

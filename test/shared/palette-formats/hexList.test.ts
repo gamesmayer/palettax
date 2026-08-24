@@ -1,5 +1,5 @@
 import { parseHexTxt, serializeHexTxt } from '../../../src/shared/palette-formats/hexList';
-import { PaletteParseError } from '../../../src/shared/palette-formats/types';
+import { PaletteParseError } from '../../../src/shared/types';
 
 const VALID_TXT = ['#FF0000', '#00FF00', '#0000FF', '#FFFFFF'].join('\n');
 
@@ -8,21 +8,22 @@ describe('parseHexTxt', () => {
     const palette = parseHexTxt(VALID_TXT, '/tmp/MyPalette.txt');
     expect(palette.name).toBe('MyPalette');
     expect(palette.sourceFormat).toBe('txt');
-    expect(palette.colors).toHaveLength(4);
-    expect(palette.colors[0]).toMatchObject({ r: 255, g: 0, b: 0, hex: '#FF0000' });
-    expect(palette.colors[3]).toMatchObject({ r: 255, g: 255, b: 255, hex: '#FFFFFF' });
-    expect(palette.colors.every((color) => color.name === undefined)).toBe(true);
+    expect(palette.groups).toHaveLength(1);
+    expect(palette.groups[0].colors).toHaveLength(4);
+    expect(palette.groups[0].colors[0]).toMatchObject({ r: 255, g: 0, b: 0, hex: '#FF0000' });
+    expect(palette.groups[0].colors[3]).toMatchObject({ r: 255, g: 255, b: 255, hex: '#FFFFFF' });
+    expect(palette.groups[0].colors.every((color) => color.name === undefined)).toBe(true);
   });
 
   it('is tolerant and discards lines that are not a valid hex color', () => {
     const content = ['#FF0000', 'this is not a color', '#00FF00'].join('\n');
     const palette = parseHexTxt(content, 'test.txt');
-    expect(palette.colors).toHaveLength(2);
+    expect(palette.groups[0].colors).toHaveLength(2);
   });
 
   it('is case-insensitive and normalizes the output', () => {
     const palette = parseHexTxt('#ff0000', 'test.txt');
-    expect(palette.colors[0].hex).toBe('#FF0000');
+    expect(palette.groups[0].colors[0].hex).toBe('#FF0000');
   });
 
   it('throws PaletteParseError if there is no valid color', () => {
@@ -35,7 +36,12 @@ describe('serializeHexTxt', () => {
     const palette = parseHexTxt(VALID_TXT, 'test.txt');
     const serialized = serializeHexTxt({
       ...palette,
-      colors: palette.colors.map((color) => ({ ...color, name: 'Ignored' }))
+      groups: [
+        {
+          ...palette.groups[0],
+          colors: palette.groups[0].colors.map((color) => ({ ...color, name: 'Ignored' }))
+        }
+      ]
     });
     expect(serialized).not.toContain('Ignored');
     expect(serialized.trim().split('\n')).toEqual(['#FF0000', '#00FF00', '#0000FF', '#FFFFFF']);
@@ -44,8 +50,8 @@ describe('serializeHexTxt', () => {
   it('round-trips keeping the same colors and order', () => {
     const original = parseHexTxt(VALID_TXT, 'test.txt');
     const roundTripped = parseHexTxt(serializeHexTxt(original), 'test.txt');
-    expect(roundTripped.colors.map(({ r, g, b }) => ({ r, g, b }))).toEqual(
-      original.colors.map(({ r, g, b }) => ({ r, g, b }))
+    expect(roundTripped.groups[0].colors.map(({ r, g, b }) => ({ r, g, b }))).toEqual(
+      original.groups[0].colors.map(({ r, g, b }) => ({ r, g, b }))
     );
   });
 });

@@ -254,3 +254,45 @@ export function cmykToRgb(
 		b: clampByte(255 * (1 - yn) * (1 - kn)),
 	};
 }
+
+const D65_WHITE = { x: 95.047, y: 100.0, z: 108.883 };
+
+function labInverseF(t: number): number {
+	const delta = 6 / 29;
+	return t > delta ? t ** 3 : 3 * delta ** 2 * (t - 4 / 29);
+}
+
+function linearToSrgb(value: number): number {
+	const clamped = Math.min(1, Math.max(0, value));
+	return clamped <= 0.0031308
+		? 12.92 * clamped
+		: 1.055 * clamped ** (1 / 2.4) - 0.055;
+}
+
+export function labToRgb(
+	l: number,
+	a: number,
+	b: number
+): { r: number; g: number; b: number } {
+	const fy = (l + 16) / 116;
+	const fx = fy + a / 500;
+	const fz = fy - b / 200;
+
+	const x = D65_WHITE.x * labInverseF(fx);
+	const y = D65_WHITE.y * labInverseF(fy);
+	const z = D65_WHITE.z * labInverseF(fz);
+
+	const xn = x / 100;
+	const yn = y / 100;
+	const zn = z / 100;
+
+	const rLinear = 3.2406 * xn - 1.5372 * yn - 0.4986 * zn;
+	const gLinear = -0.9689 * xn + 1.8758 * yn + 0.0415 * zn;
+	const bLinear = 0.0557 * xn - 0.204 * yn + 1.057 * zn;
+
+	return {
+		r: clampByte(linearToSrgb(rLinear) * 255),
+		g: clampByte(linearToSrgb(gLinear) * 255),
+		b: clampByte(linearToSrgb(bLinear) * 255),
+	};
+}

@@ -7,6 +7,7 @@ import { ColorSystemFields } from "../ColorPicker/ColorSystemFields";
 
 interface ColorDialogProps {
 	paletteId: string;
+	groupId: string;
 	color?: PaletteColor;
 	colorSystem: ColorSystem;
 	onClose: () => void;
@@ -14,6 +15,7 @@ interface ColorDialogProps {
 
 export function ColorDialog({
 	paletteId,
+	groupId,
 	color,
 	colorSystem,
 	onClose,
@@ -36,9 +38,9 @@ export function ColorDialog({
 			name: name.trim() ? name.trim() : undefined,
 		};
 		if (color) {
-			updateColor(paletteId, color.id, changes);
+			updateColor(paletteId, groupId, color.id, changes);
 		} else {
-			addColor(paletteId, changes);
+			addColor(paletteId, groupId, changes);
 		}
 		onClose();
 	}

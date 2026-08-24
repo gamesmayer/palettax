@@ -42,6 +42,11 @@ export function buildMenu(mainWindow: BrowserWindow): Menu {
 							click: () =>
 								mainWindow.webContents.send("menu:trigger-export", "css"),
 						},
+						{
+							label: "Adobe Swatch Exchange (.ase)",
+							click: () =>
+								mainWindow.webContents.send("menu:trigger-export", "ase"),
+						},
 					],
 				},
 				{ type: "separator" },

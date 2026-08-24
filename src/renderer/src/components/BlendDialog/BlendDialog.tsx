@@ -11,6 +11,7 @@ import {
 
 interface BlendDialogProps {
 	paletteId: string;
+	groupId: string;
 	colors: PaletteColor[];
 	colorSystem: ColorSystem;
 	onClose: () => void;
@@ -25,6 +26,7 @@ function clampSteps(value: number): number {
 
 export function BlendDialog({
 	paletteId,
+	groupId,
 	colors,
 	colorSystem,
 	onClose,
@@ -80,7 +82,7 @@ export function BlendDialog({
 			...middleSteps,
 			...(toMode === "new" ? [preview[preview.length - 1]] : []),
 		].map(({ r, g, b }) => ({ r, g, b, hex: rgbToHex(r, g, b) }));
-		addColors(paletteId, toAdd);
+		addColors(paletteId, groupId, toAdd);
 		onClose();
 	}
 

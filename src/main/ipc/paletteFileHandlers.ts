@@ -1,6 +1,7 @@
 import { app, dialog, ipcMain } from "electron";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { detectFormatByExtension } from "../../shared/palette-formats/detectFormat";
 import {
 	ExportPaletteRequest,
 	ExportPaletteResult,
@@ -13,7 +14,12 @@ const EXPORT_FILTER_NAMES: Record<ExportPaletteRequest["format"], string> = {
 	gpl: "GIMP Palette",
 	txt: "Hex List",
 	css: "CSS Stylesheet",
+	ase: "Adobe Swatch Exchange",
 };
+
+function encodingFor(format: string | null): BufferEncoding {
+	return format === "ase" ? "latin1" : "utf-8";
+}
 
 export function registerPaletteFileHandlers(): void {
 	ipcMain.handle(
@@ -22,7 +28,10 @@ export function registerPaletteFileHandlers(): void {
 			const result = await dialog.showOpenDialog({
 				properties: ["openFile", "multiSelections"],
 				filters: [
-					{ name: "Palette Files", extensions: ["pal", "gpl", "txt", "css"] },
+					{
+						name: "Palette Files",
+						extensions: ["pal", "gpl", "txt", "css", "ase"],
+					},
 				],
 			});
 
@@ -33,7 +42,10 @@ export function registerPaletteFileHandlers(): void {
 			const files = await Promise.all(
 				result.filePaths.map(async (filePath) => ({
 					filePath,
-					content: await readFile(filePath, "utf-8"),
+					content: await readFile(
+						filePath,
+						encodingFor(detectFormatByExtension(filePath))
+					),
 				}))
 			);
 
@@ -61,7 +73,7 @@ export function registerPaletteFileHandlers(): void {
 				return { canceled: true };
 			}
 
-			await writeFile(result.filePath, req.content, "utf-8");
+			await writeFile(result.filePath, req.content, encodingFor(req.format));
 			return { canceled: false, filePath: result.filePath };
 		}
 	);

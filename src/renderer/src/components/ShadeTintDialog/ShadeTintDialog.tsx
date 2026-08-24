@@ -15,6 +15,7 @@ import {
 
 interface ShadeTintDialogProps {
 	paletteId: string;
+	groupId: string;
 	colors: PaletteColor[];
 	colorSystem: ColorSystem;
 	onClose: () => void;
@@ -36,6 +37,7 @@ function clampStep(value: number): number {
 
 export function ShadeTintDialog({
 	paletteId,
+	groupId,
 	colors,
 	colorSystem,
 	onClose,
@@ -85,9 +87,19 @@ export function ShadeTintDialog({
 		const shadeColors = shades.map(toStored);
 		const tintColors = tints.map(toStored);
 		if (baseIsNew) {
-			addColors(paletteId, [...shadeColors, toStored(base), ...tintColors]);
+			addColors(paletteId, groupId, [
+				...shadeColors,
+				toStored(base),
+				...tintColors,
+			]);
 		} else {
-			insertColorsAroundId(paletteId, paletteColorId, shadeColors, tintColors);
+			insertColorsAroundId(
+				paletteId,
+				groupId,
+				paletteColorId,
+				shadeColors,
+				tintColors
+			);
 		}
 		onClose();
 	}

@@ -1,4 +1,5 @@
 import { clampByte, generateId, rgbToHex } from "../color";
+import { flattenGroups, wrapAsSingleGroup } from "../paletteGroups";
 import { Palette, PaletteColor, PaletteParseError } from "../types";
 
 function baseNameFromPath(filePath: string): string {
@@ -30,15 +31,16 @@ export function parsePal(content: string, filePath: string): Palette {
 	return {
 		id: generateId(),
 		name: baseNameFromPath(filePath),
-		colors,
+		groups: wrapAsSingleGroup(colors),
 		sourceFormat: "pal",
 		filePath,
 	};
 }
 
 export function serializePal(palette: Palette): string {
-	const lines = ["JASC-PAL", "0100", String(palette.colors.length)];
-	for (const color of palette.colors) {
+	const colors = flattenGroups(palette.groups);
+	const lines = ["JASC-PAL", "0100", String(colors.length)];
+	for (const color of colors) {
 		lines.push(
 			`${clampByte(color.r)} ${clampByte(color.g)} ${clampByte(color.b)}`
 		);

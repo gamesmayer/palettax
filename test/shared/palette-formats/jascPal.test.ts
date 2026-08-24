@@ -1,5 +1,5 @@
 import { parsePal, serializePal } from '../../../src/shared/palette-formats/jascPal';
-import { PaletteParseError } from '../../../src/shared/palette-formats/types';
+import { PaletteParseError } from '../../../src/shared/types';
 
 const VALID_PAL = ['JASC-PAL', '0100', '4', '255 0 0', '0 255 0', '0 0 255', '255 255 255'].join('\r\n');
 
@@ -8,15 +8,16 @@ describe('parsePal', () => {
     const palette = parsePal(VALID_PAL, '/tmp/MyPalette.pal');
     expect(palette.name).toBe('MyPalette');
     expect(palette.sourceFormat).toBe('pal');
-    expect(palette.colors).toHaveLength(4);
-    expect(palette.colors[0]).toMatchObject({ r: 255, g: 0, b: 0, hex: '#FF0000' });
-    expect(palette.colors[3]).toMatchObject({ r: 255, g: 255, b: 255, hex: '#FFFFFF' });
+    expect(palette.groups).toHaveLength(1);
+    expect(palette.groups[0].colors).toHaveLength(4);
+    expect(palette.groups[0].colors[0]).toMatchObject({ r: 255, g: 0, b: 0, hex: '#FF0000' });
+    expect(palette.groups[0].colors[3]).toMatchObject({ r: 255, g: 255, b: 255, hex: '#FFFFFF' });
   });
 
   it('is tolerant when the declared count does not match the actual lines', () => {
     const content = ['JASC-PAL', '0100', '99', '10 20 30'].join('\r\n');
     const palette = parsePal(content, 'test.pal');
-    expect(palette.colors).toHaveLength(1);
+    expect(palette.groups[0].colors).toHaveLength(1);
   });
 
   it('throws PaletteParseError if the JASC-PAL header is missing', () => {
@@ -29,7 +30,12 @@ describe('serializePal', () => {
     const palette = parsePal(VALID_PAL, 'test.pal');
     const serialized = serializePal({
       ...palette,
-      colors: palette.colors.map((color) => ({ ...color, name: 'Ignored' }))
+      groups: [
+        {
+          ...palette.groups[0],
+          colors: palette.groups[0].colors.map((color) => ({ ...color, name: 'Ignored' }))
+        }
+      ]
     });
     const lines = serialized.trim().split(/\r?\n/);
     expect(lines[0]).toBe('JASC-PAL');
@@ -41,8 +47,8 @@ describe('serializePal', () => {
   it('round-trips keeping the same colors and order', () => {
     const original = parsePal(VALID_PAL, 'test.pal');
     const roundTripped = parsePal(serializePal(original), 'test.pal');
-    expect(roundTripped.colors.map(({ r, g, b }) => ({ r, g, b }))).toEqual(
-      original.colors.map(({ r, g, b }) => ({ r, g, b }))
+    expect(roundTripped.groups[0].colors.map(({ r, g, b }) => ({ r, g, b }))).toEqual(
+      original.groups[0].colors.map(({ r, g, b }) => ({ r, g, b }))
     );
   });
 });

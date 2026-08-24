@@ -1,5 +1,5 @@
 import { parseCss, serializeCss } from '../../../src/shared/palette-formats/css';
-import { Palette, PaletteParseError } from '../../../src/shared/palette-formats/types';
+import { Palette, PaletteParseError } from '../../../src/shared/types';
 
 const VALID_CSS = [':root {', '  --red: #FF0000;', '  --green: #00FF00;', '}'].join('\n');
 
@@ -8,14 +8,19 @@ function makePalette(colors: Array<{ r: number; g: number; b: number; name?: str
     id: 'p1',
     name: 'Test',
     sourceFormat: 'txt',
-    colors: colors.map((color, index) => ({
-      id: `c${index}`,
-      r: color.r,
-      g: color.g,
-      b: color.b,
-      hex: '',
-      name: color.name
-    }))
+    groups: [
+      {
+        id: 'g1',
+        colors: colors.map((color, index) => ({
+          id: `c${index}`,
+          r: color.r,
+          g: color.g,
+          b: color.b,
+          hex: '',
+          name: color.name
+        }))
+      }
+    ]
   };
 }
 
@@ -24,20 +29,21 @@ describe('parseCss', () => {
     const palette = parseCss(VALID_CSS, '/tmp/MyPalette.css');
     expect(palette.name).toBe('MyPalette');
     expect(palette.sourceFormat).toBe('css');
-    expect(palette.colors).toHaveLength(2);
-    expect(palette.colors[0]).toMatchObject({ r: 255, g: 0, b: 0, hex: '#FF0000' });
-    expect(palette.colors.every((color) => color.name === undefined)).toBe(true);
+    expect(palette.groups).toHaveLength(1);
+    expect(palette.groups[0].colors).toHaveLength(2);
+    expect(palette.groups[0].colors[0]).toMatchObject({ r: 255, g: 0, b: 0, hex: '#FF0000' });
+    expect(palette.groups[0].colors.every((color) => color.name === undefined)).toBe(true);
   });
 
   it('ignores lines that are not color declarations', () => {
     const content = [':root {', '  /* comment */', '  --spacing: 4px;', '  --blue: #0000FF;', '}'].join('\n');
     const palette = parseCss(content, 'test.css');
-    expect(palette.colors).toHaveLength(1);
+    expect(palette.groups[0].colors).toHaveLength(1);
   });
 
   it('is case-insensitive for the hex value', () => {
     const palette = parseCss('--x: #ff0000;', 'test.css');
-    expect(palette.colors[0].hex).toBe('#FF0000');
+    expect(palette.groups[0].colors[0].hex).toBe('#FF0000');
   });
 
   it('throws PaletteParseError if there is no valid color declaration', () => {

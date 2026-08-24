@@ -17,10 +17,15 @@ describe('detectFormatByExtension', () => {
     expect(detectFormatByExtension('foo.css')).toBe('css');
   });
 
+  it('detects .ase', () => {
+    expect(detectFormatByExtension('foo.ase')).toBe('ase');
+  });
+
   it('is case-insensitive', () => {
     expect(detectFormatByExtension('FOO.PAL')).toBe('pal');
     expect(detectFormatByExtension('FOO.TXT')).toBe('txt');
     expect(detectFormatByExtension('FOO.CSS')).toBe('css');
+    expect(detectFormatByExtension('FOO.ASE')).toBe('ase');
   });
 
   it('returns null for unsupported extensions', () => {

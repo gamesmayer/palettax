@@ -1,4 +1,5 @@
 import { generateId, hexToRgb, rgbToHex } from "../color";
+import { flattenGroups, wrapAsSingleGroup } from "../paletteGroups";
 import { Palette, PaletteColor, PaletteParseError } from "../types";
 
 function baseNameFromPath(filePath: string): string {
@@ -37,14 +38,14 @@ export function parseHexTxt(content: string, filePath: string): Palette {
 	return {
 		id: generateId(),
 		name: baseNameFromPath(filePath),
-		colors,
+		groups: wrapAsSingleGroup(colors),
 		sourceFormat: "txt",
 		filePath,
 	};
 }
 
 export function serializeHexTxt(palette: Palette): string {
-	const lines = palette.colors.map((color) =>
+	const lines = flattenGroups(palette.groups).map((color) =>
 		rgbToHex(color.r, color.g, color.b)
 	);
 	return `${lines.join("\n")}\n`;

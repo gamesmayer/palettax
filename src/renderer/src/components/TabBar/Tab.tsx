@@ -1,5 +1,6 @@
 import { Button, Frame, Input } from "@react95/core";
 import { KeyboardEvent, MouseEvent, useState } from "react";
+import { CloseIcon } from "../icons/CloseIcon";
 
 interface TabProps {
 	label: string;
@@ -71,7 +72,7 @@ export function Tab({
 				}}
 				aria-label={`Close ${label}`}
 			>
-				×
+				<CloseIcon size="s" />
 			</Button>
 		</Frame>
 	);

@@ -12,5 +12,6 @@ export function detectFormatByExtension(
 	if (extension === "gpl") return "gpl";
 	if (extension === "txt") return "txt";
 	if (extension === "css") return "css";
+	if (extension === "ase") return "ase";
 	return null;
 }

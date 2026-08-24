@@ -1,4 +1,5 @@
 import { generateId, hexToRgb, rgbToHex } from "../color";
+import { flattenGroups, wrapAsSingleGroup } from "../paletteGroups";
 import { Palette, PaletteColor, PaletteParseError } from "../types";
 
 function baseNameFromPath(filePath: string): string {
@@ -38,7 +39,7 @@ export function parseCss(content: string, filePath: string): Palette {
 	return {
 		id: generateId(),
 		name: baseNameFromPath(filePath),
-		colors,
+		groups: wrapAsSingleGroup(colors),
 		sourceFormat: "css",
 		filePath,
 	};
@@ -58,7 +59,7 @@ function slugify(value: string): string {
 export function serializeCss(palette: Palette): string {
 	const usedSlugs = new Set<string>();
 
-	const lines = palette.colors.map((color, index) => {
+	const lines = flattenGroups(palette.groups).map((color, index) => {
 		const position = index + 1;
 		const hex = rgbToHex(color.r, color.g, color.b);
 

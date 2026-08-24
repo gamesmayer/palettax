@@ -1,4 +1,4 @@
-export type PaletteFormat = "pal" | "gpl" | "txt" | "css";
+export type PaletteFormat = "pal" | "gpl" | "txt" | "css" | "ase";
 
 export interface PaletteColor {
 	id: string;
@@ -9,10 +9,16 @@ export interface PaletteColor {
 	name?: string;
 }
 
+export interface PaletteGroup {
+	id: string;
+	name?: string;
+	colors: PaletteColor[];
+}
+
 export interface Palette {
 	id: string;
 	name: string;
-	colors: PaletteColor[];
+	groups: PaletteGroup[];
 	sourceFormat: PaletteFormat;
 	filePath?: string;
 	columns?: number;
