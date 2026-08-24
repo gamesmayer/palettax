@@ -1,47 +1,51 @@
-import { generateId, hexToRgb, rgbToHex } from '../color';
-import { Palette, PaletteColor, PaletteParseError } from '../types';
+import { generateId, hexToRgb, rgbToHex } from "../color";
+import { Palette, PaletteColor, PaletteParseError } from "../types";
 
 function baseNameFromPath(filePath: string): string {
-  const fileName = filePath.split(/[\\/]/).pop() ?? filePath;
-  return fileName.replace(/\.[^.]+$/, '');
+	const fileName = filePath.split(/[\\/]/).pop() ?? filePath;
+	return fileName.replace(/\.[^.]+$/, "");
 }
 
 const HEX_LINE = /^#?[0-9a-fA-F]{6}$/;
 
 export function parseHexTxt(content: string, filePath: string): Palette {
-  const lines = content.split(/\r?\n/);
-  const colors: PaletteColor[] = [];
+	const lines = content.split(/\r?\n/);
+	const colors: PaletteColor[] = [];
 
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (line === '' || !HEX_LINE.test(line)) {
-      continue;
-    }
+	for (const rawLine of lines) {
+		const line = rawLine.trim();
+		if (line === "" || !HEX_LINE.test(line)) {
+			continue;
+		}
 
-    const { r, g, b } = hexToRgb(line);
-    colors.push({
-      id: generateId(),
-      r,
-      g,
-      b,
-      hex: rgbToHex(r, g, b)
-    });
-  }
+		const { r, g, b } = hexToRgb(line);
+		colors.push({
+			id: generateId(),
+			r,
+			g,
+			b,
+			hex: rgbToHex(r, g, b),
+		});
+	}
 
-  if (colors.length === 0) {
-    throw new PaletteParseError('The file does not contain any valid hexadecimal color.');
-  }
+	if (colors.length === 0) {
+		throw new PaletteParseError(
+			"The file does not contain any valid hexadecimal color."
+		);
+	}
 
-  return {
-    id: generateId(),
-    name: baseNameFromPath(filePath),
-    colors,
-    sourceFormat: 'txt',
-    filePath
-  };
+	return {
+		id: generateId(),
+		name: baseNameFromPath(filePath),
+		colors,
+		sourceFormat: "txt",
+		filePath,
+	};
 }
 
 export function serializeHexTxt(palette: Palette): string {
-  const lines = palette.colors.map((color) => rgbToHex(color.r, color.g, color.b));
-  return `${lines.join('\n')}\n`;
+	const lines = palette.colors.map((color) =>
+		rgbToHex(color.r, color.g, color.b)
+	);
+	return `${lines.join("\n")}\n`;
 }

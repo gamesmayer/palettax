@@ -1,60 +1,68 @@
-import { app, dialog, ipcMain } from 'electron';
-import { readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { app, dialog, ipcMain } from "electron";
+import { readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import {
-  ExportPaletteRequest,
-  ExportPaletteResult,
-  IPC_CHANNELS,
-  ImportPaletteResult
-} from '../../shared/ipc-contract';
+	ExportPaletteRequest,
+	ExportPaletteResult,
+	IPC_CHANNELS,
+	ImportPaletteResult,
+} from "../../shared/ipc-contract";
 
-const EXPORT_FILTER_NAMES: Record<ExportPaletteRequest['format'], string> = {
-  pal: 'JASC Palette',
-  gpl: 'GIMP Palette',
-  txt: 'Hex List',
-  css: 'CSS Stylesheet'
+const EXPORT_FILTER_NAMES: Record<ExportPaletteRequest["format"], string> = {
+	pal: "JASC Palette",
+	gpl: "GIMP Palette",
+	txt: "Hex List",
+	css: "CSS Stylesheet",
 };
 
 export function registerPaletteFileHandlers(): void {
-  ipcMain.handle(IPC_CHANNELS.IMPORT_PALETTE, async (): Promise<ImportPaletteResult> => {
-    const result = await dialog.showOpenDialog({
-      properties: ['openFile', 'multiSelections'],
-      filters: [{ name: 'Palette Files', extensions: ['pal', 'gpl', 'txt', 'css'] }]
-    });
+	ipcMain.handle(
+		IPC_CHANNELS.IMPORT_PALETTE,
+		async (): Promise<ImportPaletteResult> => {
+			const result = await dialog.showOpenDialog({
+				properties: ["openFile", "multiSelections"],
+				filters: [
+					{ name: "Palette Files", extensions: ["pal", "gpl", "txt", "css"] },
+				],
+			});
 
-    if (result.canceled || result.filePaths.length === 0) {
-      return { canceled: true, files: [] };
-    }
+			if (result.canceled || result.filePaths.length === 0) {
+				return { canceled: true, files: [] };
+			}
 
-    const files = await Promise.all(
-      result.filePaths.map(async (filePath) => ({
-        filePath,
-        content: await readFile(filePath, 'utf-8')
-      }))
-    );
+			const files = await Promise.all(
+				result.filePaths.map(async (filePath) => ({
+					filePath,
+					content: await readFile(filePath, "utf-8"),
+				}))
+			);
 
-    return { canceled: false, files };
-  });
+			return { canceled: false, files };
+		}
+	);
 
-  ipcMain.handle(
-    IPC_CHANNELS.EXPORT_PALETTE,
-    async (_event, req: ExportPaletteRequest): Promise<ExportPaletteResult> => {
-      const result = await dialog.showSaveDialog({
-        defaultPath: join(req.defaultDirectory ?? app.getPath('documents'), req.suggestedFileName),
-        filters: [
-          {
-            name: EXPORT_FILTER_NAMES[req.format],
-            extensions: [req.format]
-          }
-        ]
-      });
+	ipcMain.handle(
+		IPC_CHANNELS.EXPORT_PALETTE,
+		async (_event, req: ExportPaletteRequest): Promise<ExportPaletteResult> => {
+			const result = await dialog.showSaveDialog({
+				defaultPath: join(
+					req.defaultDirectory ?? app.getPath("documents"),
+					req.suggestedFileName
+				),
+				filters: [
+					{
+						name: EXPORT_FILTER_NAMES[req.format],
+						extensions: [req.format],
+					},
+				],
+			});
 
-      if (result.canceled || !result.filePath) {
-        return { canceled: true };
-      }
+			if (result.canceled || !result.filePath) {
+				return { canceled: true };
+			}
 
-      await writeFile(result.filePath, req.content, 'utf-8');
-      return { canceled: false, filePath: result.filePath };
-    }
-  );
+			await writeFile(result.filePath, req.content, "utf-8");
+			return { canceled: false, filePath: result.filePath };
+		}
+	);
 }

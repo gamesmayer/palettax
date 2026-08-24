@@ -1,9 +1,9 @@
-import type { PaletteApi } from '../../preload/index';
+import type { PaletteApi } from "../../preload/index";
 
 declare global {
-  interface Window {
-    paletteApi: PaletteApi;
-  }
+	interface Window {
+		paletteApi: PaletteApi;
+	}
 }
 
 export {};
