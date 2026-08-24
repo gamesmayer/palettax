@@ -33,8 +33,8 @@ export function PaletteView(): JSX.Element {
 	if (!activePalette) {
 		return (
 			<div className="palette-view palette-view--empty">
-				<p>No palette is open.</p>
-				<Button onClick={createPalette}>Create new palette</Button>
+				<p>Where do you want to start?</p>
+				<Button onClick={createPalette}>New palette</Button>
 				<Button onClick={importPalettes}>Import palette</Button>
 			</div>
 		);
