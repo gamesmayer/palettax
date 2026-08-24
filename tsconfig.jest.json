@@ -7,7 +7,12 @@
     "resolveJsonModule": true,
     "strict": true,
     "skipLibCheck": true,
-    "types": ["jest", "node"]
+    "types": ["jest", "node"],
+    "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "fast-png": ["./node_modules/fast-png/lib/index.d.ts"]
+    }
   },
   "include": ["src/shared/**/*", "src/main/**/*", "test/**/*"]
 }

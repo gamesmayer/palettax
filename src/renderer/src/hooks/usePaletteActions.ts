@@ -2,13 +2,17 @@ import { useCallback } from "react";
 import {
 	PaletteFormat,
 	parsePaletteFile,
+	PngExportOptions,
 	serializePaletteFile,
 } from "../../../shared/palette-formats";
 import { usePaletteStore } from "../store/paletteStore";
 
 export function usePaletteActions(): {
 	importPalettes: () => Promise<void>;
-	exportActivePalette: (format: PaletteFormat) => Promise<void>;
+	exportActivePalette: (
+		format: PaletteFormat,
+		pngOptions?: PngExportOptions
+	) => Promise<void>;
 } {
 	const addPalette = usePaletteStore((state) => state.addPalette);
 
@@ -29,11 +33,20 @@ export function usePaletteActions(): {
 	}, [addPalette]);
 
 	const exportActivePalette = useCallback(
-		async (format: PaletteFormat): Promise<void> => {
+		async (
+			format: PaletteFormat,
+			pngOptions?: PngExportOptions
+		): Promise<void> => {
 			const palette = usePaletteStore.getState().getActivePalette();
 			if (!palette) return;
 
-			const content = serializePaletteFile(palette, format);
+			let content: string;
+			try {
+				content = serializePaletteFile(palette, format, pngOptions);
+			} catch (error) {
+				window.alert(`Could not export palette: ${(error as Error).message}`);
+				return;
+			}
 			const suggestedFileName = `${palette.name}.${format}`;
 			const defaultDirectory = palette.filePath?.replace(/[\\/][^\\/]*$/, "");
 

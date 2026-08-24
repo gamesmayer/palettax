@@ -52,6 +52,11 @@ export function buildMenu(mainWindow: BrowserWindow): Menu {
 							click: () =>
 								mainWindow.webContents.send("menu:trigger-export", "aco"),
 						},
+						{
+							label: "PNG Image (.png)",
+							click: () =>
+								mainWindow.webContents.send("menu:trigger-export", "png"),
+						},
 					],
 				},
 				{ type: "separator" },

@@ -34,7 +34,7 @@ These are per-color display/edit representations, independent of the palette imp
 
 A palette is organized into one or more **groups**: named, stacked lists of colors, similar to layer groups or folders.
 
-Only Adobe Swatch Exchange (`.ase`) preserves this structure natively. The other formats have no concept of groups: importing a `.pal`/`.gpl`/`.txt`/`.css`/`.aco` file puts all of its colors into a single group, and exporting to any of them concatenates every group's colors into one flat list, in group order.
+Only Adobe Swatch Exchange (`.ase`) preserves this structure natively. The other formats have no concept of groups: importing a `.pal`/`.gpl`/`.txt`/`.css`/`.aco`/`.png` file puts all of its colors into a single group, and exporting to any of them concatenates every group's colors into one flat list, in group order.
 
 ## Supported formats
 
@@ -98,6 +98,10 @@ Adobe's binary swatch format, used by Illustrator, Photoshop and InDesign. The o
 ### Adobe Color Swatch (`.aco`)
 
 Adobe's binary swatch format used by Photoshop's Swatches panel (also readable by Illustrator and InDesign) — a flat per-swatch list rather than `.ase`'s group-oriented panel format. It does not support **groups**: importing an `.aco` file puts all of its colors into a single group, same as `.pal`/`.gpl`/`.txt`/`.css`. On import, swatches can use any of Adobe's five raw color models — RGB, HSB, CMYK, Grayscale and Lab are all converted to RGB (Lab conversion is an approximation, since Lab covers a wider gamut than sRGB). A file may contain a legacy "version 1" block (no names), a "version 2" block (with names), or both back-to-back as Photoshop typically writes them; when both are present, the version 2 names are used. On export, both a version 1 and a version 2 block are written, always as RGB, for maximum compatibility with older readers.
+
+### PNG Image (`.png`)
+
+On import, every pixel is scanned in order and each distinct color is kept once, in first-seen order — fully transparent pixels are skipped. This makes both hand-made swatch-strip images (e.g. Lospec-style palette strips) and ordinary photos/artwork work as a source: a strip is just an image with few unique colors. It does not support **groups**: all imported colors land in a single group, same as `.pal`/`.gpl`/`.txt`/`.css`/`.aco`. On export, a dialog lets you choose the swatch layout — a single row, a single column, or a grid sized by a chosen number of columns or rows — and writes 8-bit RGBA pixels in flattened group order, padding any leftover grid cells with fully transparent pixels (which re-import silently ignores).
 
 ## Requirements
 

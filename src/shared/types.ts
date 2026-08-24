@@ -1,4 +1,5 @@
-export type PaletteFormat = "pal" | "gpl" | "txt" | "css" | "ase" | "aco";
+export type PaletteFormat =
+	"pal" | "gpl" | "txt" | "css" | "ase" | "aco" | "png";
 
 export interface PaletteColor {
 	id: string;

@@ -5,6 +5,7 @@ export * from "./hexList";
 export * from "./css";
 export * from "./ase";
 export * from "./aco";
+export * from "./png";
 export * from "./detectFormat";
 
 import { Palette, PaletteFormat, PaletteParseError } from "../types";
@@ -14,6 +15,7 @@ import { parseHexTxt, serializeHexTxt } from "./hexList";
 import { parseCss, serializeCss } from "./css";
 import { parseAse, serializeAse } from "./ase";
 import { parseAco, serializeAco } from "./aco";
+import { parsePng, serializePng, PngExportOptions } from "./png";
 import { detectFormatByExtension } from "./detectFormat";
 
 export function parsePaletteFile(filePath: string, content: string): Palette {
@@ -24,17 +26,20 @@ export function parsePaletteFile(filePath: string, content: string): Palette {
 	if (format === "css") return parseCss(content, filePath);
 	if (format === "ase") return parseAse(content, filePath);
 	if (format === "aco") return parseAco(content, filePath);
+	if (format === "png") return parsePng(content, filePath);
 	throw new PaletteParseError(`Unsupported extension: ${filePath}`);
 }
 
 export function serializePaletteFile(
 	palette: Palette,
-	format: PaletteFormat
+	format: PaletteFormat,
+	pngOptions?: PngExportOptions
 ): string {
 	if (format === "pal") return serializePal(palette);
 	if (format === "gpl") return serializeGpl(palette);
 	if (format === "txt") return serializeHexTxt(palette);
 	if (format === "ase") return serializeAse(palette);
 	if (format === "aco") return serializeAco(palette);
+	if (format === "png") return serializePng(palette, pngOptions);
 	return serializeCss(palette);
 }

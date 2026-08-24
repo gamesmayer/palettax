@@ -16,10 +16,13 @@ const EXPORT_FILTER_NAMES: Record<ExportPaletteRequest["format"], string> = {
 	css: "CSS Stylesheet",
 	ase: "Adobe Swatch Exchange",
 	aco: "Adobe Color Swatch",
+	png: "PNG Image",
 };
 
 function encodingFor(format: string | null): BufferEncoding {
-	return format === "ase" || format === "aco" ? "latin1" : "utf-8";
+	return format === "ase" || format === "aco" || format === "png"
+		? "latin1"
+		: "utf-8";
 }
 
 export function registerPaletteFileHandlers(): void {
@@ -31,7 +34,7 @@ export function registerPaletteFileHandlers(): void {
 				filters: [
 					{
 						name: "Palette Files",
-						extensions: ["pal", "gpl", "txt", "css", "ase", "aco"],
+						extensions: ["pal", "gpl", "txt", "css", "ase", "aco", "png"],
 					},
 				],
 			});

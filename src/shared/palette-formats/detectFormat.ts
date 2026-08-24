@@ -14,5 +14,6 @@ export function detectFormatByExtension(
 	if (extension === "css") return "css";
 	if (extension === "ase") return "ase";
 	if (extension === "aco") return "aco";
+	if (extension === "png") return "png";
 	return null;
 }
