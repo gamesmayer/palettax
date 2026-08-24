@@ -66,6 +66,15 @@ export function buildMenu(mainWindow: BrowserWindow): Menu {
 		{ role: "editMenu" },
 		{ role: "viewMenu" },
 		{ role: "windowMenu" },
+		{
+			label: "Help",
+			submenu: [
+				{
+					label: "How It Works",
+					click: () => mainWindow.webContents.send("menu:trigger-help"),
+				},
+			],
+		},
 	];
 
 	return Menu.buildFromTemplate(template);

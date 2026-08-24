@@ -32,6 +32,11 @@ const paletteApi = {
 		return () =>
 			ipcRenderer.removeListener("menu:trigger-new-palette", listener);
 	},
+	onTriggerHelp: (callback: () => void): (() => void) => {
+		const listener = (): void => callback();
+		ipcRenderer.on("menu:trigger-help", listener);
+		return () => ipcRenderer.removeListener("menu:trigger-help", listener);
+	},
 	onRequestClose: (callback: () => void): (() => void) => {
 		const listener = (): void => callback();
 		ipcRenderer.on("app:request-close", listener);

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { UpdateInfo } from "../../shared/ipc-contract";
 import { flattenGroups } from "../../shared/paletteGroups";
 import { ConfirmDialog } from "./components/ConfirmDialog/ConfirmDialog";
+import { HelpDialog } from "./components/HelpDialog/HelpDialog";
 import { PaletteView } from "./components/PaletteView/PaletteView";
 import { PngExportDialog } from "./components/PngExportDialog/PngExportDialog";
 import { TabBar } from "./components/TabBar/TabBar";
@@ -14,6 +15,7 @@ export function App(): JSX.Element {
 	const createPalette = usePaletteStore((state) => state.createPalette);
 	const hasOpenPalettes = usePaletteStore((state) => state.tabOrder.length > 0);
 	const [isConfirmingAppClose, setIsConfirmingAppClose] = useState(false);
+	const [showHelp, setShowHelp] = useState(false);
 	const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
 	const [pngExportContext, setPngExportContext] = useState<{
 		colorCount: number;
@@ -48,12 +50,16 @@ export function App(): JSX.Element {
 		const offUpdateAvailable = window.paletteApi.onUpdateAvailable((info) => {
 			setUpdateInfo(info);
 		});
+		const offHelp = window.paletteApi.onTriggerHelp(() => {
+			setShowHelp(true);
+		});
 		return () => {
 			offImport();
 			offExport();
 			offNewPalette();
 			offRequestClose();
 			offUpdateAvailable();
+			offHelp();
 		};
 	}, [importPalettes, exportActivePalette, createPalette]);
 
@@ -81,6 +87,7 @@ export function App(): JSX.Element {
 					onDismiss={() => setUpdateInfo(null)}
 				/>
 			)}
+			{showHelp && <HelpDialog onClose={() => setShowHelp(false)} />}
 			{pngExportContext && (
 				<PngExportDialog
 					colorCount={pngExportContext.colorCount}
