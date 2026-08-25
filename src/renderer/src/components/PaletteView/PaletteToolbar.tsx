@@ -9,6 +9,10 @@ interface PaletteToolbarProps {
 	colorSystem: ColorSystem;
 	onColorSystemChange: (system: ColorSystem) => void;
 	onAddGroup: () => void;
+	onAddColor: () => void;
+	onOpenBlend: () => void;
+	onOpenShadeTint: () => void;
+	canAddColor: boolean;
 	onUndo: () => void;
 	onRedo: () => void;
 	canUndo: boolean;
@@ -35,6 +39,10 @@ export function PaletteToolbar({
 	colorSystem,
 	onColorSystemChange,
 	onAddGroup,
+	onAddColor,
+	onOpenBlend,
+	onOpenShadeTint,
+	canAddColor,
 	onUndo,
 	onRedo,
 	canUndo,
@@ -42,25 +50,7 @@ export function PaletteToolbar({
 }: PaletteToolbarProps): JSX.Element {
 	return (
 		<Frame className="palette-toolbar">
-			<div className="palette-toolbar__left">
-				<Button
-					className="palette-toolbar__icon-btn"
-					onClick={onUndo}
-					disabled={!canUndo}
-					aria-label="Undo"
-				>
-					<UndoIcon />
-				</Button>
-				<Button
-					className="palette-toolbar__icon-btn"
-					onClick={onRedo}
-					disabled={!canRedo}
-					aria-label="Redo"
-				>
-					<RedoIcon />
-				</Button>
-			</div>
-			<div className="palette-toolbar__center">
+			<div className="palette-toolbar__top">
 				<Dropdown
 					className="palette-toolbar__color-system"
 					options={Object.values(COLOR_SYSTEM_LABELS)}
@@ -71,10 +61,39 @@ export function PaletteToolbar({
 					aria-label="Color system"
 				/>
 			</div>
-			<div className="palette-toolbar__right">
-				<Button onClick={onAddGroup}>
-					<PlusIcon /> Add group
-				</Button>
+			<div className="palette-toolbar__bottom">
+				<div className="palette-toolbar__left">
+					<Button
+						className="palette-toolbar__icon-btn"
+						onClick={onUndo}
+						disabled={!canUndo}
+						aria-label="Undo"
+					>
+						<UndoIcon />
+					</Button>
+					<Button
+						className="palette-toolbar__icon-btn"
+						onClick={onRedo}
+						disabled={!canRedo}
+						aria-label="Redo"
+					>
+						<RedoIcon />
+					</Button>
+				</div>
+				<div className="palette-toolbar__right">
+					<Button onClick={onAddGroup}>
+						<PlusIcon /> Add group
+					</Button>
+					<Button onClick={onAddColor} disabled={!canAddColor}>
+						<PlusIcon /> Add color
+					</Button>
+					<Button onClick={onOpenBlend} disabled={!canAddColor}>
+						Blending
+					</Button>
+					<Button onClick={onOpenShadeTint} disabled={!canAddColor}>
+						Shades/Tints
+					</Button>
+				</div>
 			</div>
 		</Frame>
 	);

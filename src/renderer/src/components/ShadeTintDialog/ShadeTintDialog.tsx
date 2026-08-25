@@ -6,18 +6,19 @@ import {
 	rgbToHex,
 } from "../../../../shared/color";
 import { Easing } from "../../../../shared/easing";
-import { PaletteColor } from "../../../../shared/palette-formats";
+import { PaletteGroup } from "../../../../shared/palette-formats";
 import { usePaletteStore } from "../../store/paletteStore";
 import {
 	EndpointMode,
 	EndpointPicker,
 	Rgb,
 } from "../ColorPicker/EndpointPicker";
+import { GroupPicker } from "../ColorPicker/GroupPicker";
 
 interface ShadeTintDialogProps {
 	paletteId: string;
 	groupId: string;
-	colors: PaletteColor[];
+	groups: PaletteGroup[];
 	colorSystem: ColorSystem;
 	onClose: () => void;
 }
@@ -68,7 +69,7 @@ function clampChromaShift(value: number): number {
 export function ShadeTintDialog({
 	paletteId,
 	groupId,
-	colors,
+	groups,
 	colorSystem,
 	onClose,
 }: ShadeTintDialogProps): JSX.Element {
@@ -77,6 +78,10 @@ export function ShadeTintDialog({
 		(state) => state.insertColorsAroundId
 	);
 
+	const [selectedGroupId, setSelectedGroupId] = useState(groupId);
+	const colors =
+		groups.find((group) => group.id === selectedGroupId)?.colors ?? [];
+
 	const [mode, setMode] = useState<EndpointMode>(
 		colors.length > 0 ? "palette" : "new"
 	);
@@ -84,6 +89,15 @@ export function ShadeTintDialog({
 	const [customRgb, setCustomRgb] = useState<Rgb>(
 		colors[0] ?? { r: 255, g: 255, b: 255 }
 	);
+
+	function handleGroupChange(nextGroupId: string): void {
+		setSelectedGroupId(nextGroupId);
+		const nextColors =
+			groups.find((group) => group.id === nextGroupId)?.colors ?? [];
+		setMode(nextColors.length > 0 ? "palette" : "new");
+		setPaletteColorId(nextColors[0]?.id ?? "");
+		setCustomRgb(nextColors[0] ?? { r: 255, g: 255, b: 255 });
+	}
 
 	const [shadeCount, setShadeCount] = useState(3);
 	const [shadeDarkness, setShadeDarkness] = useState(DEFAULT_LIGHTNESS_SHIFT);
@@ -135,7 +149,7 @@ export function ShadeTintDialog({
 		const shadeColors = shades.map(toStored);
 		const tintColors = tints.map(toStored);
 		if (baseIsNew) {
-			addColors(paletteId, groupId, [
+			addColors(paletteId, selectedGroupId, [
 				...shadeColors,
 				toStored(base),
 				...tintColors,
@@ -143,7 +157,7 @@ export function ShadeTintDialog({
 		} else {
 			insertColorsAroundId(
 				paletteId,
-				groupId,
+				selectedGroupId,
 				paletteColorId,
 				shadeColors,
 				tintColors
@@ -171,6 +185,13 @@ export function ShadeTintDialog({
 				]}
 			>
 				<Modal.Content>
+					<GroupPicker
+						groups={groups}
+						value={selectedGroupId}
+						onChange={handleGroupChange}
+					/>
+					<hr className="dialog-separator" />
+
 					<EndpointPicker
 						label="Color"
 						mode={mode}

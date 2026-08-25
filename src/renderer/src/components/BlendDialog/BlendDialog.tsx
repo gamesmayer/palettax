@@ -1,18 +1,19 @@
 import { Input, Modal, TitleBar } from "@react95/core";
 import { MouseEvent, useState } from "react";
 import { ColorSystem, blendRgb, rgbToHex } from "../../../../shared/color";
-import { PaletteColor } from "../../../../shared/palette-formats";
+import { PaletteGroup } from "../../../../shared/palette-formats";
 import { usePaletteStore } from "../../store/paletteStore";
 import {
 	EndpointMode,
 	EndpointPicker,
 	Rgb,
 } from "../ColorPicker/EndpointPicker";
+import { GroupPicker } from "../ColorPicker/GroupPicker";
 
 interface BlendDialogProps {
 	paletteId: string;
 	groupId: string;
-	colors: PaletteColor[];
+	groups: PaletteGroup[];
 	colorSystem: ColorSystem;
 	onClose: () => void;
 }
@@ -27,11 +28,15 @@ function clampSteps(value: number): number {
 export function BlendDialog({
 	paletteId,
 	groupId,
-	colors,
+	groups,
 	colorSystem,
 	onClose,
 }: BlendDialogProps): JSX.Element {
 	const addColors = usePaletteStore((state) => state.addColors);
+
+	const [selectedGroupId, setSelectedGroupId] = useState(groupId);
+	const colors =
+		groups.find((group) => group.id === selectedGroupId)?.colors ?? [];
 
 	const [fromMode, setFromMode] = useState<EndpointMode>(
 		colors.length > 0 ? "palette" : "new"
@@ -54,6 +59,20 @@ export function BlendDialog({
 	);
 
 	const [steps, setSteps] = useState(5);
+
+	function handleGroupChange(nextGroupId: string): void {
+		setSelectedGroupId(nextGroupId);
+		const nextColors =
+			groups.find((group) => group.id === nextGroupId)?.colors ?? [];
+		setFromMode(nextColors.length > 0 ? "palette" : "new");
+		setFromPaletteColorId(nextColors[0]?.id ?? "");
+		setFromCustomRgb(nextColors[0] ?? { r: 0, g: 0, b: 0 });
+		setToMode(nextColors.length > 0 ? "palette" : "new");
+		setToPaletteColorId(nextColors[1]?.id ?? nextColors[0]?.id ?? "");
+		setToCustomRgb(
+			nextColors[1] ?? nextColors[0] ?? { r: 255, g: 255, b: 255 }
+		);
+	}
 
 	function resolveRgb(
 		mode: EndpointMode,
@@ -82,7 +101,7 @@ export function BlendDialog({
 			...middleSteps,
 			...(toMode === "new" ? [preview[preview.length - 1]] : []),
 		].map(({ r, g, b }) => ({ r, g, b, hex: rgbToHex(r, g, b) }));
-		addColors(paletteId, groupId, toAdd);
+		addColors(paletteId, selectedGroupId, toAdd);
 		onClose();
 	}
 
@@ -105,6 +124,13 @@ export function BlendDialog({
 				]}
 			>
 				<Modal.Content>
+					<GroupPicker
+						groups={groups}
+						value={selectedGroupId}
+						onChange={handleGroupChange}
+					/>
+					<hr className="dialog-separator" />
+
 					<div className="blend-dialog__endpoints">
 						<EndpointPicker
 							label="From"

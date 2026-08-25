@@ -1,7 +1,11 @@
 import { Button } from "@react95/core";
+import { useState } from "react";
 import { usePaletteActions } from "../../hooks/usePaletteActions";
 import { usePaletteStore } from "../../store/paletteStore";
+import { BlendDialog } from "../BlendDialog/BlendDialog";
 import { PaletteGroups } from "../ColorList/PaletteGroups";
+import { ColorDialog } from "../ColorDialog/ColorDialog";
+import { ShadeTintDialog } from "../ShadeTintDialog/ShadeTintDialog";
 import { PaletteToolbar } from "./PaletteToolbar";
 
 export function PaletteView(): JSX.Element {
@@ -30,6 +34,10 @@ export function PaletteView(): JSX.Element {
 	const undo = usePaletteStore((state) => state.undo);
 	const redo = usePaletteStore((state) => state.redo);
 
+	const [isColorDialogOpen, setIsColorDialogOpen] = useState(false);
+	const [isBlendDialogOpen, setIsBlendDialogOpen] = useState(false);
+	const [isShadeTintDialogOpen, setIsShadeTintDialogOpen] = useState(false);
+
 	if (!activePalette) {
 		return (
 			<div className="palette-view palette-view--empty">
@@ -40,6 +48,9 @@ export function PaletteView(): JSX.Element {
 		);
 	}
 
+	const canAddColor = activePalette.groups.length > 0;
+	const defaultGroupId = activePalette.groups[0]?.id ?? "";
+
 	return (
 		<div className="palette-view">
 			<PaletteToolbar
@@ -48,12 +59,43 @@ export function PaletteView(): JSX.Element {
 					setColorSystem(activePalette.id, system)
 				}
 				onAddGroup={() => addGroup(activePalette.id)}
+				onAddColor={() => setIsColorDialogOpen(true)}
+				onOpenBlend={() => setIsBlendDialogOpen(true)}
+				onOpenShadeTint={() => setIsShadeTintDialogOpen(true)}
+				canAddColor={canAddColor}
 				onUndo={() => undo(activePalette.id)}
 				onRedo={() => redo(activePalette.id)}
 				canUndo={canUndo}
 				canRedo={canRedo}
 			/>
 			<PaletteGroups palette={activePalette} colorSystem={colorSystem} />
+			{isColorDialogOpen && (
+				<ColorDialog
+					paletteId={activePalette.id}
+					groupId={defaultGroupId}
+					groups={activePalette.groups}
+					colorSystem={colorSystem}
+					onClose={() => setIsColorDialogOpen(false)}
+				/>
+			)}
+			{isBlendDialogOpen && (
+				<BlendDialog
+					paletteId={activePalette.id}
+					groupId={defaultGroupId}
+					groups={activePalette.groups}
+					colorSystem={colorSystem}
+					onClose={() => setIsBlendDialogOpen(false)}
+				/>
+			)}
+			{isShadeTintDialogOpen && (
+				<ShadeTintDialog
+					paletteId={activePalette.id}
+					groupId={defaultGroupId}
+					groups={activePalette.groups}
+					colorSystem={colorSystem}
+					onClose={() => setIsShadeTintDialogOpen(false)}
+				/>
+			)}
 		</div>
 	);
 }

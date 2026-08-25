@@ -9,16 +9,10 @@ import {
 	PaletteGroup,
 } from "../../../../shared/palette-formats";
 import { usePaletteStore } from "../../store/paletteStore";
-import { BlendDialog } from "../BlendDialog/BlendDialog";
 import { ColorDialog } from "../ColorDialog/ColorDialog";
 import { ConfirmDialog } from "../ConfirmDialog/ConfirmDialog";
-import { ShadeTintDialog } from "../ShadeTintDialog/ShadeTintDialog";
 import { CloseIcon } from "../icons/CloseIcon";
-import { PlusIcon } from "../icons/PlusIcon";
 import { ColorList } from "./ColorList";
-
-type ColorDialogState =
-	{ mode: "add" } | { mode: "edit"; color: PaletteColor } | null;
 
 interface GroupSectionProps {
 	palette: Palette;
@@ -45,9 +39,7 @@ export function GroupSection({
 
 	const [isEditingName, setIsEditingName] = useState(false);
 	const [nameDraft, setNameDraft] = useState(group.name ?? "");
-	const [colorDialog, setColorDialog] = useState<ColorDialogState>(null);
-	const [isBlendDialogOpen, setIsBlendDialogOpen] = useState(false);
-	const [isShadeTintDialogOpen, setIsShadeTintDialogOpen] = useState(false);
+	const [editingColor, setEditingColor] = useState<PaletteColor | null>(null);
 	const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
 	const style = {
@@ -112,13 +104,6 @@ export function GroupSection({
 					</span>
 				</div>
 				<div className="group-section__actions">
-					<Button onClick={() => setColorDialog({ mode: "add" })}>
-						<PlusIcon /> Add color
-					</Button>
-					<Button onClick={() => setIsBlendDialogOpen(true)}>Blending</Button>
-					<Button onClick={() => setIsShadeTintDialogOpen(true)}>
-						Shades/Tints
-					</Button>
 					<Button
 						className="group-section__delete-btn"
 						onClick={() => setIsConfirmingDelete(true)}
@@ -133,33 +118,16 @@ export function GroupSection({
 				groupId={group.id}
 				colors={group.colors}
 				colorSystem={colorSystem}
-				onEditColor={(color) => setColorDialog({ mode: "edit", color })}
+				onEditColor={setEditingColor}
 			/>
-			{colorDialog && (
+			{editingColor && (
 				<ColorDialog
 					paletteId={palette.id}
 					groupId={group.id}
-					color={colorDialog.mode === "edit" ? colorDialog.color : undefined}
+					groups={palette.groups}
+					color={editingColor}
 					colorSystem={colorSystem}
-					onClose={() => setColorDialog(null)}
-				/>
-			)}
-			{isBlendDialogOpen && (
-				<BlendDialog
-					paletteId={palette.id}
-					groupId={group.id}
-					colors={group.colors}
-					colorSystem={colorSystem}
-					onClose={() => setIsBlendDialogOpen(false)}
-				/>
-			)}
-			{isShadeTintDialogOpen && (
-				<ShadeTintDialog
-					paletteId={palette.id}
-					groupId={group.id}
-					colors={group.colors}
-					colorSystem={colorSystem}
-					onClose={() => setIsShadeTintDialogOpen(false)}
+					onClose={() => setEditingColor(null)}
 				/>
 			)}
 			{isConfirmingDelete && (

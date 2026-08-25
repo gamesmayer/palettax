@@ -1,13 +1,15 @@
 import { Input, Modal, TitleBar } from "@react95/core";
 import { MouseEvent, useState } from "react";
 import { ColorSystem, rgbToHex } from "../../../../shared/color";
-import { PaletteColor } from "../../../../shared/palette-formats";
+import { PaletteColor, PaletteGroup } from "../../../../shared/palette-formats";
 import { usePaletteStore } from "../../store/paletteStore";
 import { ColorSystemFields } from "../ColorPicker/ColorSystemFields";
+import { GroupPicker } from "../ColorPicker/GroupPicker";
 
 interface ColorDialogProps {
 	paletteId: string;
 	groupId: string;
+	groups: PaletteGroup[];
 	color?: PaletteColor;
 	colorSystem: ColorSystem;
 	onClose: () => void;
@@ -16,12 +18,14 @@ interface ColorDialogProps {
 export function ColorDialog({
 	paletteId,
 	groupId,
+	groups,
 	color,
 	colorSystem,
 	onClose,
 }: ColorDialogProps): JSX.Element {
 	const addColor = usePaletteStore((state) => state.addColor);
 	const updateColor = usePaletteStore((state) => state.updateColor);
+	const [selectedGroupId, setSelectedGroupId] = useState(groupId);
 	const [rgb, setRgb] = useState({
 		r: color?.r ?? 255,
 		g: color?.g ?? 255,
@@ -40,7 +44,7 @@ export function ColorDialog({
 		if (color) {
 			updateColor(paletteId, groupId, color.id, changes);
 		} else {
-			addColor(paletteId, groupId, changes);
+			addColor(paletteId, selectedGroupId, changes);
 		}
 		onClose();
 	}
@@ -64,6 +68,16 @@ export function ColorDialog({
 				]}
 			>
 				<Modal.Content>
+					{!color && (
+						<>
+							<GroupPicker
+								groups={groups}
+								value={selectedGroupId}
+								onChange={setSelectedGroupId}
+							/>
+							<hr className="dialog-separator" />
+						</>
+					)}
 					<ColorSystemFields
 						colorSystem={colorSystem}
 						rgb={rgb}
