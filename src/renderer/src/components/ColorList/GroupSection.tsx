@@ -12,7 +12,7 @@ import { usePaletteStore } from "../../store/paletteStore";
 import { ColorDialog } from "../ColorDialog/ColorDialog";
 import { ConfirmDialog } from "../ConfirmDialog/ConfirmDialog";
 import { CloseIcon } from "../icons/CloseIcon";
-import { ColorList } from "./ColorList";
+import { ColorGrid } from "./ColorGrid";
 
 interface GroupSectionProps {
 	palette: Palette;
@@ -113,7 +113,7 @@ export function GroupSection({
 					</Button>
 				</div>
 			</div>
-			<ColorList
+			<ColorGrid
 				paletteId={palette.id}
 				groupId={group.id}
 				colors={group.colors}

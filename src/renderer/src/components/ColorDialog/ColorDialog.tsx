@@ -88,7 +88,7 @@ export function ColorDialog({
 						type="text"
 						value={name}
 						onChange={(event) => setName(event.target.value)}
-						placeholder="Name (optional)"
+						placeholder="Name"
 					/>
 				</Modal.Content>
 			</Modal>

@@ -219,51 +219,67 @@ button:disabled {
 	padding: 0;
 }
 
-.color-list {
-	display: flex;
-	flex-direction: column;
-	gap: var(--r95-space-4);
+.color-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+	gap: var(--r95-space-6);
 	padding: var(--r95-space-3);
 	background: var(--r95-color-inputBackground);
 	box-shadow: var(--r95-shadow-in);
 }
 
-.color-list__empty {
+.color-grid__empty {
+	grid-column: 1 / -1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-height: 80px;
 	color: var(--r95-color-materialTextDisabled);
 	text-align: center;
-	padding: var(--r95-space-8);
 }
 
 .color-swatch {
+	position: relative;
 	display: flex;
-	align-items: center;
-	gap: var(--r95-space-10);
-	padding: var(--r95-space-4) var(--r95-space-6);
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: center;
+	gap: var(--r95-space-2);
+	padding: var(--r95-space-3);
+	box-sizing: border-box;
+	min-height: 80px;
 	background: var(--r95-color-material);
 	box-shadow: var(--r95-shadow-out);
 }
 
+.color-swatch--overlay {
+	cursor: grabbing;
+	pointer-events: none;
+}
+
 .color-swatch__drag-handle {
+	display: block;
+	text-align: center;
 	cursor: grab;
 	color: var(--r95-color-borderDark);
 }
 
 .color-swatch__chip {
-	width: 24px;
-	height: 24px;
+	width: 100%;
+	height: 36px;
 	padding: 0;
 	border: none;
-	flex-shrink: 0;
 	cursor: pointer;
 	box-shadow: var(--r95-shadow-in);
 }
 
-.color-swatch__value {
-	font-family: monospace;
-}
-
 .color-swatch__label {
-	flex: 1;
+	width: 100%;
+	text-align: center;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	cursor: text;
 }
 
@@ -272,28 +288,30 @@ button:disabled {
 }
 
 .color-swatch__name-input {
-	flex: 1;
+	width: 100%;
+	box-sizing: border-box;
 	padding: 2px 3px 3px;
 }
 
-.color-swatch__actions {
-	display: flex;
-	gap: var(--r95-space-2);
-}
-
-.color-swatch__icon-btn {
-	display: flex;
-	align-items: center;
-	justify-content: center;
+.color-swatch__delete-btn {
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	width: 18px;
+	height: 18px;
 	padding: 0;
-	width: 22px;
-	height: 22px;
 	min-width: 0;
 	line-height: 1;
+	opacity: 0.5;
 }
 
-.color-swatch__icon-btn:active {
-	padding: 1px 0 0 1px;
+.color-swatch__delete-btn:hover,
+.color-swatch__delete-btn:focus-visible {
+	opacity: 1;
+}
+
+.color-swatch__delete-btn:active {
+	padding: 0;
 }
 
 .dialog-backdrop {

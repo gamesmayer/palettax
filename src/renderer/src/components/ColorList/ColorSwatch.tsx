@@ -15,10 +15,6 @@ interface ColorSwatchProps {
 	color: PaletteColor;
 	groupId: string;
 	colorSystem: ColorSystem;
-	canMoveUp: boolean;
-	canMoveDown: boolean;
-	onMoveUp: () => void;
-	onMoveDown: () => void;
 	onRemove: () => void;
 	onRename: (newName: string) => void;
 	onEdit: () => void;
@@ -49,22 +45,25 @@ export function ColorSwatch({
 	color,
 	groupId,
 	colorSystem,
-	canMoveUp,
-	canMoveDown,
-	onMoveUp,
-	onMoveDown,
 	onRemove,
 	onRename,
 	onEdit,
 }: ColorSwatchProps): JSX.Element {
-	const { attributes, listeners, setNodeRef, transform, transition } =
-		useSortable({ id: color.id, data: { type: "color", groupId } });
+	const {
+		attributes,
+		listeners,
+		setNodeRef,
+		transform,
+		transition,
+		isDragging,
+	} = useSortable({ id: color.id, data: { type: "color", groupId } });
 	const [isEditing, setIsEditing] = useState(false);
 	const [draft, setDraft] = useState(color.name ?? "");
 
 	const style = {
 		transform: CSS.Transform.toString(transform),
 		transition,
+		opacity: isDragging ? 0 : 1,
 	};
 
 	function startEditing(event: MouseEvent): void {
@@ -100,21 +99,26 @@ export function ColorSwatch({
 				as="button"
 				className="color-swatch__chip"
 				style={{ backgroundColor: color.hex }}
+				title={formatColorValue(color, colorSystem)}
 				onClick={(event: MouseEvent<HTMLButtonElement>) => {
 					event.stopPropagation();
 					onEdit();
 				}}
 				aria-label={`Edit color ${color.hex}`}
 			/>
-			<span className="color-swatch__value">
-				{formatColorValue(color, colorSystem)}
-			</span>
+			<Button
+				className="color-swatch__delete-btn"
+				onClick={onRemove}
+				aria-label="Remove color"
+			>
+				<CloseIcon size="s" />
+			</Button>
 			{isEditing ? (
 				<Input
 					className="color-swatch__name-input"
 					value={draft}
 					autoFocus
-					placeholder="Name (optional)"
+					placeholder="Name"
 					onClick={(event) => event.stopPropagation()}
 					onChange={(event) => setDraft(event.target.value)}
 					onBlur={commit}
@@ -127,36 +131,12 @@ export function ColorSwatch({
 							? "color-swatch__label"
 							: "color-swatch__label color-swatch__label--unnamed"
 					}
+					title={color.name ?? color.hex}
 					onDoubleClick={startEditing}
 				>
 					{color.name ?? color.hex}
 				</span>
 			)}
-			<Frame className="color-swatch__actions">
-				<Button
-					className="color-swatch__icon-btn"
-					onClick={onMoveUp}
-					disabled={!canMoveUp}
-					aria-label="Move color up"
-				>
-					↑
-				</Button>
-				<Button
-					className="color-swatch__icon-btn"
-					onClick={onMoveDown}
-					disabled={!canMoveDown}
-					aria-label="Move color down"
-				>
-					↓
-				</Button>
-				<Button
-					className="color-swatch__icon-btn"
-					onClick={onRemove}
-					aria-label="Remove color"
-				>
-					<CloseIcon />
-				</Button>
-			</Frame>
 		</Frame>
 	);
 }
