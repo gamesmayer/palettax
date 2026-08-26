@@ -33,7 +33,18 @@ export function ColorGrid({
 	return (
 		<Frame className="color-grid" ref={setNodeRef}>
 			{colors.length === 0 ? (
-				<p className="color-grid__empty">This group has no colors yet.</p>
+				<div className="color-grid__empty">
+					<span className="color-swatch__drag-handle" aria-hidden="true">
+						⠿
+					</span>
+					<span className="color-swatch__chip" aria-hidden="true" />
+					<span className="color-swatch__label" aria-hidden="true">
+						&nbsp;
+					</span>
+					<p className="color-grid__empty-text">
+						This group has no colors yet.
+					</p>
+				</div>
 			) : (
 				<SortableContext items={colorIds} strategy={rectSortingStrategy}>
 					{colors.map((color) => (
