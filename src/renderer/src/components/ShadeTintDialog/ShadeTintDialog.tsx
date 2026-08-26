@@ -13,7 +13,7 @@ import {
 	EndpointPicker,
 	Rgb,
 } from "../ColorPicker/EndpointPicker";
-import { GroupPicker } from "../ColorPicker/GroupPicker";
+import { GroupPicker, GroupSelection } from "../ColorPicker/GroupPicker";
 
 interface ShadeTintDialogProps {
 	paletteId: string;
@@ -77,10 +77,17 @@ export function ShadeTintDialog({
 	const insertColorsAroundId = usePaletteStore(
 		(state) => state.insertColorsAroundId
 	);
+	const addGroup = usePaletteStore((state) => state.addGroup);
 
-	const [selectedGroupId, setSelectedGroupId] = useState(groupId);
+	const [groupSelection, setGroupSelection] = useState<GroupSelection>({
+		kind: "existing",
+		groupId,
+	});
 	const colors =
-		groups.find((group) => group.id === selectedGroupId)?.colors ?? [];
+		groupSelection.kind === "existing"
+			? (groups.find((group) => group.id === groupSelection.groupId)?.colors ??
+				[])
+			: [];
 
 	const [mode, setMode] = useState<EndpointMode>(
 		colors.length > 0 ? "palette" : "new"
@@ -90,10 +97,13 @@ export function ShadeTintDialog({
 		colors[0] ?? { r: 255, g: 255, b: 255 }
 	);
 
-	function handleGroupChange(nextGroupId: string): void {
-		setSelectedGroupId(nextGroupId);
+	function handleGroupChange(nextSelection: GroupSelection): void {
+		setGroupSelection(nextSelection);
 		const nextColors =
-			groups.find((group) => group.id === nextGroupId)?.colors ?? [];
+			nextSelection.kind === "existing"
+				? (groups.find((group) => group.id === nextSelection.groupId)?.colors ??
+					[])
+				: [];
 		setMode(nextColors.length > 0 ? "palette" : "new");
 		setPaletteColorId(nextColors[0]?.id ?? "");
 		setCustomRgb(nextColors[0] ?? { r: 255, g: 255, b: 255 });
@@ -148,8 +158,12 @@ export function ShadeTintDialog({
 		});
 		const shadeColors = shades.map(toStored);
 		const tintColors = tints.map(toStored);
+		const targetGroupId =
+			groupSelection.kind === "existing"
+				? groupSelection.groupId
+				: addGroup(paletteId, groupSelection.name);
 		if (baseIsNew) {
-			addColors(paletteId, selectedGroupId, [
+			addColors(paletteId, targetGroupId, [
 				...shadeColors,
 				toStored(base),
 				...tintColors,
@@ -157,7 +171,7 @@ export function ShadeTintDialog({
 		} else {
 			insertColorsAroundId(
 				paletteId,
-				selectedGroupId,
+				targetGroupId,
 				paletteColorId,
 				shadeColors,
 				tintColors
@@ -184,14 +198,7 @@ export function ShadeTintDialog({
 					{ value: "Add", onClick: handleSubmit },
 				]}
 			>
-				<Modal.Content>
-					<GroupPicker
-						groups={groups}
-						value={selectedGroupId}
-						onChange={handleGroupChange}
-					/>
-					<hr className="dialog-separator" />
-
+				<Modal.Content className="dialog-content">
 					<EndpointPicker
 						label="Color"
 						mode={mode}
@@ -366,6 +373,13 @@ export function ShadeTintDialog({
 							))}
 						</div>
 					</div>
+
+					<hr className="dialog-separator" />
+					<GroupPicker
+						groups={groups}
+						value={groupSelection}
+						onChange={handleGroupChange}
+					/>
 				</Modal.Content>
 			</Modal>
 		</div>

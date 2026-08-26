@@ -36,7 +36,7 @@ export function ConfirmDialog({
 					{ value: confirmLabel, onClick: onConfirm },
 				]}
 			>
-				<Modal.Content>
+				<Modal.Content className="dialog-content">
 					<p className="confirm-dialog__message">{message}</p>
 				</Modal.Content>
 			</Modal>

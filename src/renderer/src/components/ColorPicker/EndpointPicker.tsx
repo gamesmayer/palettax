@@ -1,7 +1,7 @@
 import { Button, Frame } from "@react95/core";
 import { ColorSystem } from "../../../../shared/color";
 import { PaletteColor } from "../../../../shared/palette-formats";
-import { ColorSystemFields } from "./ColorSystemFields";
+import { SwatchColorPicker } from "./SwatchColorPicker";
 
 export type EndpointMode = "palette" | "new";
 export type Rgb = { r: number; g: number; b: number };
@@ -73,7 +73,9 @@ export function EndpointPicker({
 					))}
 				</div>
 			) : (
-				<ColorSystemFields
+				<SwatchColorPicker
+					label={label}
+					hideLabel
 					colorSystem={colorSystem}
 					rgb={customRgb}
 					onChange={onCustomRgbChange}

@@ -8,7 +8,7 @@ import {
 	EndpointPicker,
 	Rgb,
 } from "../ColorPicker/EndpointPicker";
-import { GroupPicker } from "../ColorPicker/GroupPicker";
+import { GroupPicker, GroupSelection } from "../ColorPicker/GroupPicker";
 
 interface BlendDialogProps {
 	paletteId: string;
@@ -33,10 +33,17 @@ export function BlendDialog({
 	onClose,
 }: BlendDialogProps): JSX.Element {
 	const addColors = usePaletteStore((state) => state.addColors);
+	const addGroup = usePaletteStore((state) => state.addGroup);
 
-	const [selectedGroupId, setSelectedGroupId] = useState(groupId);
+	const [groupSelection, setGroupSelection] = useState<GroupSelection>({
+		kind: "existing",
+		groupId,
+	});
 	const colors =
-		groups.find((group) => group.id === selectedGroupId)?.colors ?? [];
+		groupSelection.kind === "existing"
+			? (groups.find((group) => group.id === groupSelection.groupId)?.colors ??
+				[])
+			: [];
 
 	const [fromMode, setFromMode] = useState<EndpointMode>(
 		colors.length > 0 ? "palette" : "new"
@@ -60,10 +67,13 @@ export function BlendDialog({
 
 	const [steps, setSteps] = useState(5);
 
-	function handleGroupChange(nextGroupId: string): void {
-		setSelectedGroupId(nextGroupId);
+	function handleGroupChange(nextSelection: GroupSelection): void {
+		setGroupSelection(nextSelection);
 		const nextColors =
-			groups.find((group) => group.id === nextGroupId)?.colors ?? [];
+			nextSelection.kind === "existing"
+				? (groups.find((group) => group.id === nextSelection.groupId)?.colors ??
+					[])
+				: [];
 		setFromMode(nextColors.length > 0 ? "palette" : "new");
 		setFromPaletteColorId(nextColors[0]?.id ?? "");
 		setFromCustomRgb(nextColors[0] ?? { r: 0, g: 0, b: 0 });
@@ -101,7 +111,11 @@ export function BlendDialog({
 			...middleSteps,
 			...(toMode === "new" ? [preview[preview.length - 1]] : []),
 		].map(({ r, g, b }) => ({ r, g, b, hex: rgbToHex(r, g, b) }));
-		addColors(paletteId, selectedGroupId, toAdd);
+		const targetGroupId =
+			groupSelection.kind === "existing"
+				? groupSelection.groupId
+				: addGroup(paletteId, groupSelection.name);
+		addColors(paletteId, targetGroupId, toAdd);
 		onClose();
 	}
 
@@ -123,14 +137,7 @@ export function BlendDialog({
 					{ value: "Add", onClick: handleSubmit },
 				]}
 			>
-				<Modal.Content>
-					<GroupPicker
-						groups={groups}
-						value={selectedGroupId}
-						onChange={handleGroupChange}
-					/>
-					<hr className="dialog-separator" />
-
+				<Modal.Content className="dialog-content">
 					<div className="blend-dialog__endpoints">
 						<EndpointPicker
 							label="From"
@@ -187,6 +194,13 @@ export function BlendDialog({
 							))}
 						</div>
 					</div>
+
+					<hr className="dialog-separator" />
+					<GroupPicker
+						groups={groups}
+						value={groupSelection}
+						onChange={handleGroupChange}
+					/>
 				</Modal.Content>
 			</Modal>
 		</div>

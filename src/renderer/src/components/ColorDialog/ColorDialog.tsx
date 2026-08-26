@@ -4,7 +4,7 @@ import { ColorSystem, rgbToHex } from "../../../../shared/color";
 import { PaletteColor, PaletteGroup } from "../../../../shared/palette-formats";
 import { usePaletteStore } from "../../store/paletteStore";
 import { ColorSystemFields } from "../ColorPicker/ColorSystemFields";
-import { GroupPicker } from "../ColorPicker/GroupPicker";
+import { GroupPicker, GroupSelection } from "../ColorPicker/GroupPicker";
 
 interface ColorDialogProps {
 	paletteId: string;
@@ -25,7 +25,11 @@ export function ColorDialog({
 }: ColorDialogProps): JSX.Element {
 	const addColor = usePaletteStore((state) => state.addColor);
 	const updateColor = usePaletteStore((state) => state.updateColor);
-	const [selectedGroupId, setSelectedGroupId] = useState(groupId);
+	const addGroup = usePaletteStore((state) => state.addGroup);
+	const [groupSelection, setGroupSelection] = useState<GroupSelection>({
+		kind: "existing",
+		groupId,
+	});
 	const [rgb, setRgb] = useState({
 		r: color?.r ?? 255,
 		g: color?.g ?? 255,
@@ -44,7 +48,11 @@ export function ColorDialog({
 		if (color) {
 			updateColor(paletteId, groupId, color.id, changes);
 		} else {
-			addColor(paletteId, selectedGroupId, changes);
+			const targetGroupId =
+				groupSelection.kind === "existing"
+					? groupSelection.groupId
+					: addGroup(paletteId, groupSelection.name);
+			addColor(paletteId, targetGroupId, changes);
 		}
 		onClose();
 	}
@@ -67,17 +75,7 @@ export function ColorDialog({
 					{ value: color ? "Save" : "Add", onClick: handleSubmit },
 				]}
 			>
-				<Modal.Content>
-					{!color && (
-						<>
-							<GroupPicker
-								groups={groups}
-								value={selectedGroupId}
-								onChange={setSelectedGroupId}
-							/>
-							<hr className="dialog-separator" />
-						</>
-					)}
+				<Modal.Content className="dialog-content">
 					<ColorSystemFields
 						colorSystem={colorSystem}
 						rgb={rgb}
@@ -90,6 +88,16 @@ export function ColorDialog({
 						onChange={(event) => setName(event.target.value)}
 						placeholder="Name"
 					/>
+					{!color && (
+						<>
+							<hr className="dialog-separator" />
+							<GroupPicker
+								groups={groups}
+								value={groupSelection}
+								onChange={setGroupSelection}
+							/>
+						</>
+					)}
 				</Modal.Content>
 			</Modal>
 		</div>

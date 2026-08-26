@@ -12,6 +12,7 @@ interface PaletteToolbarProps {
 	onAddColor: () => void;
 	onOpenBlend: () => void;
 	onOpenShadeTint: () => void;
+	onOpenMaterialRamp: () => void;
 	canAddColor: boolean;
 	onUndo: () => void;
 	onRedo: () => void;
@@ -42,6 +43,7 @@ export function PaletteToolbar({
 	onAddColor,
 	onOpenBlend,
 	onOpenShadeTint,
+	onOpenMaterialRamp,
 	canAddColor,
 	onUndo,
 	onRedo,
@@ -61,6 +63,7 @@ export function PaletteToolbar({
 					aria-label="Color system"
 				/>
 			</div>
+			<hr className="dialog-separator" />
 			<div className="palette-toolbar__bottom">
 				<div className="palette-toolbar__left">
 					<Button
@@ -92,6 +95,9 @@ export function PaletteToolbar({
 					</Button>
 					<Button onClick={onOpenShadeTint} disabled={!canAddColor}>
 						Shades/Tints
+					</Button>
+					<Button onClick={onOpenMaterialRamp} disabled={!canAddColor}>
+						Material Ramp
 					</Button>
 				</div>
 			</div>

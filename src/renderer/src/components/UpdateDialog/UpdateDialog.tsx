@@ -31,7 +31,7 @@ export function UpdateDialog({
 					{ value: "Download", onClick: onDownload },
 				]}
 			>
-				<Modal.Content>
+				<Modal.Content className="dialog-content">
 					<p className="update-dialog__message">
 						Palettax {updateInfo.tagName} is available. Download it from GitHub?
 					</p>

@@ -72,7 +72,7 @@ interface PaletteStoreState {
 		toGroupId: string,
 		targetIndex: number
 	) => void;
-	addGroup: (paletteId: string, name?: string) => void;
+	addGroup: (paletteId: string, name?: string) => string;
 	renameGroup: (paletteId: string, groupId: string, name: string) => void;
 	removeGroup: (paletteId: string, groupId: string) => void;
 	reorderGroups: (paletteId: string, orderedGroupIds: string[]) => void;
@@ -262,13 +262,17 @@ export const usePaletteStore = create<PaletteStoreState>((set, get) => ({
 			}))
 		),
 
-	addGroup: (paletteId, name) =>
+	addGroup: (paletteId, name) => {
+		let newGroupId = "";
 		set((state) =>
-			withHistory(state, paletteId, (palette) => ({
-				...palette,
-				groups: addGroupToPalette(palette.groups, name),
-			}))
-		),
+			withHistory(state, paletteId, (palette) => {
+				const groups = addGroupToPalette(palette.groups, name);
+				newGroupId = groups[groups.length - 1].id;
+				return { ...palette, groups };
+			})
+		);
+		return newGroupId;
+	},
 
 	renameGroup: (paletteId, groupId, name) =>
 		set((state) =>

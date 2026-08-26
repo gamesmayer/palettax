@@ -65,7 +65,7 @@ export function PngExportDialog({
 					{ value: "Export", onClick: () => onConfirm({ columns }) },
 				]}
 			>
-				<Modal.Content>
+				<Modal.Content className="dialog-content">
 					<div className="endpoint-picker__field">
 						<span className="endpoint-picker__field-label">Shape</span>
 						<div className="endpoint-picker__mode-toggle">

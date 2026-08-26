@@ -5,6 +5,7 @@ import { usePaletteStore } from "../../store/paletteStore";
 import { BlendDialog } from "../BlendDialog/BlendDialog";
 import { PaletteGroups } from "../ColorList/PaletteGroups";
 import { ColorDialog } from "../ColorDialog/ColorDialog";
+import { MaterialRampDialog } from "../MaterialRampDialog/MaterialRampDialog";
 import { ShadeTintDialog } from "../ShadeTintDialog/ShadeTintDialog";
 import { PaletteToolbar } from "./PaletteToolbar";
 
@@ -37,6 +38,8 @@ export function PaletteView(): JSX.Element {
 	const [isColorDialogOpen, setIsColorDialogOpen] = useState(false);
 	const [isBlendDialogOpen, setIsBlendDialogOpen] = useState(false);
 	const [isShadeTintDialogOpen, setIsShadeTintDialogOpen] = useState(false);
+	const [isMaterialRampDialogOpen, setIsMaterialRampDialogOpen] =
+		useState(false);
 
 	if (!activePalette) {
 		return (
@@ -62,6 +65,7 @@ export function PaletteView(): JSX.Element {
 				onAddColor={() => setIsColorDialogOpen(true)}
 				onOpenBlend={() => setIsBlendDialogOpen(true)}
 				onOpenShadeTint={() => setIsShadeTintDialogOpen(true)}
+				onOpenMaterialRamp={() => setIsMaterialRampDialogOpen(true)}
 				canAddColor={canAddColor}
 				onUndo={() => undo(activePalette.id)}
 				onRedo={() => redo(activePalette.id)}
@@ -94,6 +98,15 @@ export function PaletteView(): JSX.Element {
 					groups={activePalette.groups}
 					colorSystem={colorSystem}
 					onClose={() => setIsShadeTintDialogOpen(false)}
+				/>
+			)}
+			{isMaterialRampDialogOpen && (
+				<MaterialRampDialog
+					paletteId={activePalette.id}
+					groupId={defaultGroupId}
+					groups={activePalette.groups}
+					colorSystem={colorSystem}
+					onClose={() => setIsMaterialRampDialogOpen(false)}
 				/>
 			)}
 		</div>
