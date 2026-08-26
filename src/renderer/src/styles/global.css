@@ -276,11 +276,20 @@ button:disabled {
 	pointer-events: none;
 }
 
+.color-swatch--ghost {
+	opacity: 0.4;
+	pointer-events: none;
+}
+
 .color-swatch__drag-handle {
 	display: block;
 	text-align: center;
 	cursor: grab;
 	color: var(--r95-color-borderDark);
+}
+
+.color-swatch__drag-handle--hidden {
+	visibility: hidden;
 }
 
 .color-swatch__chip {

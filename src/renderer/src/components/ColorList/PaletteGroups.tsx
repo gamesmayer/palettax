@@ -112,6 +112,15 @@ export function PaletteGroups({
 
 		const { colorId, fromGroupId } = dragOrigin;
 		const toGroupId = overData.groupId;
+
+		if (toGroupId === fromGroupId) {
+			// Reordering within the same group is animated natively by
+			// SortableContext; rebuilding the array here would fight that
+			// animation and cause the other items to flash.
+			setActiveDrag(null);
+			return;
+		}
+
 		const toGroup = palette.groups.find((group) => group.id === toGroupId);
 		if (!toGroup) {
 			setActiveDrag(null);
@@ -122,12 +131,6 @@ export function PaletteGroups({
 		const toIndex =
 			overData.type === "color"
 				? (() => {
-						if (over?.id === colorId) {
-							const ownIndex = toGroup.colors.findIndex(
-								(color) => color.id === colorId
-							);
-							return ownIndex === -1 ? otherColors.length : ownIndex;
-						}
 						const overIndex = otherColors.findIndex(
 							(color) => color.id === over?.id
 						);
@@ -227,6 +230,12 @@ export function PaletteGroups({
 			<DragOverlay>
 				{activeColor ? (
 					<div className="color-swatch color-swatch--overlay">
+						<span
+							className="color-swatch__drag-handle color-swatch__drag-handle--hidden"
+							aria-hidden="true"
+						>
+							⠿
+						</span>
 						<div
 							className="color-swatch__chip"
 							style={{ backgroundColor: activeColor.hex }}

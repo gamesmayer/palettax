@@ -63,7 +63,6 @@ export function ColorSwatch({
 	const style = {
 		transform: CSS.Transform.toString(transform),
 		transition,
-		opacity: isDragging ? 0 : 1,
 	};
 
 	function startEditing(event: MouseEvent): void {
@@ -87,7 +86,13 @@ export function ColorSwatch({
 	}
 
 	return (
-		<Frame className="color-swatch" ref={setNodeRef} style={style}>
+		<Frame
+			className={
+				isDragging ? "color-swatch color-swatch--ghost" : "color-swatch"
+			}
+			ref={setNodeRef}
+			style={style}
+		>
 			<span
 				className="color-swatch__drag-handle"
 				{...attributes}
