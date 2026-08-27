@@ -89,7 +89,10 @@ void main() {
 	vec3 radiance = uLightColorLinear * (uLightIntensity * LIGHT_POWER * NdotL);
 	vec3 directLit = (diffuse + specular) * radiance;
 
-	vec3 ambientLit = uAmbientColorLinear * uAmbientIntensity * albedoDiffuse;
+	vec3 fresnelAmbient = schlickFresnel(NdotV, f0);
+	vec3 ambientDiffuse = uAmbientColorLinear * uAmbientIntensity * albedoDiffuse;
+	vec3 ambientSpecular = uAmbientColorLinear * uAmbientIntensity * fresnelAmbient;
+	vec3 ambientLit = ambientDiffuse + ambientSpecular;
 
 	fragColor = vec4(reinhardTonemap(directLit + ambientLit), 1.0);
 }

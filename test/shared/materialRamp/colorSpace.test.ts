@@ -2,6 +2,7 @@ import {
 	lerpOklab,
 	linear01ToSrgbByte,
 	linearToRgbBytes,
+	nearestOklabIndex,
 	oklabDeltaE,
 	reinhardTonemap,
 	rgbBytesToLinear,
@@ -90,6 +91,23 @@ describe("oklabDeltaE", () => {
 		const a = { L: 0.2, a: 0.1, b: -0.1 };
 		const b = { L: 0.8, a: -0.1, b: 0.1 };
 		expect(oklabDeltaE(a, b)).toBeGreaterThan(0);
+	});
+});
+
+describe("nearestOklabIndex", () => {
+	const candidates = [
+		{ L: 0, a: 0, b: 0 },
+		{ L: 0.5, a: 0.02, b: -0.03 },
+		{ L: 1, a: 0, b: 0 },
+	];
+
+	it("picks the index of the exact match", () => {
+		expect(nearestOklabIndex(candidates[1], candidates)).toBe(1);
+	});
+
+	it("picks the closest candidate for an in-between target", () => {
+		const target = { L: 0.85, a: 0, b: 0 }; // closer to candidates[2] (L=1)
+		expect(nearestOklabIndex(target, candidates)).toBe(2);
 	});
 });
 

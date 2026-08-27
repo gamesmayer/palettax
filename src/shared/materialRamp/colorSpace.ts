@@ -90,6 +90,23 @@ export function oklabDeltaE(a: OklabColor, b: OklabColor): number {
 	return Math.sqrt(dL * dL + da * da + db * db);
 }
 
+/** Index of the candidate perceptually closest to `target` (smallest OKLab delta-E). */
+export function nearestOklabIndex(
+	target: OklabColor,
+	candidates: OklabColor[]
+): number {
+	let bestIndex = 0;
+	let bestError = Infinity;
+	for (let i = 0; i < candidates.length; i++) {
+		const error = oklabDeltaE(candidates[i], target);
+		if (error < bestError) {
+			bestError = error;
+			bestIndex = i;
+		}
+	}
+	return bestIndex;
+}
+
 // Reinhard tonemap (c / (1+c), per channel, in linear space). Punctual-light
 // specular response is inherently unbounded/HDR near the BRDF peak — this is
 // standard PBR display-compression practice, not an arbitrary transform. It

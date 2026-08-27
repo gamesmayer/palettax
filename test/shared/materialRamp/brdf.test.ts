@@ -126,7 +126,7 @@ describe("evaluateMaterial", () => {
 		expect(Math.max(response.r, response.g, response.b)).toBeGreaterThan(0);
 	});
 
-	it("ambient has zero effect on a pure metal's response (no diffuse albedo to reflect off)", () => {
+	it("ambient brightens a pure metal's response via its specular Fresnel term", () => {
 		const withoutAmbient = evaluateMaterial(
 			materialC,
 			{ ...DEFAULT_LIGHTING, ambientIntensity: 0 },
@@ -137,7 +137,11 @@ describe("evaluateMaterial", () => {
 			DEFAULT_LIGHTING,
 			grazingNormal
 		);
-		expect(withAmbient).toEqual(withoutAmbient);
+		expect(
+			Math.max(withAmbient.r, withAmbient.g, withAmbient.b)
+		).toBeGreaterThan(
+			Math.max(withoutAmbient.r, withoutAmbient.g, withoutAmbient.b)
+		);
 	});
 
 	it("increasing ambientIntensity monotonically brightens a non-metal's response at a fixed normal", () => {

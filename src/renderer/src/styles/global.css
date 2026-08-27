@@ -619,6 +619,15 @@ which only matters inside react95's own stacking context. */
 	margin-bottom: var(--r95-space-8);
 }
 
+.material-ramp-dialog__base-color-warning {
+	margin-top: var(--r95-space-6);
+	padding: var(--r95-space-6);
+	border: 1px solid #c9a227;
+	background: #fff7d6;
+	color: #5c4600;
+	font-size: 11px;
+}
+
 .swatch-color-picker {
 	position: relative;
 	display: flex;
@@ -656,10 +665,6 @@ which only matters inside react95's own stacking context. */
 	padding-bottom: var(--r95-space-8);
 }
 
-.material-ramp-dialog__preview > .endpoint-picker__mode-toggle {
-	margin-bottom: var(--r95-space-6);
-}
-
 .material-ramp-dialog__value-preview {
 	display: flex;
 	flex-wrap: wrap;
@@ -672,24 +677,39 @@ which only matters inside react95's own stacking context. */
 	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
 }
 
-.material-ramp-dialog__gradient {
-	width: 100%;
-	height: 32px;
+.material-ramp-dialog__value-swatch--base {
+	box-shadow:
+		inset 0 0 0 1px rgba(0, 0, 0, 0.2),
+		0 0 0 2px var(--r95-color-materialText);
+}
+
+.material-ramp-dialog__render-preview {
+	display: flex;
+	justify-content: center;
+	gap: var(--r95-space-8);
+	padding: var(--r95-space-8);
+}
+
+.material-ramp-dialog__sphere {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--r95-space-2);
+}
+
+.material-ramp-dialog__sphere-canvas {
+	width: 160px;
+	height: 160px;
 	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
 }
 
-.material-ramp-dialog__stops {
-	position: relative;
-	height: 16px;
+.material-ramp-dialog__sphere-canvas--pixelated {
+	image-rendering: pixelated;
 }
 
-.material-ramp-dialog__stop {
-	position: absolute;
-	top: 0;
-	width: 10px;
-	height: 10px;
-	margin-left: -5px;
-	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+.material-ramp-dialog__sphere-label {
+	font-size: 8px;
+	color: var(--r95-color-materialText);
 }
 
 .help-dialog {

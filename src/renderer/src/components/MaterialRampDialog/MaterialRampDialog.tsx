@@ -2,6 +2,10 @@ import { Button, Frame, Input, Modal, TitleBar, Tooltip } from "@react95/core";
 import { MouseEvent, useMemo, useState } from "react";
 import { ColorSystem, rgbToHex } from "../../../../shared/color";
 import {
+	rgbBytesToLinear,
+	rgbLinearToOklab,
+} from "../../../../shared/materialRamp/colorSpace";
+import {
 	DEFAULT_LIGHTING,
 	LightingConfig,
 	MaterialDefinition,
@@ -110,8 +114,33 @@ function clampUnit(value: number): number {
 	return Math.min(MAX_UNIT, Math.max(MIN_UNIT, value));
 }
 
+// Light/ambient intensity are radiance scalars, not unitless 0-1 material
+// parameters -- HDR-style values above 1 are physically meaningful (a bright
+// light, an overexposed scene), so only the lower bound is enforced.
+function clampIntensity(value: number): number {
+	return Math.max(MIN_UNIT, value);
+}
+
 function clampStopCount(value: number): number {
 	return Math.min(MAX_STOPS, Math.max(MIN_STOPS, Math.round(value)));
+}
+
+// OKLab L (perceptual lightness, 0=black, ~1=white). A base color this close
+// to either extreme leaves the BRDF almost no room to lighten or darken it
+// further, so the generated ramp's bright or dark stops end up nearly
+// identical to the base color instead of forming a usable gradient.
+const BASE_COLOR_LIGHTNESS_WARN_HIGH = 0.92;
+const BASE_COLOR_LIGHTNESS_WARN_LOW = 0.08;
+
+function warningForBaseColor(rgb: Rgb): string | null {
+	const lightness = rgbLinearToOklab(rgbBytesToLinear(rgb)).L;
+	if (lightness >= BASE_COLOR_LIGHTNESS_WARN_HIGH) {
+		return "This base color is very close to white, leaving little room to show highlights — bright stops in the ramp may look nearly identical. Consider picking a less extreme color.";
+	}
+	if (lightness <= BASE_COLOR_LIGHTNESS_WARN_LOW) {
+		return "This base color is very close to black, leaving little room to show shadows — dark stops in the ramp may look nearly identical. Consider picking a less extreme color.";
+	}
+	return null;
 }
 
 export function MaterialRampDialog({
@@ -175,40 +204,44 @@ export function MaterialRampDialog({
 		mode === "palette"
 			? (colors.find((color) => color.id === paletteColorId) ?? customRgb)
 			: customRgb;
+	const baseColorWarning = warningForBaseColor(baseRgb);
 
-	// Memoized (unlike Blend/Shade-Tint's recompute-every-render convention)
-	// because this triggers a real GPU bind/draw/readback round trip, not a
-	// cheap array loop.
-	const { stops, dense } = useMemo(() => {
-		const material: MaterialDefinition = {
+	const material: MaterialDefinition = useMemo(
+		() => ({
 			baseColor: { r: baseRgb.r, g: baseRgb.g, b: baseRgb.b },
 			metallic,
 			roughness,
-		};
-		const lighting: LightingConfig = {
+		}),
+		[baseRgb.r, baseRgb.g, baseRgb.b, metallic, roughness]
+	);
+
+	const lighting: LightingConfig = useMemo(
+		() => ({
 			...DEFAULT_LIGHTING,
 			lightColor: { r: lightColor.r, g: lightColor.g, b: lightColor.b },
 			lightIntensity,
 			ambientColor: { r: ambientColor.r, g: ambientColor.g, b: ambientColor.b },
 			ambientIntensity,
-		};
-		return generateMaterialRamp(material, stopCount, lighting);
-	}, [
-		baseRgb.r,
-		baseRgb.g,
-		baseRgb.b,
-		metallic,
-		roughness,
-		stopCount,
-		lightColor.r,
-		lightColor.g,
-		lightColor.b,
-		lightIntensity,
-		ambientColor.r,
-		ambientColor.g,
-		ambientColor.b,
-		ambientIntensity,
-	]);
+		}),
+		[
+			lightColor.r,
+			lightColor.g,
+			lightColor.b,
+			lightIntensity,
+			ambientColor.r,
+			ambientColor.g,
+			ambientColor.b,
+			ambientIntensity,
+		]
+	);
+
+	// Memoized (unlike Blend/Shade-Tint's recompute-every-render convention)
+	// because this triggers a real GPU bind/draw/readback round trip, not a
+	// cheap array loop.
+	const { stops } = useMemo(
+		() => generateMaterialRamp(material, stopCount, lighting),
+		[material, stopCount, lighting]
+	);
 
 	function handleSubmit(): void {
 		const storedColors = stops.map(({ color }) => ({
@@ -248,7 +281,11 @@ export function MaterialRampDialog({
 						<span className="endpoint-picker__field-label">
 							Preview ({stops.length} color{stops.length === 1 ? "" : "s"})
 						</span>
-						<MaterialRampPreview dense={dense} stops={stops} />
+						<MaterialRampPreview
+							stops={stops}
+							material={material}
+							lighting={lighting}
+						/>
 					</div>
 					<hr className="dialog-separator" />
 
@@ -263,87 +300,99 @@ export function MaterialRampDialog({
 						customRgb={customRgb}
 						onCustomRgbChange={setCustomRgb}
 					/>
+					{baseColorWarning && (
+						<div className="material-ramp-dialog__base-color-warning">
+							{baseColorWarning}
+						</div>
+					)}
 
-					<div className="endpoint-picker__field">
-						<Tooltip text="Quickly set Metallic and Roughness to common material presets. Your base color is unchanged.">
-							<span className="endpoint-picker__field-label">Presets</span>
-						</Tooltip>
-						<div className="material-preset-chips">
-							{MATERIAL_PRESETS.map((preset) => (
-								<Tooltip key={preset.name} text={`e.g. ${preset.examples}`}>
-									<Button
-										className="material-preset-chip"
-										onClick={() => {
-											setMetallic(preset.metallic);
-											setRoughness(preset.roughness);
-										}}
-										aria-label={`Preset: ${preset.name}`}
-									>
-										{preset.name}
-									</Button>
+					<Frame className="material-ramp-dialog__section">
+						<div className="material-ramp-dialog__section-title">
+							Properties
+						</div>
+						<div className="endpoint-picker__field">
+							<Tooltip text="Quickly set Metallic and Roughness to common material presets. Your base color is unchanged.">
+								<span className="endpoint-picker__field-label">Presets</span>
+							</Tooltip>
+							<div className="material-preset-chips">
+								{MATERIAL_PRESETS.map((preset) => (
+									<Tooltip key={preset.name} text={`e.g. ${preset.examples}`}>
+										<Button
+											className="material-preset-chip"
+											onClick={() => {
+												setMetallic(preset.metallic);
+												setRoughness(preset.roughness);
+											}}
+											aria-label={`Preset: ${preset.name}`}
+										>
+											{preset.name}
+										</Button>
+									</Tooltip>
+								))}
+							</div>
+						</div>
+
+						<div className="material-ramp-dialog__row">
+							<div className="endpoint-picker__field">
+								<Tooltip text="How metallic the surface is. 0 = dielectric (plastic, cloth, stone); 1 = pure metal (steel, gold, copper).">
+									<span className="endpoint-picker__field-label">Metallic</span>
 								</Tooltip>
-							))}
+								<Input
+									type="number"
+									min={MIN_UNIT}
+									max={MAX_UNIT}
+									step={0.01}
+									value={metallic}
+									onChange={(event) =>
+										setMetallic(clampUnit(Number(event.target.value)))
+									}
+									aria-label="Metallic"
+								/>
+							</div>
+							<div className="endpoint-picker__field">
+								<Tooltip text="How rough the surface is. Low values give a small, sharp, bright highlight; high values spread it into a soft, dim sheen.">
+									<span className="endpoint-picker__field-label">
+										Roughness
+									</span>
+								</Tooltip>
+								<Input
+									type="number"
+									min={MIN_UNIT}
+									max={MAX_UNIT}
+									step={0.01}
+									value={roughness}
+									onChange={(event) =>
+										setRoughness(clampUnit(Number(event.target.value)))
+									}
+									aria-label="Roughness"
+								/>
+							</div>
+							<div className="endpoint-picker__field">
+								<Tooltip text="How many colors to compress the material's full light response into. More colors preserve finer value changes; fewer colors force a tighter, more stylized ramp.">
+									<span className="endpoint-picker__field-label">
+										Ramp colors
+									</span>
+								</Tooltip>
+								<Input
+									type="number"
+									min={MIN_STOPS}
+									max={MAX_STOPS}
+									value={stopCount}
+									onChange={(event) =>
+										setStopCount(clampStopCount(Number(event.target.value)))
+									}
+									aria-label="Number of ramp colors"
+								/>
+							</div>
 						</div>
-					</div>
-
-					<div className="material-ramp-dialog__row">
-						<div className="endpoint-picker__field">
-							<Tooltip text="How metallic the surface is. 0 = dielectric (plastic, cloth, stone); 1 = pure metal (steel, gold, copper).">
-								<span className="endpoint-picker__field-label">Metallic</span>
-							</Tooltip>
-							<Input
-								type="number"
-								min={MIN_UNIT}
-								max={MAX_UNIT}
-								step={0.01}
-								value={metallic}
-								onChange={(event) =>
-									setMetallic(clampUnit(Number(event.target.value)))
-								}
-								aria-label="Metallic"
-							/>
-						</div>
-						<div className="endpoint-picker__field">
-							<Tooltip text="How rough the surface is. Low values give a small, sharp, bright highlight; high values spread it into a soft, dim sheen.">
-								<span className="endpoint-picker__field-label">Roughness</span>
-							</Tooltip>
-							<Input
-								type="number"
-								min={MIN_UNIT}
-								max={MAX_UNIT}
-								step={0.01}
-								value={roughness}
-								onChange={(event) =>
-									setRoughness(clampUnit(Number(event.target.value)))
-								}
-								aria-label="Roughness"
-							/>
-						</div>
-						<div className="endpoint-picker__field">
-							<Tooltip text="How many colors to compress the material's full light response into. More colors preserve finer value changes; fewer colors force a tighter, more stylized ramp.">
-								<span className="endpoint-picker__field-label">
-									Ramp colors
-								</span>
-							</Tooltip>
-							<Input
-								type="number"
-								min={MIN_STOPS}
-								max={MAX_STOPS}
-								value={stopCount}
-								onChange={(event) =>
-									setStopCount(clampStopCount(Number(event.target.value)))
-								}
-								aria-label="Number of ramp colors"
-							/>
-						</div>
-					</div>
+					</Frame>
 
 					<Frame className="material-ramp-dialog__section">
 						<div className="material-ramp-dialog__section-title">Ambient</div>
 						<div className="material-ramp-dialog__row">
 							<SwatchColorPicker
 								label="Ambient color"
-								tooltip="A flat fill light hitting the material from every direction equally, independent of surface orientation — keeps the darkest end of the ramp from going to pure black. Only affects diffuse reflection, not specular (pure metals stay black without direct light)."
+								tooltip="A flat fill light hitting the material from every direction equally, independent of surface orientation — keeps the darkest end of the ramp from going to pure black, including for pure metals via an approximate Fresnel specular term."
 								colorSystem={colorSystem}
 								rgb={ambientColor}
 								onChange={setAmbientColor}
@@ -357,11 +406,12 @@ export function MaterialRampDialog({
 								<Input
 									type="number"
 									min={MIN_UNIT}
-									max={MAX_UNIT}
 									step={0.01}
 									value={ambientIntensity}
 									onChange={(event) =>
-										setAmbientIntensity(clampUnit(Number(event.target.value)))
+										setAmbientIntensity(
+											clampIntensity(Number(event.target.value))
+										)
 									}
 									aria-label="Ambient intensity"
 								/>
@@ -390,11 +440,12 @@ export function MaterialRampDialog({
 								<Input
 									type="number"
 									min={MIN_UNIT}
-									max={MAX_UNIT}
 									step={0.01}
 									value={lightIntensity}
 									onChange={(event) =>
-										setLightIntensity(clampUnit(Number(event.target.value)))
+										setLightIntensity(
+											clampIntensity(Number(event.target.value))
+										)
 									}
 									aria-label="Light intensity"
 								/>

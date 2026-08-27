@@ -96,12 +96,17 @@ function computeGeometry(lighting: LightingConfig, normal: Vec3): BrdfGeometry {
  * sweeping `lighting.lightIntensity` at a fixed normal).
  *
  * Also adds a flat ambient-fill term (`lighting.ambientColor` *
- * `lighting.ambientIntensity` * diffuse albedo, no 1/pi — it isn't a BRDF
- * lobe, just a fill light) so the response doesn't go to pure black
- * whenever `NdotL` reaches 0. Ambient only affects the diffuse response,
- * not specular — pure metals (metallic=1, no diffuse albedo) still go to
- * black without any direct light, since there's no environment map here for
- * their specular term to reflect.
+ * `lighting.ambientIntensity`, no 1/pi — it isn't a BRDF lobe, just a fill
+ * light) so the response doesn't go to pure black whenever `NdotL` reaches
+ * 0. Ambient has two components: a diffuse part scaled by the diffuse
+ * albedo (zero for pure metals), and a specular part scaled by
+ * `schlickFresnel(NdotV, f0)` — the standard cheap approximation for
+ * specular IBL from a uniform, unprefiltered environment. Since the ambient
+ * color has no directional/reflection content, convolving it with any BRDF
+ * lobe returns the same flat value regardless of roughness, so this term is
+ * deliberately roughness-independent. This is what keeps pure metals
+ * (metallic=1, no diffuse albedo) from going to pure black without direct
+ * light.
  */
 export function evaluateMaterial(
 	material: MaterialDefinition,
@@ -140,10 +145,16 @@ export function evaluateMaterial(
 	const directLit = mulRgb(addRgb(diffuse, specular), radiance);
 
 	const ambientLinear = rgbBytesToLinear(lighting.ambientColor);
-	const ambientLit = scaleRgb(
+	const fresnelAmbient = schlickFresnel(geometry.NdotV, f0);
+	const ambientDiffuse = scaleRgb(
 		mulRgb(ambientLinear, albedoDiffuse),
 		lighting.ambientIntensity
 	);
+	const ambientSpecular = scaleRgb(
+		mulRgb(ambientLinear, fresnelAmbient),
+		lighting.ambientIntensity
+	);
+	const ambientLit = addRgb(ambientDiffuse, ambientSpecular);
 
 	return reinhardTonemap(addRgb(directLit, ambientLit));
 }

@@ -46,7 +46,7 @@ export const DEFAULT_LIGHTING: LightingConfig = {
 	lightDir: [Math.SQRT1_2, 0, Math.SQRT1_2], // phi = 45deg from viewDir
 	lightIntensity: 1.0,
 	ambientColor: { r: 255, g: 255, b: 255 },
-	ambientIntensity: 0.05,
+	ambientIntensity: 0.15,
 };
 
 export interface MaterialRampStop {
