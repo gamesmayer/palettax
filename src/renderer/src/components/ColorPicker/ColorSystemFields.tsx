@@ -1,4 +1,5 @@
 import { Input } from "@react95/core";
+import { useEffect, useState } from "react";
 import {
 	HexColorPicker,
 	HslColorPicker,
@@ -33,6 +34,27 @@ export function ColorSystemFields({
 	const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
 	const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
 	const cmyk = rgbToCmyk(rgb.r, rgb.g, rgb.b);
+
+	// Local draft, decoupled from `hex`: hexToRgb throws on any input that
+	// isn't a complete 6-digit hex, which is every intermediate keystroke
+	// while typing. A controlled input bound straight to `hex` would revert
+	// on each of those, making it impossible to type freely. The draft holds
+	// whatever's currently typed and only commits (via onChange) once it
+	// parses; it re-syncs to `hex` when the color changes from elsewhere
+	// (the swatch picker, RGB fields, etc).
+	const [hexDraft, setHexDraft] = useState(hex);
+	useEffect(() => {
+		setHexDraft(hex);
+	}, [hex]);
+
+	function handleHexInput(value: string): void {
+		setHexDraft(value);
+		try {
+			onChange(hexToRgb(value));
+		} catch {
+			// Incomplete/invalid hex mid-typing -- keep the draft, don't commit.
+		}
+	}
 
 	return (
 		<>
@@ -80,8 +102,8 @@ export function ColorSystemFields({
 					<span className="color-picker__field-label">Hex</span>
 					<Input
 						type="text"
-						value={hex}
-						onChange={(event) => onChange(hexToRgb(event.target.value))}
+						value={hexDraft}
+						onChange={(event) => handleHexInput(event.target.value)}
 						aria-label="Hex code"
 					/>
 				</div>

@@ -4,13 +4,16 @@ import { dot3, normalize3 } from "./vec3";
 
 const DIELECTRIC_F0 = 0.04;
 
-// Cancels the diffuse term's 1/pi Lambertian normalization, so a material
-// with a white albedo, viewed straight-on under the reference light
-// (lightIntensity=1, NdotL=1), reads back at (approximately) full white
-// rather than a muted ~0.3 fraction of it. This is standard PBR light-unit
-// calibration (see e.g. Unreal/Unity's "candela" light intensity
-// conventions), not an artistic exposure tweak -- it only affects overall
-// brightness scale, not the shape of the response across the sweep.
+// Cancels the diffuse term's 1/pi Lambertian normalization, so pre-tonemap
+// radiance for a white albedo under the reference light (lightIntensity=1,
+// NdotL=1) is the albedo itself rather than a muted ~0.3 fraction of it. This
+// is standard PBR light-unit calibration (see e.g. Unreal/Unity's "candela"
+// light intensity conventions), not an artistic exposure tweak -- it only
+// affects overall brightness scale, not the shape of the response across the
+// sweep. Note this is a pre-tonemap statement: reinhardTonemap (c/(1+c))
+// still compresses that radiance afterward, so actual DEFAULT_LIGHTING
+// intensities are chosen post-tonemap against the curve, not from this
+// constant alone -- see the comment on DEFAULT_LIGHTING in types.ts.
 const LIGHT_POWER = Math.PI;
 
 /** Trowbridge-Reitz / GGX normal distribution function. */
@@ -74,7 +77,7 @@ interface BrdfGeometry {
 
 function computeGeometry(lighting: LightingConfig, normal: Vec3): BrdfGeometry {
 	const N = normalize3(normal);
-	const L = normalize3(lighting.lightDir);
+	const L = normalize3(lighting.directionalLightDir);
 	const V = normalize3(lighting.viewDir);
 	const H = normalize3([L[0] + V[0], L[1] + V[1], L[2] + V[2]]);
 	return {
@@ -137,22 +140,22 @@ export function evaluateMaterial(
 	);
 	const diffuse = scaleRgb(mulRgb(kd, albedoDiffuse), 1 / Math.PI);
 
-	const lightLinear = rgbBytesToLinear(lighting.lightColor);
+	const lightLinear = rgbBytesToLinear(lighting.directionalLightColor);
 	const radiance = scaleRgb(
 		lightLinear,
-		lighting.lightIntensity * LIGHT_POWER * geometry.NdotL
+		lighting.directionalLightIntensity * LIGHT_POWER * geometry.NdotL
 	);
 	const directLit = mulRgb(addRgb(diffuse, specular), radiance);
 
-	const ambientLinear = rgbBytesToLinear(lighting.ambientColor);
+	const ambientLinear = rgbBytesToLinear(lighting.ambientLightColor);
 	const fresnelAmbient = schlickFresnel(geometry.NdotV, f0);
 	const ambientDiffuse = scaleRgb(
 		mulRgb(ambientLinear, albedoDiffuse),
-		lighting.ambientIntensity
+		lighting.ambientLightIntensity
 	);
 	const ambientSpecular = scaleRgb(
 		mulRgb(ambientLinear, fresnelAmbient),
-		lighting.ambientIntensity
+		lighting.ambientLightIntensity
 	);
 	const ambientLit = addRgb(ambientDiffuse, ambientSpecular);
 

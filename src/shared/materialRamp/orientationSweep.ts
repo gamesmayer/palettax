@@ -15,7 +15,7 @@ export interface SweepBasis {
  */
 export function computeSweepBasis(lighting: LightingConfig): SweepBasis {
 	const V = normalize3(lighting.viewDir);
-	const L = normalize3(lighting.lightDir);
+	const L = normalize3(lighting.directionalLightDir);
 	const LdotV = Math.min(1, Math.max(-1, dot3(L, V)));
 	const phi = Math.acos(LdotV);
 	const e1 = V;

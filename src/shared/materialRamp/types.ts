@@ -13,12 +13,12 @@ export interface MaterialDefinition {
 }
 
 export interface LightingConfig {
-	lightColor: { r: number; g: number; b: number }; // sRGB 0-255
-	lightDir: Vec3; // normalized
+	directionalLightColor: { r: number; g: number; b: number }; // sRGB 0-255
+	directionalLightDir: Vec3; // normalized
 	viewDir: Vec3; // normalized
-	lightIntensity: number; // fixed reference radiance scalar
-	ambientColor: { r: number; g: number; b: number }; // sRGB 0-255
-	ambientIntensity: number; // flat diffuse fill, independent of the orientation sweep
+	directionalLightIntensity: number; // fixed reference radiance scalar
+	ambientLightColor: { r: number; g: number; b: number }; // sRGB 0-255
+	ambientLightIntensity: number; // flat diffuse fill, independent of the orientation sweep
 }
 
 // L and V must NOT be coincident. If they were, H = normalize(L+V) would
@@ -40,13 +40,24 @@ export interface LightingConfig {
 // stays comfortably positive throughout, and the specular peak (N aligned
 // with H) lands at an interior sweep position (t = 1 - phi/180deg = 0.75),
 // giving adaptive posterization real, material-dependent signal.
+// lightIntensity/ambientIntensity are calibrated together against the
+// Reinhard tonemap (colorSpace.ts reinhardTonemap: c/(1+c)), which compresses
+// every non-zero value -- LIGHT_POWER (brdf.ts) only cancels the diffuse
+// term's 1/pi, it does NOT make lightIntensity=1 reproduce the base color
+// post-tonemap. At the old defaults (1.0/0.15) a light base color like
+// #E4E4E4 came back ~145 (57%) at its brightest point and ~93 (36%) in
+// shadow -- muddy for materials that aren't meant to read as dark. These
+// values were picked so a light base color's lit side lands close to its own
+// brightness and its shadow side stays a visible mid-gray rather than
+// crushing toward black, while still leaving headroom for specular
+// highlights on low-roughness/metallic materials to not clip to white.
 export const DEFAULT_LIGHTING: LightingConfig = {
-	lightColor: { r: 255, g: 255, b: 255 },
+	directionalLightColor: { r: 255, g: 255, b: 255 },
+	directionalLightDir: [Math.SQRT1_2, 0, Math.SQRT1_2], // phi = 45deg from viewDir
+	directionalLightIntensity: 5.0,
+	ambientLightColor: { r: 255, g: 255, b: 255 },
+	ambientLightIntensity: 0.15,
 	viewDir: [0, 0, 1],
-	lightDir: [Math.SQRT1_2, 0, Math.SQRT1_2], // phi = 45deg from viewDir
-	lightIntensity: 1.0,
-	ambientColor: { r: 255, g: 255, b: 255 },
-	ambientIntensity: 0.15,
 };
 
 export interface MaterialRampStop {

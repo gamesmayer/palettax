@@ -253,8 +253,8 @@ class MaterialStripRenderer {
 		// sRGB->linear conversion happens once here, before upload -- the one
 		// documented conversion point, not duplicated in GLSL (spec point 12).
 		const baseLinear = rgbBytesToLinear(material.baseColor);
-		const lightLinear = rgbBytesToLinear(lighting.lightColor);
-		const ambientLinear = rgbBytesToLinear(lighting.ambientColor);
+		const lightLinear = rgbBytesToLinear(lighting.directionalLightColor);
+		const ambientLinear = rgbBytesToLinear(lighting.ambientLightColor);
 		const basis = computeSweepBasis(lighting);
 
 		gl.uniform3f(
@@ -271,12 +271,15 @@ class MaterialStripRenderer {
 			lightLinear.g,
 			lightLinear.b
 		);
-		gl.uniform1f(this.uniforms.uLightIntensity, lighting.lightIntensity);
+		gl.uniform1f(
+			this.uniforms.uLightIntensity,
+			lighting.directionalLightIntensity
+		);
 		gl.uniform3f(
 			this.uniforms.uLightDir,
-			lighting.lightDir[0],
-			lighting.lightDir[1],
-			lighting.lightDir[2]
+			lighting.directionalLightDir[0],
+			lighting.directionalLightDir[1],
+			lighting.directionalLightDir[2]
 		);
 		gl.uniform3f(
 			this.uniforms.uViewDir,
@@ -293,7 +296,10 @@ class MaterialStripRenderer {
 			ambientLinear.g,
 			ambientLinear.b
 		);
-		gl.uniform1f(this.uniforms.uAmbientIntensity, lighting.ambientIntensity);
+		gl.uniform1f(
+			this.uniforms.uAmbientIntensity,
+			lighting.ambientLightIntensity
+		);
 		gl.uniform1i(this.uniforms.uWidth, width);
 
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

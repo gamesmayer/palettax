@@ -10,6 +10,7 @@ import {
 	renderMaterialSphere,
 	sphereCellsToBytes,
 } from "../../../../shared/materialRamp/sphereRender";
+import { lightnessOf } from "../../../../shared/materialRamp/stopLightness";
 import {
 	LightingConfig,
 	MaterialDefinition,
@@ -30,11 +31,6 @@ interface MaterialRampPreviewProps {
 // actually look like shading a round form.
 const CONTINUOUS_SPHERE_SIZE = 128;
 const POSTERIZED_SPHERE_SIZE = 24;
-
-// Perceptual lightness (OKLab L), used to order the palette swatch list.
-function lightnessOf(stop: MaterialRampStop): number {
-	return rgbLinearToOklab(rgbBytesToLinear(stop.color)).L;
-}
 
 export function MaterialRampPreview({
 	stops,

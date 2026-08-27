@@ -2,9 +2,22 @@ import { Button, Frame, Input, Modal, TitleBar, Tooltip } from "@react95/core";
 import { MouseEvent, useMemo, useState } from "react";
 import { ColorSystem, rgbToHex } from "../../../../shared/color";
 import {
-	rgbBytesToLinear,
-	rgbLinearToOklab,
-} from "../../../../shared/materialRamp/colorSpace";
+	DEFAULT_BASE_COLOR,
+	DEFAULT_METALLIC,
+	DEFAULT_ROUGHNESS,
+	DEFAULT_STOP_COUNT,
+	MAX_STOPS,
+	MAX_UNIT,
+	MIN_STOPS,
+	MIN_UNIT,
+} from "../../../../shared/materialRamp/dialogConstants";
+import {
+	clampIntensity,
+	clampStopCount,
+	clampUnit,
+	warningForBaseColor,
+} from "../../../../shared/materialRamp/dialogValidation";
+import { MATERIAL_PRESETS } from "../../../../shared/materialRamp/materialPresets";
 import {
 	DEFAULT_LIGHTING,
 	LightingConfig,
@@ -22,125 +35,12 @@ import { GroupPicker, GroupSelection } from "../ColorPicker/GroupPicker";
 import { SwatchColorPicker } from "../ColorPicker/SwatchColorPicker";
 import { MaterialRampPreview } from "./MaterialRampPreview";
 
-interface MaterialPreset {
-	name: string;
-	metallic: number;
-	roughness: number;
-	examples: string;
-}
-
-// Common PBR reference presets -- metallic/roughness pairs only, no hue or
-// hardcoded color: base color stays whatever the user picked. These are
-// standard parameter combinations (matching typical engine/tool reference
-// charts), not artistic color transforms -- they just set the two physical
-// parameters the existing BRDF already understands. `examples` are real-world
-// surfaces to help pick a preset by eye rather than by roughness/metallic
-// numbers.
-const MATERIAL_PRESETS: MaterialPreset[] = [
-	{
-		name: "Rough plastic",
-		metallic: 0,
-		roughness: 0.8,
-		examples: "toy bricks, bottle caps, appliance casings, PVC pipe",
-	},
-	{
-		name: "Smooth plastic",
-		metallic: 0,
-		roughness: 0.15,
-		examples: "glossy packaging, plastic buttons, phone cases, laminate",
-	},
-	{
-		name: "Rubber",
-		metallic: 0,
-		roughness: 0.95,
-		examples: "tires, rubber grips, hoses, shoe soles",
-	},
-	{
-		name: "Fabric",
-		metallic: 0,
-		roughness: 0.85,
-		examples: "cloth, canvas, upholstery, carpet",
-	},
-	{
-		name: "Wood",
-		metallic: 0,
-		roughness: 0.6,
-		examples: "furniture, floorboards, crates, tool handles",
-	},
-	{
-		name: "Ceramic",
-		metallic: 0,
-		roughness: 0.2,
-		examples: "tiles, porcelain, glazed pottery, sinks",
-	},
-	{
-		name: "Brushed metal",
-		metallic: 1,
-		roughness: 0.4,
-		examples:
-			"stainless steel appliances, brushed aluminum panels, elevator doors",
-	},
-	{
-		name: "Polished metal",
-		metallic: 1,
-		roughness: 0.05,
-		examples: "chrome trim, mirrors, cutlery, jewelry",
-	},
-	{
-		name: "Rusted metal",
-		metallic: 0.4,
-		roughness: 0.85,
-		examples: "old pipes, weathered railings, corroded machinery",
-	},
-];
-
 interface MaterialRampDialogProps {
 	paletteId: string;
 	groupId: string;
 	groups: PaletteGroup[];
 	colorSystem: ColorSystem;
 	onClose: () => void;
-}
-
-const MIN_UNIT = 0;
-const MAX_UNIT = 1;
-const MIN_STOPS = 2;
-const MAX_STOPS = 32;
-const DEFAULT_STOP_COUNT = 16;
-const DEFAULT_METALLIC = 0;
-const DEFAULT_ROUGHNESS = 0.5;
-
-function clampUnit(value: number): number {
-	return Math.min(MAX_UNIT, Math.max(MIN_UNIT, value));
-}
-
-// Light/ambient intensity are radiance scalars, not unitless 0-1 material
-// parameters -- HDR-style values above 1 are physically meaningful (a bright
-// light, an overexposed scene), so only the lower bound is enforced.
-function clampIntensity(value: number): number {
-	return Math.max(MIN_UNIT, value);
-}
-
-function clampStopCount(value: number): number {
-	return Math.min(MAX_STOPS, Math.max(MIN_STOPS, Math.round(value)));
-}
-
-// OKLab L (perceptual lightness, 0=black, ~1=white). A base color this close
-// to either extreme leaves the BRDF almost no room to lighten or darken it
-// further, so the generated ramp's bright or dark stops end up nearly
-// identical to the base color instead of forming a usable gradient.
-const BASE_COLOR_LIGHTNESS_WARN_HIGH = 0.92;
-const BASE_COLOR_LIGHTNESS_WARN_LOW = 0.08;
-
-function warningForBaseColor(rgb: Rgb): string | null {
-	const lightness = rgbLinearToOklab(rgbBytesToLinear(rgb)).L;
-	if (lightness >= BASE_COLOR_LIGHTNESS_WARN_HIGH) {
-		return "This base color is very close to white, leaving little room to show highlights — bright stops in the ramp may look nearly identical. Consider picking a less extreme color.";
-	}
-	if (lightness <= BASE_COLOR_LIGHTNESS_WARN_LOW) {
-		return "This base color is very close to black, leaving little room to show shadows — dark stops in the ramp may look nearly identical. Consider picking a less extreme color.";
-	}
-	return null;
 }
 
 export function MaterialRampDialog({
@@ -168,7 +68,7 @@ export function MaterialRampDialog({
 	);
 	const [paletteColorId, setPaletteColorId] = useState(colors[0]?.id ?? "");
 	const [customRgb, setCustomRgb] = useState<Rgb>(
-		colors[0] ?? { r: 255, g: 255, b: 255 }
+		colors[0] ?? DEFAULT_BASE_COLOR
 	);
 
 	function handleGroupChange(nextSelection: GroupSelection): void {
@@ -180,7 +80,7 @@ export function MaterialRampDialog({
 				: [];
 		setMode(nextColors.length > 0 ? "palette" : "new");
 		setPaletteColorId(nextColors[0]?.id ?? "");
-		setCustomRgb(nextColors[0] ?? { r: 255, g: 255, b: 255 });
+		setCustomRgb(nextColors[0] ?? DEFAULT_BASE_COLOR);
 	}
 
 	const [metallic, setMetallic] = useState(DEFAULT_METALLIC);
@@ -188,16 +88,16 @@ export function MaterialRampDialog({
 	const [stopCount, setStopCount] = useState(DEFAULT_STOP_COUNT);
 
 	const [ambientColor, setAmbientColor] = useState<Rgb>(
-		DEFAULT_LIGHTING.ambientColor
+		DEFAULT_LIGHTING.ambientLightColor
 	);
 	const [ambientIntensity, setAmbientIntensity] = useState(
-		DEFAULT_LIGHTING.ambientIntensity
+		DEFAULT_LIGHTING.ambientLightIntensity
 	);
 	const [lightColor, setLightColor] = useState<Rgb>(
-		DEFAULT_LIGHTING.lightColor
+		DEFAULT_LIGHTING.directionalLightColor
 	);
 	const [lightIntensity, setLightIntensity] = useState(
-		DEFAULT_LIGHTING.lightIntensity
+		DEFAULT_LIGHTING.directionalLightIntensity
 	);
 
 	const baseRgb =
@@ -218,10 +118,18 @@ export function MaterialRampDialog({
 	const lighting: LightingConfig = useMemo(
 		() => ({
 			...DEFAULT_LIGHTING,
-			lightColor: { r: lightColor.r, g: lightColor.g, b: lightColor.b },
-			lightIntensity,
-			ambientColor: { r: ambientColor.r, g: ambientColor.g, b: ambientColor.b },
-			ambientIntensity,
+			directionalLightColor: {
+				r: lightColor.r,
+				g: lightColor.g,
+				b: lightColor.b,
+			},
+			directionalLightIntensity: lightIntensity,
+			ambientLightColor: {
+				r: ambientColor.r,
+				g: ambientColor.g,
+				b: ambientColor.b,
+			},
+			ambientLightIntensity: ambientIntensity,
 		}),
 		[
 			lightColor.r,
@@ -457,15 +365,17 @@ export function MaterialRampDialog({
 									</span>
 								</Tooltip>
 								<div className="material-ramp-dialog__vector">
-									{DEFAULT_LIGHTING.lightDir.map((component, index) => (
-										<Input
-											key={index}
-											type="number"
-											value={component}
-											disabled
-											aria-label={`Light direction ${["X", "Y", "Z"][index]}`}
-										/>
-									))}
+									{DEFAULT_LIGHTING.directionalLightDir.map(
+										(component, index) => (
+											<Input
+												key={index}
+												type="number"
+												value={component}
+												disabled
+												aria-label={`Light direction ${["X", "Y", "Z"][index]}`}
+											/>
+										)
+									)}
 								</div>
 							</div>
 						</div>
