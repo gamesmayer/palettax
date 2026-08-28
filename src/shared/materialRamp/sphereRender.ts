@@ -14,6 +14,13 @@ import {
 } from "./types";
 import { cross3, dot3, normalize3 } from "./vec3";
 
+// Reused by cube rendering below -- half a cube corner (e.g. `right + forward`
+// then normalized) reads as "a wall facing right-and-toward-camera", the same
+// axis-combination trick as the sphere's `nx*right + ny*up + nz*forward`.
+function addVec3(a: Vec3, b: Vec3): Vec3 {
+	return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+}
+
 export interface ViewBasis {
 	right: Vec3;
 	up: Vec3;
@@ -73,6 +80,75 @@ export function renderMaterialSphere(
 				nx * basis.right[2] + ny * basis.up[2] + nz * basis.forward[2],
 			];
 			cells.push({ rgbLinear: evaluateMaterial(material, lighting, normal) });
+		}
+	}
+	return cells;
+}
+
+/**
+ * Renders a `size x size` grid of an isometric cube: a flat-shaded top face
+ * plus two flat-shaded side walls, one `evaluateMaterial` call per face (not
+ * per pixel -- unlike the sphere, every point on a cube face shares the same
+ * normal, so there's nothing to gain from re-evaluating per pixel). Cells
+ * outside the cube's hexagonal silhouette are `null` (background). Row-major,
+ * `size * size` entries, same shape as `renderMaterialSphere`'s output so
+ * callers (`sphereCellsToBytes`, `nearestStopColors`) don't need to know
+ * which shape produced the cells.
+ */
+export function renderMaterialCube(
+	material: MaterialDefinition,
+	lighting: LightingConfig,
+	size: number
+): SphereCell[] {
+	const basis = computeViewBasis(lighting.viewDir);
+	const topNormal = basis.up;
+	const leftNormal = normalize3(
+		addVec3([-basis.right[0], -basis.right[1], -basis.right[2]], basis.forward)
+	);
+	const rightNormal = normalize3(addVec3(basis.right, basis.forward));
+
+	const topColor = evaluateMaterial(material, lighting, topNormal);
+	const leftColor = evaluateMaterial(material, lighting, leftNormal);
+	const rightColor = evaluateMaterial(material, lighting, rightNormal);
+
+	// Isometric outline: a 2:1 top-face rhombus (vertices N/E/S/W) sitting
+	// above two vertical-walled parallelograms hanging from its W/S/E
+	// vertices down to `wallHeight`.
+	const halfWidth = size * 0.45;
+	const halfHeight = halfWidth * 0.5;
+	const wallHeight = halfWidth * 0.85;
+	const totalHeight = halfHeight * 2 + wallHeight;
+	const topY = (size - totalHeight) / 2;
+	const cx = size / 2;
+	const midY = topY + halfHeight; // W/E vertices
+	const bottomVertexY = topY + halfHeight * 2; // S vertex, top of the walls
+
+	const cells: SphereCell[] = [];
+	for (let py = 0; py < size; py++) {
+		for (let px = 0; px < size; px++) {
+			const dx = px + 0.5 - cx;
+			const topU = dx / halfWidth;
+			const topV = (py + 0.5 - midY) / halfHeight;
+			if (Math.abs(topU) + Math.abs(topV) <= 1) {
+				cells.push({ rgbLinear: topColor });
+				continue;
+			}
+
+			if (dx <= 0) {
+				const a = (dx + halfWidth) / halfWidth;
+				const b = (py + 0.5 - midY - a * halfHeight) / wallHeight;
+				cells.push(
+					a >= 0 && a <= 1 && b >= 0 && b <= 1 ? { rgbLinear: leftColor } : null
+				);
+			} else {
+				const a = dx / halfWidth;
+				const b = (py + 0.5 - bottomVertexY + a * halfHeight) / wallHeight;
+				cells.push(
+					a >= 0 && a <= 1 && b >= 0 && b <= 1
+						? { rgbLinear: rightColor }
+						: null
+				);
+			}
 		}
 	}
 	return cells;

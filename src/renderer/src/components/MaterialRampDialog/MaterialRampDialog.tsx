@@ -22,6 +22,7 @@ import {
 	EnvironmentMap,
 } from "../../../../shared/materialRamp/environmentMap";
 import { MATERIAL_PRESETS } from "../../../../shared/materialRamp/materialPresets";
+import { assignRampNames } from "../../../../shared/materialRamp/rampNaming";
 import {
 	DEFAULT_LIGHTING,
 	LightingConfig,
@@ -63,11 +64,8 @@ export function MaterialRampDialog({
 		kind: "existing",
 		groupId,
 	});
-	const colors =
-		groupSelection.kind === "existing"
-			? (groups.find((group) => group.id === groupSelection.groupId)?.colors ??
-				[])
-			: [];
+
+	const colors = groups.find((group) => group.id === groupId)?.colors ?? [];
 
 	const [mode, setMode] = useState<EndpointMode>(
 		colors.length > 0 ? "palette" : "new"
@@ -76,18 +74,6 @@ export function MaterialRampDialog({
 	const [customRgb, setCustomRgb] = useState<Rgb>(
 		colors[0] ?? DEFAULT_BASE_COLOR
 	);
-
-	function handleGroupChange(nextSelection: GroupSelection): void {
-		setGroupSelection(nextSelection);
-		const nextColors =
-			nextSelection.kind === "existing"
-				? (groups.find((group) => group.id === nextSelection.groupId)?.colors ??
-					[])
-				: [];
-		setMode(nextColors.length > 0 ? "palette" : "new");
-		setPaletteColorId(nextColors[0]?.id ?? "");
-		setCustomRgb(nextColors[0] ?? DEFAULT_BASE_COLOR);
-	}
 
 	const [metallic, setMetallic] = useState(DEFAULT_METALLIC);
 	const [roughness, setRoughness] = useState(DEFAULT_ROUGHNESS);
@@ -204,11 +190,13 @@ export function MaterialRampDialog({
 	);
 
 	function handleSubmit(): void {
-		const storedColors = stops.map(({ color }) => ({
-			r: color.r,
-			g: color.g,
-			b: color.b,
-			hex: rgbToHex(color.r, color.g, color.b),
+		const namedStops = assignRampNames(stops, material.baseColor);
+		const storedColors = namedStops.map(({ stop, name }) => ({
+			r: stop.color.r,
+			g: stop.color.g,
+			b: stop.color.b,
+			hex: rgbToHex(stop.color.r, stop.color.g, stop.color.b),
+			name,
 		}));
 		const targetGroupId =
 			groupSelection.kind === "existing"
@@ -531,7 +519,7 @@ export function MaterialRampDialog({
 					<GroupPicker
 						groups={groups}
 						value={groupSelection}
-						onChange={handleGroupChange}
+						onChange={setGroupSelection}
 					/>
 				</Modal.Content>
 			</Modal>

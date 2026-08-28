@@ -2,6 +2,7 @@ import { rgbBytesToLinear } from "../../../src/shared/materialRamp/colorSpace";
 import {
 	computeViewBasis,
 	nearestStopColors,
+	renderMaterialCube,
 	renderMaterialSphere,
 } from "../../../src/shared/materialRamp/sphereRender";
 import { DEFAULT_LIGHTING } from "../../../src/shared/materialRamp/types";
@@ -47,6 +48,34 @@ describe("renderMaterialSphere", () => {
 		expect(cells[0]).toBeNull(); // top-left corner
 		const centerIndex = Math.floor(size / 2) * size + Math.floor(size / 2);
 		expect(cells[centerIndex]).not.toBeNull();
+	});
+});
+
+describe("renderMaterialCube", () => {
+	const material = {
+		baseColor: { r: 180, g: 120, b: 90 },
+		metallic: 0,
+		roughness: 0.5,
+	};
+
+	it("is null at the corners and non-null in the middle", () => {
+		const size = 32;
+		const cells = renderMaterialCube(material, DEFAULT_LIGHTING, size);
+		expect(cells).toHaveLength(size * size);
+		expect(cells[0]).toBeNull(); // top-left corner
+		const centerIndex = Math.floor(size / 2) * size + Math.floor(size / 2);
+		expect(cells[centerIndex]).not.toBeNull();
+	});
+
+	it("shades the top face differently from the side walls", () => {
+		const size = 32;
+		const cells = renderMaterialCube(material, DEFAULT_LIGHTING, size);
+		const cx = Math.floor(size / 2);
+		const topCell = cells[Math.floor(size * 0.2) * size + cx];
+		const wallCell = cells[Math.floor(size * 0.8) * size + cx];
+		expect(topCell).not.toBeNull();
+		expect(wallCell).not.toBeNull();
+		expect(topCell).not.toEqual(wallCell);
 	});
 });
 

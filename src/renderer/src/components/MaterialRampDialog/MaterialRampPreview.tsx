@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { Button } from "@react95/core";
+import { useMemo, useState } from "react";
 import { rgbToHex } from "../../../../shared/color";
 import {
 	nearestOklabIndex,
@@ -7,6 +8,7 @@ import {
 } from "../../../../shared/materialRamp/colorSpace";
 import {
 	nearestStopColors,
+	renderMaterialCube,
 	renderMaterialSphere,
 	sphereCellsToBytes,
 } from "../../../../shared/materialRamp/sphereRender";
@@ -25,6 +27,8 @@ interface MaterialRampPreviewProps {
 	lighting: LightingConfig;
 }
 
+type PreviewShape = "sphere" | "cube";
+
 // The continuous sphere is a smooth HD reference render. The posterized one
 // is deliberately low-res -- it's meant to read as a small pixel-art sprite
 // ball (scaled up blockily via CSS), showing what the generated stops
@@ -37,17 +41,21 @@ export function MaterialRampPreview({
 	material,
 	lighting,
 }: MaterialRampPreviewProps): JSX.Element {
+	const [shape, setShape] = useState<PreviewShape>("sphere");
+	const renderShape =
+		shape === "sphere" ? renderMaterialSphere : renderMaterialCube;
+
 	const valueOrderedStops = [...stops].sort(
 		(a, b) => lightnessOf(a) - lightnessOf(b)
 	);
 
 	const continuousCells = useMemo(
-		() => renderMaterialSphere(material, lighting, CONTINUOUS_SPHERE_SIZE),
-		[material, lighting]
+		() => renderShape(material, lighting, CONTINUOUS_SPHERE_SIZE),
+		[renderShape, material, lighting]
 	);
 	const posterizedCells = useMemo(
-		() => renderMaterialSphere(material, lighting, POSTERIZED_SPHERE_SIZE),
-		[material, lighting]
+		() => renderShape(material, lighting, POSTERIZED_SPHERE_SIZE),
+		[renderShape, material, lighting]
 	);
 	const continuousPixels = useMemo(
 		() => sphereCellsToBytes(continuousCells),
@@ -72,6 +80,28 @@ export function MaterialRampPreview({
 
 	return (
 		<div className="material-ramp-dialog__preview">
+			<div className="endpoint-picker__mode-toggle">
+				<Button
+					className={
+						shape === "sphere"
+							? "endpoint-picker__mode-btn endpoint-picker__mode-btn--active"
+							: "endpoint-picker__mode-btn"
+					}
+					onClick={() => setShape("sphere")}
+				>
+					Sphere
+				</Button>
+				<Button
+					className={
+						shape === "cube"
+							? "endpoint-picker__mode-btn endpoint-picker__mode-btn--active"
+							: "endpoint-picker__mode-btn"
+					}
+					onClick={() => setShape("cube")}
+				>
+					Cube
+				</Button>
+			</div>
 			<div className="material-ramp-dialog__render-preview">
 				<MaterialSphereCanvas
 					pixels={continuousPixels}
