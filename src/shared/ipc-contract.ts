@@ -3,6 +3,7 @@ import { PaletteFormat } from "./types";
 export const IPC_CHANNELS = {
 	IMPORT_PALETTE: "palette:import",
 	EXPORT_PALETTE: "palette:export",
+	IMPORT_ENVIRONMENT_IMAGE: "environment:import-image",
 	UPDATE_AVAILABLE: "update:available",
 	OPEN_EXTERNAL_URL: "update:open-external-url",
 } as const;
@@ -15,6 +16,11 @@ export interface ImportedFile {
 export interface ImportPaletteResult {
 	canceled: boolean;
 	files: ImportedFile[];
+}
+
+export interface ImportEnvironmentImageResult {
+	canceled: boolean;
+	file?: { filePath: string; bytes: Uint8Array };
 }
 
 export interface ExportPaletteRequest {

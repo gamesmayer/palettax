@@ -1,5 +1,5 @@
 import { Button, Frame, Input, Modal, TitleBar, Tooltip } from "@react95/core";
-import { MouseEvent, useMemo, useState } from "react";
+import { MouseEvent, useEffect, useMemo, useState } from "react";
 import { ColorSystem, rgbToHex } from "../../../../shared/color";
 import {
 	DEFAULT_BASE_COLOR,
@@ -17,6 +17,10 @@ import {
 	clampUnit,
 	warningForBaseColor,
 } from "../../../../shared/materialRamp/dialogValidation";
+import {
+	decodeEnvironmentImage,
+	EnvironmentMap,
+} from "../../../../shared/materialRamp/environmentMap";
 import { MATERIAL_PRESETS } from "../../../../shared/materialRamp/materialPresets";
 import {
 	DEFAULT_LIGHTING,
@@ -24,6 +28,7 @@ import {
 	MaterialDefinition,
 } from "../../../../shared/materialRamp/types";
 import { PaletteGroup } from "../../../../shared/palette-formats";
+import { getDefaultEnvironmentMap } from "../../materialRamp/defaultEnvironmentMap";
 import { generateMaterialRamp } from "../../materialRamp/generateMaterialRamp";
 import { usePaletteStore } from "../../store/paletteStore";
 import {
@@ -33,6 +38,7 @@ import {
 } from "../ColorPicker/EndpointPicker";
 import { GroupPicker, GroupSelection } from "../ColorPicker/GroupPicker";
 import { SwatchColorPicker } from "../ColorPicker/SwatchColorPicker";
+import { EnvironmentMapPreview } from "./EnvironmentMapPreview";
 import { MaterialRampPreview } from "./MaterialRampPreview";
 
 interface MaterialRampDialogProps {
@@ -100,6 +106,48 @@ export function MaterialRampDialog({
 		DEFAULT_LIGHTING.directionalLightIntensity
 	);
 
+	const [environmentMode, setEnvironmentMode] = useState<"default" | "custom">(
+		"default"
+	);
+	const [defaultEnvironmentMap, setDefaultEnvironmentMap] =
+		useState<EnvironmentMap | null>(null);
+	const [customEnvironmentMap, setCustomEnvironmentMap] =
+		useState<EnvironmentMap | null>(null);
+	const [customEnvironmentFileName, setCustomEnvironmentFileName] = useState<
+		string | null
+	>(null);
+	const [environmentError, setEnvironmentError] = useState<string | null>(null);
+	const [environmentIntensity, setEnvironmentIntensity] = useState(1);
+
+	useEffect(() => {
+		let cancelled = false;
+		getDefaultEnvironmentMap().then((map) => {
+			if (!cancelled) setDefaultEnvironmentMap(map);
+		});
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
+	async function handleChooseEnvironmentImage(): Promise<void> {
+		const result = await window.environmentApi.importImage();
+		if (result.canceled || !result.file) return;
+		try {
+			setCustomEnvironmentMap(decodeEnvironmentImage(result.file.bytes));
+			setCustomEnvironmentFileName(
+				result.file.filePath.split(/[\\/]/).pop() ?? result.file.filePath
+			);
+			setEnvironmentError(null);
+		} catch {
+			setEnvironmentError("Couldn't read that file as a PNG image.");
+		}
+	}
+
+	const activeEnvironmentMap =
+		environmentMode === "default"
+			? defaultEnvironmentMap
+			: customEnvironmentMap;
+
 	const baseRgb =
 		mode === "palette"
 			? (colors.find((color) => color.id === paletteColorId) ?? customRgb)
@@ -130,6 +178,8 @@ export function MaterialRampDialog({
 				b: ambientColor.b,
 			},
 			ambientLightIntensity: ambientIntensity,
+			environmentMap: activeEnvironmentMap,
+			environmentIntensity,
 		}),
 		[
 			lightColor.r,
@@ -140,6 +190,8 @@ export function MaterialRampDialog({
 			ambientColor.g,
 			ambientColor.b,
 			ambientIntensity,
+			activeEnvironmentMap,
+			environmentIntensity,
 		]
 	);
 
@@ -324,6 +376,78 @@ export function MaterialRampDialog({
 									aria-label="Ambient intensity"
 								/>
 							</div>
+						</div>
+					</Frame>
+
+					<Frame className="material-ramp-dialog__section">
+						<div className="material-ramp-dialog__section-title">
+							Environment reflection
+						</div>
+						<div className="endpoint-picker__field">
+							<Tooltip text="A real reflection image sampled by the material's mirror direction and roughness — richer than the flat ambient fill above, especially for polished or metallic materials.">
+								<span className="endpoint-picker__field-label">
+									Environment
+								</span>
+							</Tooltip>
+							<div className="endpoint-picker__mode-toggle">
+								<Button
+									className={
+										environmentMode === "default"
+											? "endpoint-picker__mode-btn endpoint-picker__mode-btn--active"
+											: "endpoint-picker__mode-btn"
+									}
+									onClick={() => setEnvironmentMode("default")}
+								>
+									Default image
+								</Button>
+								<Button
+									className={
+										environmentMode === "custom"
+											? "endpoint-picker__mode-btn endpoint-picker__mode-btn--active"
+											: "endpoint-picker__mode-btn"
+									}
+									onClick={() => setEnvironmentMode("custom")}
+								>
+									Custom image
+								</Button>
+							</div>
+						</div>
+						{environmentMode === "custom" && (
+							<div className="endpoint-picker__field">
+								<Button onClick={handleChooseEnvironmentImage}>
+									Choose file…
+								</Button>
+								{customEnvironmentFileName && (
+									<span className="material-ramp-dialog__environment-filename">
+										{customEnvironmentFileName}
+									</span>
+								)}
+							</div>
+						)}
+						<EnvironmentMapPreview environmentMap={activeEnvironmentMap} />
+						{environmentError && (
+							<div className="material-ramp-dialog__base-color-warning">
+								{environmentError}
+							</div>
+						)}
+						<div className="endpoint-picker__field">
+							<Tooltip text="How strongly the environment reflection contributes, on top of the ambient fill above.">
+								<span className="endpoint-picker__field-label">
+									Environment intensity
+								</span>
+							</Tooltip>
+							<Input
+								type="number"
+								min={MIN_UNIT}
+								step={0.01}
+								value={environmentIntensity}
+								onChange={(event) =>
+									setEnvironmentIntensity(
+										clampIntensity(Number(event.target.value))
+									)
+								}
+								aria-label="Environment intensity"
+							/>
 						</div>
 					</Frame>
 

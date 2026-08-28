@@ -3,6 +3,7 @@ import {
 	ExportPaletteRequest,
 	ExportPaletteResult,
 	IPC_CHANNELS,
+	ImportEnvironmentImageResult,
 	ImportPaletteResult,
 	UpdateInfo,
 } from "../shared/ipc-contract";
@@ -59,4 +60,12 @@ const paletteApi = {
 
 export type PaletteApi = typeof paletteApi;
 
+const environmentApi = {
+	importImage: (): Promise<ImportEnvironmentImageResult> =>
+		ipcRenderer.invoke(IPC_CHANNELS.IMPORT_ENVIRONMENT_IMAGE),
+};
+
+export type EnvironmentApi = typeof environmentApi;
+
 contextBridge.exposeInMainWorld("paletteApi", paletteApi);
+contextBridge.exposeInMainWorld("environmentApi", environmentApi);

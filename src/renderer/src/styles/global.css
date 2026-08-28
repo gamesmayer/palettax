@@ -707,6 +707,22 @@ which only matters inside react95's own stacking context. */
 	image-rendering: pixelated;
 }
 
+.material-ramp-dialog__environment-preview {
+	display: block;
+	width: 100%;
+	height: 90px;
+	margin-top: var(--r95-space-6);
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+	background: repeating-conic-gradient(#ccc 0% 25%, #eee 0% 50%) 0 0 / 12px 12px;
+	object-fit: cover;
+}
+
+.material-ramp-dialog__environment-filename {
+	margin-left: var(--r95-space-6);
+	font-size: 11px;
+	color: var(--r95-color-materialText);
+}
+
 .material-ramp-dialog__sphere-label {
 	font-size: 8px;
 	color: var(--r95-color-materialText);

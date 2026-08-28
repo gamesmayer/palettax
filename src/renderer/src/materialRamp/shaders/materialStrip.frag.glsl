@@ -25,6 +25,10 @@ uniform float uSweepPhi;
 uniform vec3 uAmbientColorLinear;
 uniform float uAmbientIntensity;
 uniform int uWidth;
+uniform sampler2D uEnvironmentMap;
+uniform int uHasEnvironmentMap;
+uniform float uEnvironmentIntensity;
+uniform float uEnvironmentMaxLod;
 
 out vec4 fragColor;
 
@@ -56,6 +60,15 @@ vec3 schlickFresnel(float VdotH, vec3 f0) {
 
 vec3 reinhardTonemap(vec3 c) {
 	return c / (vec3(1.0) + c);
+}
+
+// Must match directionToEquirectUv in
+// src/shared/materialRamp/environmentMap.ts exactly (same CPU/GPU sync
+// discipline as the rest of this shader -- see the file header comment).
+vec2 directionToEquirectUv(vec3 dir) {
+	float u = 0.5 + atan(dir.x, -dir.z) / (2.0 * PI);
+	float v = clamp(0.5 - asin(clamp(dir.y, -1.0, 1.0)) / PI, 0.0, 1.0);
+	return vec2(u, v);
 }
 
 void main() {
@@ -94,5 +107,19 @@ void main() {
 	vec3 ambientSpecular = uAmbientColorLinear * uAmbientIntensity * fresnelAmbient;
 	vec3 ambientLit = ambientDiffuse + ambientSpecular;
 
-	fragColor = vec4(reinhardTonemap(directLit + ambientLit), 1.0);
+	// Real image-based reflection, additive on top of the flat ambient term
+	// above -- see the matching comment on evaluateMaterial in brdf.ts for the
+	// rationale (diffuse side uses a fully-blurred lookup at N, specular side
+	// reflects V about N and samples at the material's own roughness).
+	vec3 envLit = vec3(0.0);
+	if (uHasEnvironmentMap == 1) {
+		vec3 R = 2.0 * dot(N, V) * N - V;
+		vec2 diffuseUv = directionToEquirectUv(N);
+		vec2 specularUv = directionToEquirectUv(R);
+		vec3 envDiffuse = textureLod(uEnvironmentMap, diffuseUv, uEnvironmentMaxLod).rgb * albedoDiffuse;
+		vec3 envSpecular = textureLod(uEnvironmentMap, specularUv, uRoughness * uEnvironmentMaxLod).rgb * fresnelAmbient;
+		envLit = (envDiffuse + envSpecular) * uEnvironmentIntensity;
+	}
+
+	fragColor = vec4(reinhardTonemap(directLit + ambientLit + envLit), 1.0);
 }

@@ -1,9 +1,11 @@
+import { encode } from "fast-png";
 import {
 	evaluateMaterial,
 	ggxDistribution,
 	schlickFresnel,
 	smithGeometry,
 } from "../../../src/shared/materialRamp/brdf";
+import { decodeEnvironmentImage } from "../../../src/shared/materialRamp/environmentMap";
 import {
 	computeSweepBasis,
 	normalAtT,
@@ -80,8 +82,8 @@ describe("evaluateMaterial", () => {
 	it("is exactly black when lightIntensity=0 AND ambientIntensity=0, for any normal", () => {
 		const darkLighting = {
 			...DEFAULT_LIGHTING,
-			lightIntensity: 0,
-			ambientIntensity: 0,
+			directionalLightIntensity: 0,
+			ambientLightIntensity: 0,
 		};
 		for (const material of materials) {
 			const response = evaluateMaterial(material, darkLighting, fixedNormal);
@@ -93,14 +95,14 @@ describe("evaluateMaterial", () => {
 		for (const material of materials) {
 			let prev = evaluateMaterial(
 				material,
-				{ ...DEFAULT_LIGHTING, lightIntensity: 0 },
+				{ ...DEFAULT_LIGHTING, directionalLightIntensity: 0 },
 				fixedNormal
 			);
 			for (let i = 1; i <= 20; i++) {
 				const lightIntensity = i / 20;
 				const curr = evaluateMaterial(
 					material,
-					{ ...DEFAULT_LIGHTING, lightIntensity },
+					{ ...DEFAULT_LIGHTING, directionalLightIntensity: lightIntensity },
 					fixedNormal
 				);
 				expect(curr.r).toBeGreaterThanOrEqual(prev.r - 1e-9);
@@ -129,7 +131,7 @@ describe("evaluateMaterial", () => {
 	it("ambient brightens a pure metal's response via its specular Fresnel term", () => {
 		const withoutAmbient = evaluateMaterial(
 			materialC,
-			{ ...DEFAULT_LIGHTING, ambientIntensity: 0 },
+			{ ...DEFAULT_LIGHTING, ambientLightIntensity: 0 },
 			grazingNormal
 		);
 		const withAmbient = evaluateMaterial(
@@ -150,7 +152,7 @@ describe("evaluateMaterial", () => {
 			const ambientIntensity = i / 10;
 			const response = evaluateMaterial(
 				materialA,
-				{ ...DEFAULT_LIGHTING, ambientIntensity },
+				{ ...DEFAULT_LIGHTING, ambientLightIntensity: ambientIntensity },
 				grazingNormal
 			);
 			const maxChannel = Math.max(response.r, response.g, response.b);
@@ -165,10 +167,14 @@ describe("evaluateMaterial", () => {
 		// above the gentle diffuse+ambient baseline; rough materials never
 		// develop a strong-enough specular peak to cross the same threshold
 		// anywhere in the domain. This is the mechanism that gives adaptive
-		// posterization something material-dependent to latch onto.
+		// posterization something material-dependent to latch onto. Threshold
+		// is calibrated against DEFAULT_LIGHTING's current diffuse ceiling
+		// (types.ts's DEFAULT_LIGHTING comment): both rough materials here peak
+		// around 0.60-0.70 on diffuse+ambient alone, so 0.85 sits above that
+		// ceiling while both glossy materials' specular spike still clears it.
 		const widthAboveThreshold = (
 			material: typeof materialA,
-			threshold = 0.5,
+			threshold = 0.85,
 			steps = 1000
 		): number => {
 			let count = 0;
@@ -284,5 +290,77 @@ describe("evaluateMaterial + posterize (point-16 scenario)", () => {
 		expect(countInTightBand(rampPositions(materialC, 7))).toBeGreaterThan(
 			countInTightBand(rampPositions(materialD, 7))
 		);
+	});
+});
+
+describe("evaluateMaterial + environmentMap", () => {
+	function buildFixtureEnvironment(): ReturnType<typeof decodeEnvironmentImage> {
+		// top row red, bottom row blue -- same fixture shape as environmentMap.test.ts
+		const width = 4;
+		const height = 2;
+		const data = new Uint8Array(width * height * 3);
+		for (let x = 0; x < width; x++) {
+			data[(0 * width + x) * 3] = 255;
+			data[(1 * width + x) * 3 + 2] = 255;
+		}
+		return decodeEnvironmentImage(
+			encode({ width, height, data, depth: 8, channels: 3 })
+		);
+	}
+
+	const metal = { baseColor: { r: 180, g: 120, b: 90 }, metallic: 1, roughness: 0.05 };
+	const basis = computeSweepBasis(DEFAULT_LIGHTING);
+	const fixedNormal = normalAtT(0.5, basis);
+
+	it("leaves the response unchanged when environmentMap is unset (regression safety)", () => {
+		const without = evaluateMaterial(metal, DEFAULT_LIGHTING, fixedNormal);
+		const explicitlyNull = evaluateMaterial(
+			metal,
+			{ ...DEFAULT_LIGHTING, environmentMap: null },
+			fixedNormal
+		);
+		expect(explicitlyNull).toEqual(without);
+	});
+
+	it("leaves the response unchanged when environmentIntensity is 0, even with a map set", () => {
+		const environmentMap = buildFixtureEnvironment();
+		const without = evaluateMaterial(metal, DEFAULT_LIGHTING, fixedNormal);
+		const zeroIntensity = evaluateMaterial(
+			metal,
+			{ ...DEFAULT_LIGHTING, environmentMap, environmentIntensity: 0 },
+			fixedNormal
+		);
+		expect(zeroIntensity).toEqual(without);
+	});
+
+	it("a low-roughness metal picks up a distinctly different color depending on the reflected environment direction", () => {
+		const environmentMap = buildFixtureEnvironment();
+		const lighting = { ...DEFAULT_LIGHTING, environmentMap, environmentIntensity: 1 };
+
+		// Two very different normals reflect the view direction toward opposite
+		// ends of the environment (sky-ish vs ground-ish), so a polished metal
+		// should read distinctly differently between them -- exactly the
+		// grazing/directional reflection a flat ambient term structurally can't
+		// produce (see the comment on evaluateMaterial's ambient term).
+		const responseA = evaluateMaterial(metal, lighting, normalAtT(0, basis));
+		const responseB = evaluateMaterial(metal, lighting, normalAtT(1, basis));
+
+		expect(responseA).not.toEqual(responseB);
+	});
+
+	it("increasing environmentIntensity monotonically changes a polished metal's response at a fixed normal", () => {
+		const environmentMap = buildFixtureEnvironment();
+		let prevMax = -Infinity;
+		for (let i = 0; i <= 10; i++) {
+			const environmentIntensity = i / 10;
+			const response = evaluateMaterial(
+				metal,
+				{ ...DEFAULT_LIGHTING, environmentMap, environmentIntensity },
+				fixedNormal
+			);
+			const maxChannel = Math.max(response.r, response.g, response.b);
+			expect(maxChannel).toBeGreaterThanOrEqual(prevMax - 1e-9);
+			prevMax = maxChannel;
+		}
 	});
 });

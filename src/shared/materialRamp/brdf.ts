@@ -1,6 +1,7 @@
 import { reinhardTonemap, rgbBytesToLinear } from "./colorSpace";
+import { sampleEnvironment } from "./environmentMap";
 import { LightingConfig, MaterialDefinition, RgbLinear, Vec3 } from "./types";
-import { dot3, normalize3 } from "./vec3";
+import { dot3, normalize3, reflect3 } from "./vec3";
 
 const DIELECTRIC_F0 = 0.04;
 
@@ -69,6 +70,8 @@ function mulRgb(a: RgbLinear, b: RgbLinear): RgbLinear {
 }
 
 interface BrdfGeometry {
+	N: Vec3;
+	V: Vec3;
 	NdotL: number;
 	NdotV: number;
 	NdotH: number;
@@ -81,6 +84,8 @@ function computeGeometry(lighting: LightingConfig, normal: Vec3): BrdfGeometry {
 	const V = normalize3(lighting.viewDir);
 	const H = normalize3([L[0] + V[0], L[1] + V[1], L[2] + V[2]]);
 	return {
+		N,
+		V,
 		NdotL: Math.max(dot3(N, L), 1e-4),
 		NdotV: Math.max(dot3(N, V), 1e-4),
 		NdotH: Math.max(dot3(N, H), 0),
@@ -159,5 +164,33 @@ export function evaluateMaterial(
 	);
 	const ambientLit = addRgb(ambientDiffuse, ambientSpecular);
 
-	return reinhardTonemap(addRgb(directLit, ambientLit));
+	// Real image-based reflection, additive on top of the flat ambient term
+	// above rather than a replacement for it -- keeps existing output
+	// unchanged when environmentMap is unset. Diffuse side samples the
+	// environment at N with a fully-blurred lookup (roughness=1, i.e. an
+	// irradiance-ish average) since Lambertian diffuse has no reflection
+	// direction; specular side samples at the true mirror direction with the
+	// material's own roughness, so polished/low-roughness materials get a
+	// sharp reflection and rough ones get a soft one.
+	const envLit = lighting.environmentMap
+		? scaleRgb(
+				addRgb(
+					mulRgb(
+						sampleEnvironment(lighting.environmentMap, geometry.N, 1),
+						albedoDiffuse
+					),
+					mulRgb(
+						sampleEnvironment(
+							lighting.environmentMap,
+							reflect3(geometry.V, geometry.N),
+							material.roughness
+						),
+						fresnelAmbient
+					)
+				),
+				lighting.environmentIntensity
+			)
+		: { r: 0, g: 0, b: 0 };
+
+	return reinhardTonemap(addRgb(addRgb(directLit, ambientLit), envLit));
 }

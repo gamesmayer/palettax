@@ -7,7 +7,7 @@ import { dot3, normalize3 } from "../../../src/shared/materialRamp/vec3";
 
 const basis = computeSweepBasis(DEFAULT_LIGHTING);
 const V = normalize3(DEFAULT_LIGHTING.viewDir);
-const L = normalize3(DEFAULT_LIGHTING.lightDir);
+const L = normalize3(DEFAULT_LIGHTING.directionalLightDir);
 const H = normalize3([L[0] + V[0], L[1] + V[1], L[2] + V[2]]);
 
 function sample(steps: number): number[] {

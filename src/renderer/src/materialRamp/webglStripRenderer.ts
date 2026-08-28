@@ -1,4 +1,5 @@
 import { rgbBytesToLinear } from "../../../shared/materialRamp/colorSpace";
+import { EnvironmentMap } from "../../../shared/materialRamp/environmentMap";
 import { computeSweepBasis } from "../../../shared/materialRamp/orientationSweep";
 import {
 	LightingConfig,
@@ -26,7 +27,13 @@ interface Uniforms {
 	uAmbientColorLinear: WebGLUniformLocation | null;
 	uAmbientIntensity: WebGLUniformLocation | null;
 	uWidth: WebGLUniformLocation | null;
+	uEnvironmentMap: WebGLUniformLocation | null;
+	uHasEnvironmentMap: WebGLUniformLocation | null;
+	uEnvironmentIntensity: WebGLUniformLocation | null;
+	uEnvironmentMaxLod: WebGLUniformLocation | null;
 }
+
+const ENVIRONMENT_TEXTURE_UNIT = 1;
 
 function compileShader(
 	gl: WebGL2RenderingContext,
@@ -67,6 +74,9 @@ class MaterialStripRenderer {
 	private precision: "float" | "uint8" = "uint8";
 	private needsInit = true;
 	private uniforms: Uniforms | null = null;
+	private environmentTexture: WebGLTexture | null = null;
+	private uploadedEnvironmentMap: EnvironmentMap | null = null;
+	private environmentMaxLod = 0;
 
 	private handleContextLost = (event: Event): void => {
 		event.preventDefault();
@@ -77,6 +87,8 @@ class MaterialStripRenderer {
 		this.fbo = null;
 		this.texture = null;
 		this.targetWidth = 0;
+		this.environmentTexture = null;
+		this.uploadedEnvironmentMap = null;
 	};
 
 	private handleContextRestored = (): void => {
@@ -139,7 +151,42 @@ class MaterialStripRenderer {
 			),
 			uAmbientIntensity: gl.getUniformLocation(program, "uAmbientIntensity"),
 			uWidth: gl.getUniformLocation(program, "uWidth"),
+			uEnvironmentMap: gl.getUniformLocation(program, "uEnvironmentMap"),
+			uHasEnvironmentMap: gl.getUniformLocation(program, "uHasEnvironmentMap"),
+			uEnvironmentIntensity: gl.getUniformLocation(
+				program,
+				"uEnvironmentIntensity"
+			),
+			uEnvironmentMaxLod: gl.getUniformLocation(program, "uEnvironmentMaxLod"),
 		};
+
+		// A 1x1 placeholder keeps the sampler bound to a valid texture even when
+		// no environment map is active (uHasEnvironmentMap gates the actual
+		// lookup in the shader) -- avoids "texture unit not renderable" driver
+		// warnings from an unbound sampler.
+		this.environmentTexture = gl.createTexture();
+		gl.activeTexture(gl.TEXTURE0 + ENVIRONMENT_TEXTURE_UNIT);
+		gl.bindTexture(gl.TEXTURE_2D, this.environmentTexture);
+		gl.texImage2D(
+			gl.TEXTURE_2D,
+			0,
+			gl.RGBA,
+			1,
+			1,
+			0,
+			gl.RGBA,
+			gl.UNSIGNED_BYTE,
+			new Uint8Array([0, 0, 0, 255])
+		);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		this.uploadedEnvironmentMap = null;
+		this.environmentMaxLod = 0;
+		// Restore the default active unit -- ensureTarget()'s gl.bindTexture
+		// calls below (and on every later resize) assume unit 0, matching
+		// every other texture call in this class that never touches
+		// activeTexture explicitly.
+		gl.activeTexture(gl.TEXTURE0);
 
 		const vao = gl.createVertexArray();
 		gl.bindVertexArray(vao);
@@ -235,6 +282,65 @@ class MaterialStripRenderer {
 		return true;
 	}
 
+	/**
+	 * Uploads `environmentMap`'s full-resolution sRGB image as an SRGB8_ALPHA8
+	 * GPU texture (hardware decodes sRGB->linear on sample, so this doesn't
+	 * duplicate the CPU-side conversion in GLSL) and generates real mipmaps
+	 * for roughness-driven blur -- the GPU-native counterpart to the manual
+	 * box-downsample mip chain `environmentMap.ts` builds for the CPU path.
+	 * SRGB8_ALPHA8, not SRGB8: WebGL2/ES3 only guarantees generateMipmap for
+	 * color-renderable formats, and plain SRGB8 isn't required to be (raises
+	 * "Texture format does not support mipmap generation"). No-ops if this
+	 * exact map object was already uploaded (reference equality, same
+	 * reuse-across-calls convention as the rest of this class).
+	 */
+	private ensureEnvironmentTexture(
+		gl: WebGL2RenderingContext,
+		environmentMap: EnvironmentMap | null | undefined
+	): void {
+		if (!environmentMap || this.uploadedEnvironmentMap === environmentMap) {
+			return;
+		}
+
+		const base = environmentMap.levels[0];
+		const rgba = new Uint8Array(base.width * base.height * 4);
+		for (let i = 0; i < base.width * base.height; i++) {
+			rgba[i * 4] = environmentMap.srgbBytes[i * 3];
+			rgba[i * 4 + 1] = environmentMap.srgbBytes[i * 3 + 1];
+			rgba[i * 4 + 2] = environmentMap.srgbBytes[i * 3 + 2];
+			rgba[i * 4 + 3] = 255;
+		}
+
+		gl.activeTexture(gl.TEXTURE0 + ENVIRONMENT_TEXTURE_UNIT);
+		gl.bindTexture(gl.TEXTURE_2D, this.environmentTexture);
+		gl.texImage2D(
+			gl.TEXTURE_2D,
+			0,
+			gl.SRGB8_ALPHA8,
+			base.width,
+			base.height,
+			0,
+			gl.RGBA,
+			gl.UNSIGNED_BYTE,
+			rgba
+		);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT); // u wraps around the horizon
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); // v does not
+		gl.texParameteri(
+			gl.TEXTURE_2D,
+			gl.TEXTURE_MIN_FILTER,
+			gl.LINEAR_MIPMAP_LINEAR
+		);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		gl.generateMipmap(gl.TEXTURE_2D);
+		// Restore the default active unit -- see the matching comment in
+		// compileProgram; ensureTarget()'s texture calls assume unit 0.
+		gl.activeTexture(gl.TEXTURE0);
+
+		this.uploadedEnvironmentMap = environmentMap;
+		this.environmentMaxLod = Math.log2(Math.max(base.width, base.height));
+	}
+
 	/** Renders the material-response strip and reads it back as linear RGBA. Returns null if WebGL2 (or a usable render target) isn't available at all. */
 	render(
 		material: MaterialDefinition,
@@ -302,6 +408,19 @@ class MaterialStripRenderer {
 		);
 		gl.uniform1i(this.uniforms.uWidth, width);
 
+		if (lighting.environmentMap) {
+			this.ensureEnvironmentTexture(gl, lighting.environmentMap);
+			gl.uniform1i(this.uniforms.uHasEnvironmentMap, 1);
+			gl.uniform1f(
+				this.uniforms.uEnvironmentIntensity,
+				lighting.environmentIntensity
+			);
+			gl.uniform1f(this.uniforms.uEnvironmentMaxLod, this.environmentMaxLod);
+		} else {
+			gl.uniform1i(this.uniforms.uHasEnvironmentMap, 0);
+		}
+		gl.uniform1i(this.uniforms.uEnvironmentMap, ENVIRONMENT_TEXTURE_UNIT);
+
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
 		let samples: Float32Array;
@@ -327,6 +446,8 @@ class MaterialStripRenderer {
 	dispose(): void {
 		if (this.gl) {
 			if (this.texture) this.gl.deleteTexture(this.texture);
+			if (this.environmentTexture)
+				this.gl.deleteTexture(this.environmentTexture);
 			if (this.fbo) this.gl.deleteFramebuffer(this.fbo);
 			if (this.program) this.gl.deleteProgram(this.program);
 			if (this.vao) this.gl.deleteVertexArray(this.vao);
@@ -350,6 +471,8 @@ class MaterialStripRenderer {
 		this.targetWidth = 0;
 		this.uniforms = null;
 		this.needsInit = true;
+		this.environmentTexture = null;
+		this.uploadedEnvironmentMap = null;
 	}
 }
 

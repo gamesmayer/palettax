@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, Menu, shell } from "electron";
 import { join } from "node:path";
+import { registerEnvironmentImageHandlers } from "./ipc/environmentImageHandlers";
 import { registerPaletteFileHandlers } from "./ipc/paletteFileHandlers";
 import { registerUpdateHandlers } from "./ipc/updateHandlers";
 import { buildMenu } from "./menu";
@@ -75,6 +76,7 @@ app.whenReady().then(() => {
 	}
 
 	registerPaletteFileHandlers();
+	registerEnvironmentImageHandlers();
 	registerUpdateHandlers();
 	createWindow();
 

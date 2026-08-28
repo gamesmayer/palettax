@@ -1,3 +1,5 @@
+import { EnvironmentMap } from "./environmentMap";
+
 export interface RgbLinear {
 	r: number;
 	g: number;
@@ -19,6 +21,11 @@ export interface LightingConfig {
 	directionalLightIntensity: number; // fixed reference radiance scalar
 	ambientLightColor: { r: number; g: number; b: number }; // sRGB 0-255
 	ambientLightIntensity: number; // flat diffuse fill, independent of the orientation sweep
+	// Optional real image-based reflection/irradiance, layered additively on
+	// top of the flat ambient term above (see brdf.ts) -- absent/null
+	// reproduces today's flat-ambient-only behavior exactly.
+	environmentMap?: EnvironmentMap | null;
+	environmentIntensity: number;
 }
 
 // L and V must NOT be coincident. If they were, H = normalize(L+V) would
@@ -58,6 +65,8 @@ export const DEFAULT_LIGHTING: LightingConfig = {
 	ambientLightColor: { r: 255, g: 255, b: 255 },
 	ambientLightIntensity: 0.15,
 	viewDir: [0, 0, 1],
+	environmentMap: null,
+	environmentIntensity: 1,
 };
 
 export interface MaterialRampStop {
