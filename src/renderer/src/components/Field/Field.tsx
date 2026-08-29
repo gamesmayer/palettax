@@ -10,7 +10,7 @@ interface FieldLabelProps {
  * The single place a field label is wired to FloatingTooltip -- use this
  * (directly, or via Field/TextInput/NumberInput/Dropdown) instead of
  * react95's own Tooltip, so every labeled control in the app behaves
- * consistently near the edge of a scrolling dialog.
+ * consistently near the edge of a scrolling modal.
  */
 export function FieldLabel({ text, tooltip }: FieldLabelProps): JSX.Element {
 	const span = <span className="field__label">{text}</span>;

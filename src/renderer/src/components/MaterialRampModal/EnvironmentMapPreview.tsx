@@ -27,7 +27,7 @@ export function EnvironmentMapPreview({
 	}, [environmentMap, base]);
 
 	if (!base) {
-		return <div className="material-ramp-dialog__environment-preview" />;
+		return <div className="material-ramp-modal__environment-preview" />;
 	}
 
 	return (
@@ -35,7 +35,7 @@ export function EnvironmentMapPreview({
 			ref={canvasRef}
 			width={base.width}
 			height={base.height}
-			className="material-ramp-dialog__environment-preview"
+			className="material-ramp-modal__environment-preview"
 			role="img"
 			aria-label="Environment reflection image"
 		/>

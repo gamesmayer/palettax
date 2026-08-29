@@ -1,5 +1,4 @@
-import { Modal, TitleBar } from "@react95/core";
-import { MouseEvent, useState } from "react";
+import { useState } from "react";
 import { ColorSystem, blendRgb, rgbToHex } from "../../../../shared/color";
 import { PaletteGroup } from "../../../../shared/palette-formats";
 import { usePaletteStore } from "../../store/paletteStore";
@@ -10,9 +9,10 @@ import {
 } from "../ColorPicker/EndpointPicker";
 import { GroupPicker, GroupSelection } from "../ColorPicker/GroupPicker";
 import { Field } from "../Field/Field";
+import { Modal } from "../Modal/Modal";
 import { NumberInput } from "../NumberInput/NumberInput";
 
-interface BlendDialogProps {
+interface BlendModalProps {
 	paletteId: string;
 	groupId: string;
 	groups: PaletteGroup[];
@@ -27,13 +27,13 @@ function clampSteps(value: number): number {
 	return Math.min(MAX_STEPS, Math.max(MIN_STEPS, Math.round(value)));
 }
 
-export function BlendDialog({
+export function BlendModal({
 	paletteId,
 	groupId,
 	groups,
 	colorSystem,
 	onClose,
-}: BlendDialogProps): JSX.Element {
+}: BlendModalProps): JSX.Element {
 	const addColors = usePaletteStore((state) => state.addColors);
 	const addGroup = usePaletteStore((state) => state.addGroup);
 
@@ -122,84 +122,73 @@ export function BlendDialog({
 		onClose();
 	}
 
-	function handleBackdropMouseDown(event: MouseEvent): void {
-		if (event.target === event.currentTarget) {
-			onClose();
-		}
-	}
-
 	return (
-		<div className="dialog-backdrop" onMouseDown={handleBackdropMouseDown}>
-			<Modal
-				className="blend-dialog"
-				title="Add blending"
-				hasWindowButton={false}
-				titleBarOptions={[<TitleBar.Close key="close" onClick={onClose} />]}
-				buttons={[
-					{ value: "Cancel", onClick: onClose },
-					{ value: "Add", onClick: handleSubmit },
-				]}
+		<Modal
+			className="blend-modal"
+			title="Add blending"
+			buttons={[
+				{ value: "Cancel", onClick: onClose },
+				{ value: "Add", onClick: handleSubmit },
+			]}
+			onClose={onClose}
+		>
+			<div className="blend-modal__endpoints">
+				<EndpointPicker
+					label="From"
+					mode={fromMode}
+					onModeChange={setFromMode}
+					colors={colors}
+					colorSystem={colorSystem}
+					paletteColorId={fromPaletteColorId}
+					onPaletteColorChange={setFromPaletteColorId}
+					customRgb={fromCustomRgb}
+					onCustomRgbChange={setFromCustomRgb}
+				/>
+
+				<EndpointPicker
+					label="To"
+					mode={toMode}
+					onModeChange={setToMode}
+					colors={colors}
+					colorSystem={colorSystem}
+					paletteColorId={toPaletteColorId}
+					onPaletteColorChange={setToPaletteColorId}
+					customRgb={toCustomRgb}
+					onCustomRgbChange={setToCustomRgb}
+				/>
+			</div>
+
+			<NumberInput
+				label="Steps"
+				min={MIN_STEPS}
+				max={MAX_STEPS}
+				value={steps}
+				onChange={setSteps}
+				clamp={clampSteps}
+				aria-label="Number of steps"
+			/>
+
+			<Field
+				label={`Preview (${newColorCount} new color${newColorCount === 1 ? "" : "s"})`}
 			>
-				<Modal.Content className="dialog-content">
-					<div className="blend-dialog__endpoints">
-						<EndpointPicker
-							label="From"
-							mode={fromMode}
-							onModeChange={setFromMode}
-							colors={colors}
-							colorSystem={colorSystem}
-							paletteColorId={fromPaletteColorId}
-							onPaletteColorChange={setFromPaletteColorId}
-							customRgb={fromCustomRgb}
-							onCustomRgbChange={setFromCustomRgb}
+				<div className="blend-modal__preview">
+					{preview.map(({ r, g, b }, index) => (
+						<div
+							key={index}
+							className="blend-modal__preview-swatch"
+							style={{ backgroundColor: rgbToHex(r, g, b) }}
+							title={rgbToHex(r, g, b)}
 						/>
+					))}
+				</div>
+			</Field>
 
-						<EndpointPicker
-							label="To"
-							mode={toMode}
-							onModeChange={setToMode}
-							colors={colors}
-							colorSystem={colorSystem}
-							paletteColorId={toPaletteColorId}
-							onPaletteColorChange={setToPaletteColorId}
-							customRgb={toCustomRgb}
-							onCustomRgbChange={setToCustomRgb}
-						/>
-					</div>
-
-					<NumberInput
-						label="Steps"
-						min={MIN_STEPS}
-						max={MAX_STEPS}
-						value={steps}
-						onChange={setSteps}
-						clamp={clampSteps}
-						aria-label="Number of steps"
-					/>
-
-					<Field
-						label={`Preview (${newColorCount} new color${newColorCount === 1 ? "" : "s"})`}
-					>
-						<div className="blend-dialog__preview">
-							{preview.map(({ r, g, b }, index) => (
-								<div
-									key={index}
-									className="blend-dialog__preview-swatch"
-									style={{ backgroundColor: rgbToHex(r, g, b) }}
-									title={rgbToHex(r, g, b)}
-								/>
-							))}
-						</div>
-					</Field>
-
-					<hr className="dialog-separator" />
-					<GroupPicker
-						groups={groups}
-						value={groupSelection}
-						onChange={handleGroupChange}
-					/>
-				</Modal.Content>
-			</Modal>
-		</div>
+			<hr className="modal-separator" />
+			<GroupPicker
+				groups={groups}
+				value={groupSelection}
+				onChange={handleGroupChange}
+			/>
+		</Modal>
 	);
 }

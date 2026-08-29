@@ -9,8 +9,8 @@ import {
 	PaletteGroup,
 } from "../../../../shared/palette-formats";
 import { usePaletteStore } from "../../store/paletteStore";
-import { ColorDialog } from "../ColorDialog/ColorDialog";
-import { ConfirmDialog } from "../ConfirmDialog/ConfirmDialog";
+import { ColorModal } from "../ColorModal/ColorModal";
+import { ConfirmModal } from "../ConfirmModal/ConfirmModal";
 import { CloseIcon } from "../icons/CloseIcon";
 import { ColorGrid } from "./ColorGrid";
 
@@ -121,7 +121,7 @@ export function GroupSection({
 				onEditColor={setEditingColor}
 			/>
 			{editingColor && (
-				<ColorDialog
+				<ColorModal
 					paletteId={palette.id}
 					groupId={group.id}
 					groups={palette.groups}
@@ -131,7 +131,7 @@ export function GroupSection({
 				/>
 			)}
 			{isConfirmingDelete && (
-				<ConfirmDialog
+				<ConfirmModal
 					title="Delete group"
 					message={`Delete "${group.name ?? "Ungrouped"}"? Its ${group.colors.length} color${
 						group.colors.length === 1 ? "" : "s"

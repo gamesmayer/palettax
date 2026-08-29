@@ -1,5 +1,5 @@
-import { Frame, Modal, TitleBar } from "@react95/core";
-import { MouseEvent, useState } from "react";
+import { Frame } from "@react95/core";
+import { useState } from "react";
 import {
 	ColorSystem,
 	generateShadesAndTints,
@@ -16,9 +16,10 @@ import {
 import { GroupPicker, GroupSelection } from "../ColorPicker/GroupPicker";
 import { Dropdown } from "../Dropdown/Dropdown";
 import { Field } from "../Field/Field";
+import { Modal } from "../Modal/Modal";
 import { NumberInput } from "../NumberInput/NumberInput";
 
-interface ShadeTintDialogProps {
+interface ShadeTintModalProps {
 	paletteId: string;
 	groupId: string;
 	groups: PaletteGroup[];
@@ -69,13 +70,13 @@ function clampChromaShift(value: number): number {
 	);
 }
 
-export function ShadeTintDialog({
+export function ShadeTintModal({
 	paletteId,
 	groupId,
 	groups,
 	colorSystem,
 	onClose,
-}: ShadeTintDialogProps): JSX.Element {
+}: ShadeTintModalProps): JSX.Element {
 	const addColors = usePaletteStore((state) => state.addColors);
 	const insertColorsAroundId = usePaletteStore(
 		(state) => state.insertColorsAroundId
@@ -184,152 +185,141 @@ export function ShadeTintDialog({
 		onClose();
 	}
 
-	function handleBackdropMouseDown(event: MouseEvent): void {
-		if (event.target === event.currentTarget) {
-			onClose();
-		}
-	}
-
 	return (
-		<div className="dialog-backdrop" onMouseDown={handleBackdropMouseDown}>
-			<Modal
-				className="shade-tint-dialog"
-				title="Add shades/tints"
-				hasWindowButton={false}
-				titleBarOptions={[<TitleBar.Close key="close" onClick={onClose} />]}
-				buttons={[
-					{ value: "Cancel", onClick: onClose },
-					{ value: "Add", onClick: handleSubmit },
-				]}
+		<Modal
+			className="shade-tint-modal"
+			title="Add shades/tints"
+			buttons={[
+				{ value: "Cancel", onClick: onClose },
+				{ value: "Add", onClick: handleSubmit },
+			]}
+			onClose={onClose}
+		>
+			<EndpointPicker
+				label="Color"
+				mode={mode}
+				onModeChange={setMode}
+				colors={colors}
+				colorSystem={colorSystem}
+				paletteColorId={paletteColorId}
+				onPaletteColorChange={setPaletteColorId}
+				customRgb={customRgb}
+				onCustomRgbChange={setCustomRgb}
+			/>
+
+			<Dropdown
+				label="Interpolation"
+				options={Object.values(EASING_LABELS)}
+				value={EASING_LABELS[easing]}
+				onChange={(label) => setEasing(EASING_BY_LABEL[label])}
+				aria-label="Interpolation method"
+			/>
+
+			<Frame className="shade-tint-modal__section">
+				<div className="shade-tint-modal__section-title">Shades</div>
+				<div className="shade-tint-modal__row">
+					<NumberInput
+						label="Amount"
+						min={MIN_COUNT}
+						max={MAX_COUNT}
+						value={shadeCount}
+						onChange={setShadeCount}
+						clamp={clampCount}
+						aria-label="Number of shades"
+					/>
+					<NumberInput
+						label="Darkness %"
+						min={MIN_LIGHTNESS_SHIFT}
+						max={MAX_LIGHTNESS_SHIFT}
+						value={shadeDarkness}
+						onChange={setShadeDarkness}
+						clamp={clampLightnessShift}
+						aria-label="Shade darkness"
+					/>
+					<NumberInput
+						label="Hue Shift °"
+						min={MIN_HUE_SHIFT}
+						max={MAX_HUE_SHIFT}
+						value={shadeHueShift}
+						onChange={setShadeHueShift}
+						clamp={clampHueShift}
+						aria-label="Shade hue shift"
+					/>
+					<NumberInput
+						label="Chroma Shift %"
+						min={MIN_CHROMA_SHIFT}
+						max={MAX_CHROMA_SHIFT}
+						value={shadeChromaShift}
+						onChange={setShadeChromaShift}
+						clamp={clampChromaShift}
+						aria-label="Shade chroma shift"
+					/>
+				</div>
+			</Frame>
+
+			<Frame className="shade-tint-modal__section">
+				<div className="shade-tint-modal__section-title">Tints</div>
+				<div className="shade-tint-modal__row">
+					<NumberInput
+						label="Amount"
+						min={MIN_COUNT}
+						max={MAX_COUNT}
+						value={tintCount}
+						onChange={setTintCount}
+						clamp={clampCount}
+						aria-label="Number of tints"
+					/>
+					<NumberInput
+						label="Lightness %"
+						min={MIN_LIGHTNESS_SHIFT}
+						max={MAX_LIGHTNESS_SHIFT}
+						value={tintLightness}
+						onChange={setTintLightness}
+						clamp={clampLightnessShift}
+						aria-label="Tint lightness"
+					/>
+					<NumberInput
+						label="Hue Shift °"
+						min={MIN_HUE_SHIFT}
+						max={MAX_HUE_SHIFT}
+						value={tintHueShift}
+						onChange={setTintHueShift}
+						clamp={clampHueShift}
+						aria-label="Tint hue shift"
+					/>
+					<NumberInput
+						label="Chroma Shift %"
+						min={MIN_CHROMA_SHIFT}
+						max={MAX_CHROMA_SHIFT}
+						value={tintChromaShift}
+						onChange={setTintChromaShift}
+						clamp={clampChromaShift}
+						aria-label="Tint chroma shift"
+					/>
+				</div>
+			</Frame>
+
+			<Field
+				label={`Preview (${newColorCount} new color${newColorCount === 1 ? "" : "s"})`}
 			>
-				<Modal.Content className="dialog-content">
-					<EndpointPicker
-						label="Color"
-						mode={mode}
-						onModeChange={setMode}
-						colors={colors}
-						colorSystem={colorSystem}
-						paletteColorId={paletteColorId}
-						onPaletteColorChange={setPaletteColorId}
-						customRgb={customRgb}
-						onCustomRgbChange={setCustomRgb}
-					/>
+				<div className="shade-tint-modal__preview">
+					{preview.map(({ r, g, b }, index) => (
+						<div
+							key={index}
+							className="shade-tint-modal__preview-swatch"
+							style={{ backgroundColor: rgbToHex(r, g, b) }}
+							title={rgbToHex(r, g, b)}
+						/>
+					))}
+				</div>
+			</Field>
 
-					<Dropdown
-						label="Interpolation"
-						options={Object.values(EASING_LABELS)}
-						value={EASING_LABELS[easing]}
-						onChange={(label) => setEasing(EASING_BY_LABEL[label])}
-						aria-label="Interpolation method"
-					/>
-
-					<Frame className="shade-tint-dialog__section">
-						<div className="shade-tint-dialog__section-title">Shades</div>
-						<div className="shade-tint-dialog__row">
-							<NumberInput
-								label="Amount"
-								min={MIN_COUNT}
-								max={MAX_COUNT}
-								value={shadeCount}
-								onChange={setShadeCount}
-								clamp={clampCount}
-								aria-label="Number of shades"
-							/>
-							<NumberInput
-								label="Darkness %"
-								min={MIN_LIGHTNESS_SHIFT}
-								max={MAX_LIGHTNESS_SHIFT}
-								value={shadeDarkness}
-								onChange={setShadeDarkness}
-								clamp={clampLightnessShift}
-								aria-label="Shade darkness"
-							/>
-							<NumberInput
-								label="Hue Shift °"
-								min={MIN_HUE_SHIFT}
-								max={MAX_HUE_SHIFT}
-								value={shadeHueShift}
-								onChange={setShadeHueShift}
-								clamp={clampHueShift}
-								aria-label="Shade hue shift"
-							/>
-							<NumberInput
-								label="Chroma Shift %"
-								min={MIN_CHROMA_SHIFT}
-								max={MAX_CHROMA_SHIFT}
-								value={shadeChromaShift}
-								onChange={setShadeChromaShift}
-								clamp={clampChromaShift}
-								aria-label="Shade chroma shift"
-							/>
-						</div>
-					</Frame>
-
-					<Frame className="shade-tint-dialog__section">
-						<div className="shade-tint-dialog__section-title">Tints</div>
-						<div className="shade-tint-dialog__row">
-							<NumberInput
-								label="Amount"
-								min={MIN_COUNT}
-								max={MAX_COUNT}
-								value={tintCount}
-								onChange={setTintCount}
-								clamp={clampCount}
-								aria-label="Number of tints"
-							/>
-							<NumberInput
-								label="Lightness %"
-								min={MIN_LIGHTNESS_SHIFT}
-								max={MAX_LIGHTNESS_SHIFT}
-								value={tintLightness}
-								onChange={setTintLightness}
-								clamp={clampLightnessShift}
-								aria-label="Tint lightness"
-							/>
-							<NumberInput
-								label="Hue Shift °"
-								min={MIN_HUE_SHIFT}
-								max={MAX_HUE_SHIFT}
-								value={tintHueShift}
-								onChange={setTintHueShift}
-								clamp={clampHueShift}
-								aria-label="Tint hue shift"
-							/>
-							<NumberInput
-								label="Chroma Shift %"
-								min={MIN_CHROMA_SHIFT}
-								max={MAX_CHROMA_SHIFT}
-								value={tintChromaShift}
-								onChange={setTintChromaShift}
-								clamp={clampChromaShift}
-								aria-label="Tint chroma shift"
-							/>
-						</div>
-					</Frame>
-
-					<Field
-						label={`Preview (${newColorCount} new color${newColorCount === 1 ? "" : "s"})`}
-					>
-						<div className="shade-tint-dialog__preview">
-							{preview.map(({ r, g, b }, index) => (
-								<div
-									key={index}
-									className="shade-tint-dialog__preview-swatch"
-									style={{ backgroundColor: rgbToHex(r, g, b) }}
-									title={rgbToHex(r, g, b)}
-								/>
-							))}
-						</div>
-					</Field>
-
-					<hr className="dialog-separator" />
-					<GroupPicker
-						groups={groups}
-						value={groupSelection}
-						onChange={handleGroupChange}
-					/>
-				</Modal.Content>
-			</Modal>
-		</div>
+			<hr className="modal-separator" />
+			<GroupPicker
+				groups={groups}
+				value={groupSelection}
+				onChange={handleGroupChange}
+			/>
+		</Modal>
 	);
 }

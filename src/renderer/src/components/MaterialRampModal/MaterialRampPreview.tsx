@@ -97,7 +97,7 @@ export function MaterialRampPreview({
 	}, [stops, material, lighting]);
 
 	return (
-		<div className="material-ramp-dialog__preview">
+		<div className="material-ramp-modal__preview">
 			<div className="endpoint-picker__mode-toggle">
 				<Button
 					className={
@@ -120,7 +120,7 @@ export function MaterialRampPreview({
 					Cube
 				</Button>
 			</div>
-			<div className="material-ramp-dialog__render-preview">
+			<div className="material-ramp-modal__render-preview">
 				<MaterialSphereCanvas
 					pixels={continuousPixels}
 					size={CONTINUOUS_SPHERE_SIZE}
@@ -139,7 +139,7 @@ export function MaterialRampPreview({
 				/>
 			</div>
 
-			<div className="material-ramp-dialog__value-preview">
+			<div className="material-ramp-modal__value-preview">
 				{valueOrderedStops.map((stop, index) => {
 					const hex = rgbToHex(stop.color.r, stop.color.g, stop.color.b);
 					const isClosestToBase = stop === closestToBaseStop;
@@ -149,15 +149,15 @@ export function MaterialRampPreview({
 						stop.color.g === hoveredPixel.g &&
 						stop.color.b === hoveredPixel.b;
 					const className = [
-						"material-ramp-dialog__value-swatch",
-						isHovered && "material-ramp-dialog__value-swatch--hovered",
+						"material-ramp-modal__value-swatch",
+						isHovered && "material-ramp-modal__value-swatch--hovered",
 					]
 						.filter(Boolean)
 						.join(" ");
 					return (
 						<div
 							key={index}
-							className="material-ramp-dialog__value-swatch-wrapper"
+							className="material-ramp-modal__value-swatch-wrapper"
 						>
 							<FloatingTooltip text={hex}>
 								<div
@@ -172,7 +172,7 @@ export function MaterialRampPreview({
 								/>
 							</FloatingTooltip>
 							{isClosestToBase && (
-								<span className="material-ramp-dialog__value-swatch-label">
+								<span className="material-ramp-modal__value-swatch-label">
 									Base
 								</span>
 							)}

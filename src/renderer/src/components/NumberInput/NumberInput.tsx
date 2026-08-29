@@ -16,7 +16,7 @@ export interface NumberInputProps extends InputElementProps {
 	min?: number;
 	max?: number;
 	/** Applied after min/max bounding, before onChange -- e.g. clampUnit,
-	 * clampIntensity, clampStopCount, clampByte, or a dialog-local clamp. */
+	 * clampIntensity, clampStopCount, clampByte, or a modal-local clamp. */
 	clamp?: (value: number) => number;
 	/** Pixels of horizontal drag per one `step` increment. Default 4. */
 	dragSensitivity?: number;

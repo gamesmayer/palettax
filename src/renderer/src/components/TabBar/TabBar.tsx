@@ -1,6 +1,6 @@
 import { Frame } from "@react95/core";
 import { useState } from "react";
-import { ConfirmDialog } from "../ConfirmDialog/ConfirmDialog";
+import { ConfirmModal } from "../ConfirmModal/ConfirmModal";
 import { usePaletteStore } from "../../store/paletteStore";
 import { Tab } from "./Tab";
 
@@ -36,7 +36,7 @@ export function TabBar(): JSX.Element {
 				})}
 			</Frame>
 			{pendingCloseId && pendingClosePalette && (
-				<ConfirmDialog
+				<ConfirmModal
 					title="Close palette"
 					message={`Close "${pendingClosePalette.name}"? Any unexported changes will be lost.`}
 					confirmLabel="Close"

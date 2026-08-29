@@ -1,12 +1,13 @@
-import { Input, Modal, TitleBar } from "@react95/core";
-import { MouseEvent, useState } from "react";
+import { Input } from "@react95/core";
+import { useState } from "react";
 import { ColorSystem, rgbToHex } from "../../../../shared/color";
 import { PaletteColor, PaletteGroup } from "../../../../shared/palette-formats";
 import { usePaletteStore } from "../../store/paletteStore";
 import { ColorSystemFields } from "../ColorPicker/ColorSystemFields";
 import { GroupPicker, GroupSelection } from "../ColorPicker/GroupPicker";
+import { Modal } from "../Modal/Modal";
 
-interface ColorDialogProps {
+interface ColorModalProps {
 	paletteId: string;
 	groupId: string;
 	groups: PaletteGroup[];
@@ -15,14 +16,14 @@ interface ColorDialogProps {
 	onClose: () => void;
 }
 
-export function ColorDialog({
+export function ColorModal({
 	paletteId,
 	groupId,
 	groups,
 	color,
 	colorSystem,
 	onClose,
-}: ColorDialogProps): JSX.Element {
+}: ColorModalProps): JSX.Element {
 	const addColor = usePaletteStore((state) => state.addColor);
 	const updateColor = usePaletteStore((state) => state.updateColor);
 	const addGroup = usePaletteStore((state) => state.addGroup);
@@ -58,49 +59,38 @@ export function ColorDialog({
 		onClose();
 	}
 
-	function handleBackdropMouseDown(event: MouseEvent): void {
-		if (event.target === event.currentTarget) {
-			onClose();
-		}
-	}
-
 	return (
-		<div className="dialog-backdrop" onMouseDown={handleBackdropMouseDown}>
-			<Modal
-				className="color-dialog"
-				title={color ? "Edit color" : "Add color"}
-				hasWindowButton={false}
-				titleBarOptions={[<TitleBar.Close key="close" onClick={onClose} />]}
-				buttons={[
-					{ value: "Cancel", onClick: onClose },
-					{ value: color ? "Save" : "Add", onClick: handleSubmit },
-				]}
-			>
-				<Modal.Content className="dialog-content">
-					<ColorSystemFields
-						colorSystem={colorSystem}
-						rgb={rgb}
-						onChange={setRgb}
-					/>
+		<Modal
+			className="color-modal"
+			title={color ? "Edit color" : "Add color"}
+			buttons={[
+				{ value: "Cancel", onClick: onClose },
+				{ value: color ? "Save" : "Add", onClick: handleSubmit },
+			]}
+			onClose={onClose}
+		>
+			<ColorSystemFields
+				colorSystem={colorSystem}
+				rgb={rgb}
+				onChange={setRgb}
+			/>
 
-					<Input
-						type="text"
-						value={name}
-						onChange={(event) => setName(event.target.value)}
-						placeholder="Name"
+			<Input
+				type="text"
+				value={name}
+				onChange={(event) => setName(event.target.value)}
+				placeholder="Name"
+			/>
+			{!color && (
+				<>
+					<hr className="modal-separator" />
+					<GroupPicker
+						groups={groups}
+						value={groupSelection}
+						onChange={setGroupSelection}
 					/>
-					{!color && (
-						<>
-							<hr className="dialog-separator" />
-							<GroupPicker
-								groups={groups}
-								value={groupSelection}
-								onChange={setGroupSelection}
-							/>
-						</>
-					)}
-				</Modal.Content>
-			</Modal>
-		</div>
+				</>
+			)}
+		</Modal>
 	);
 }

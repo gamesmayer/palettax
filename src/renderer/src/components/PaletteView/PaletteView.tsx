@@ -2,11 +2,11 @@ import { Button } from "@react95/core";
 import { useState } from "react";
 import { usePaletteActions } from "../../hooks/usePaletteActions";
 import { usePaletteStore } from "../../store/paletteStore";
-import { BlendDialog } from "../BlendDialog/BlendDialog";
+import { BlendModal } from "../BlendModal/BlendModal";
 import { PaletteGroups } from "../ColorList/PaletteGroups";
-import { ColorDialog } from "../ColorDialog/ColorDialog";
-import { MaterialRampDialog } from "../MaterialRampDialog/MaterialRampDialog";
-import { ShadeTintDialog } from "../ShadeTintDialog/ShadeTintDialog";
+import { ColorModal } from "../ColorModal/ColorModal";
+import { MaterialRampModal } from "../MaterialRampModal/MaterialRampModal";
+import { ShadeTintModal } from "../ShadeTintModal/ShadeTintModal";
 import { PaletteToolbar } from "./PaletteToolbar";
 
 export function PaletteView(): JSX.Element {
@@ -35,11 +35,10 @@ export function PaletteView(): JSX.Element {
 	const undo = usePaletteStore((state) => state.undo);
 	const redo = usePaletteStore((state) => state.redo);
 
-	const [isColorDialogOpen, setIsColorDialogOpen] = useState(false);
-	const [isBlendDialogOpen, setIsBlendDialogOpen] = useState(false);
-	const [isShadeTintDialogOpen, setIsShadeTintDialogOpen] = useState(false);
-	const [isMaterialRampDialogOpen, setIsMaterialRampDialogOpen] =
-		useState(false);
+	const [isColorModalOpen, setIsColorModalOpen] = useState(false);
+	const [isBlendModalOpen, setIsBlendModalOpen] = useState(false);
+	const [isShadeTintModalOpen, setIsShadeTintModalOpen] = useState(false);
+	const [isMaterialRampModalOpen, setIsMaterialRampModalOpen] = useState(false);
 
 	if (!activePalette) {
 		return (
@@ -61,50 +60,50 @@ export function PaletteView(): JSX.Element {
 					setColorSystem(activePalette.id, system)
 				}
 				onAddGroup={() => addGroup(activePalette.id)}
-				onAddColor={() => setIsColorDialogOpen(true)}
-				onOpenBlend={() => setIsBlendDialogOpen(true)}
-				onOpenShadeTint={() => setIsShadeTintDialogOpen(true)}
-				onOpenMaterialRamp={() => setIsMaterialRampDialogOpen(true)}
+				onAddColor={() => setIsColorModalOpen(true)}
+				onOpenBlend={() => setIsBlendModalOpen(true)}
+				onOpenShadeTint={() => setIsShadeTintModalOpen(true)}
+				onOpenMaterialRamp={() => setIsMaterialRampModalOpen(true)}
 				onUndo={() => undo(activePalette.id)}
 				onRedo={() => redo(activePalette.id)}
 				canUndo={canUndo}
 				canRedo={canRedo}
 			/>
 			<PaletteGroups palette={activePalette} colorSystem={colorSystem} />
-			{isColorDialogOpen && (
-				<ColorDialog
+			{isColorModalOpen && (
+				<ColorModal
 					paletteId={activePalette.id}
 					groupId={defaultGroupId}
 					groups={activePalette.groups}
 					colorSystem={colorSystem}
-					onClose={() => setIsColorDialogOpen(false)}
+					onClose={() => setIsColorModalOpen(false)}
 				/>
 			)}
-			{isBlendDialogOpen && (
-				<BlendDialog
+			{isBlendModalOpen && (
+				<BlendModal
 					paletteId={activePalette.id}
 					groupId={defaultGroupId}
 					groups={activePalette.groups}
 					colorSystem={colorSystem}
-					onClose={() => setIsBlendDialogOpen(false)}
+					onClose={() => setIsBlendModalOpen(false)}
 				/>
 			)}
-			{isShadeTintDialogOpen && (
-				<ShadeTintDialog
+			{isShadeTintModalOpen && (
+				<ShadeTintModal
 					paletteId={activePalette.id}
 					groupId={defaultGroupId}
 					groups={activePalette.groups}
 					colorSystem={colorSystem}
-					onClose={() => setIsShadeTintDialogOpen(false)}
+					onClose={() => setIsShadeTintModalOpen(false)}
 				/>
 			)}
-			{isMaterialRampDialogOpen && (
-				<MaterialRampDialog
+			{isMaterialRampModalOpen && (
+				<MaterialRampModal
 					paletteId={activePalette.id}
 					groupId={defaultGroupId}
 					groups={activePalette.groups}
 					colorSystem={colorSystem}
-					onClose={() => setIsMaterialRampDialogOpen(false)}
+					onClose={() => setIsMaterialRampModalOpen(false)}
 				/>
 			)}
 		</div>

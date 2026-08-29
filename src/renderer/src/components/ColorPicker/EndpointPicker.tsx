@@ -10,7 +10,7 @@ export type Rgb = { r: number; g: number; b: number };
 
 interface EndpointPickerProps {
 	label: string;
-	/** Optional tooltip for the field label, portaled via FloatingTooltip (not react95's Tooltip) so it isn't clipped near the edge of the dialog's scrolling content. */
+	/** Optional tooltip for the field label, portaled via FloatingTooltip (not react95's Tooltip) so it isn't clipped near the edge of the modal's scrolling content. */
 	tooltip?: string;
 	mode: EndpointMode;
 	onModeChange: (mode: EndpointMode) => void;

@@ -1,0 +1,5 @@
+<svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <path stroke="currentColor" stroke-width="1" fill="none" d="M8 2L14 14H2Z" />
+  <rect x="7" y="6" width="2" height="4" fill="currentColor" />
+  <rect x="7" y="11" width="2" height="2" fill="currentColor" />
+</svg>

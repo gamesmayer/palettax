@@ -86,22 +86,22 @@ export function MaterialSphereCanvas({
 	}
 
 	return (
-		<div className="material-ramp-dialog__sphere">
+		<div className="material-ramp-modal__sphere">
 			<canvas
 				ref={canvasRef}
 				width={size}
 				height={size}
 				className={
 					pixelated
-						? "material-ramp-dialog__sphere-canvas material-ramp-dialog__sphere-canvas--pixelated"
-						: "material-ramp-dialog__sphere-canvas"
+						? "material-ramp-modal__sphere-canvas material-ramp-modal__sphere-canvas--pixelated"
+						: "material-ramp-modal__sphere-canvas"
 				}
 				role="img"
 				aria-label={label}
 				onMouseMove={handleMouseMove}
 				onMouseLeave={handleMouseLeave}
 			/>
-			<span className="material-ramp-dialog__sphere-label">{label}</span>
+			<span className="material-ramp-modal__sphere-label">{label}</span>
 			{hover &&
 				createPortal(
 					<div

@@ -61,7 +61,7 @@ export function PaletteToolbar({
 					aria-label="Color system"
 				/>
 			</div>
-			<hr className="dialog-separator" />
+			<hr className="modal-separator" />
 			<div className="palette-toolbar__bottom">
 				<div className="palette-toolbar__left">
 					<Button

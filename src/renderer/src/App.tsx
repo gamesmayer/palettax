@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { UpdateInfo } from "../../shared/ipc-contract";
 import { flattenGroups } from "../../shared/paletteGroups";
-import { ConfirmDialog } from "./components/ConfirmDialog/ConfirmDialog";
-import { HelpDialog } from "./components/HelpDialog/HelpDialog";
+import { ConfirmModal } from "./components/ConfirmModal/ConfirmModal";
+import { HelpModal } from "./components/HelpModal/HelpModal";
 import { KeyboardShortcuts } from "./components/KeyboardShortcuts/KeyboardShortcuts";
 import { PaletteView } from "./components/PaletteView/PaletteView";
-import { PngExportDialog } from "./components/PngExportDialog/PngExportDialog";
+import { PngExportModal } from "./components/PngExportModal/PngExportModal";
 import { TabBar } from "./components/TabBar/TabBar";
-import { UpdateDialog } from "./components/UpdateDialog/UpdateDialog";
+import { UpdateModal } from "./components/UpdateModal/UpdateModal";
 import { usePaletteActions } from "./hooks/usePaletteActions";
 import { usePaletteStore } from "./store/paletteStore";
 
@@ -70,7 +70,7 @@ export function App(): JSX.Element {
 			{hasOpenPalettes && <TabBar />}
 			<PaletteView />
 			{isConfirmingAppClose && (
-				<ConfirmDialog
+				<ConfirmModal
 					title="Close Palettax"
 					message="Close the application? Any unexported changes in open palettes will be lost."
 					confirmLabel="Close"
@@ -80,7 +80,7 @@ export function App(): JSX.Element {
 				/>
 			)}
 			{updateInfo && (
-				<UpdateDialog
+				<UpdateModal
 					updateInfo={updateInfo}
 					onDownload={() => {
 						window.paletteApi.openExternalUrl(updateInfo.releaseUrl);
@@ -89,9 +89,9 @@ export function App(): JSX.Element {
 					onDismiss={() => setUpdateInfo(null)}
 				/>
 			)}
-			{showHelp && <HelpDialog onClose={() => setShowHelp(false)} />}
+			{showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
 			{pngExportContext && (
-				<PngExportDialog
+				<PngExportModal
 					colorCount={pngExportContext.colorCount}
 					onClose={() => setPngExportContext(null)}
 					onConfirm={(options) => {

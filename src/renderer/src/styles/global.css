@@ -132,7 +132,7 @@ input:disabled {
 	justify-content: center;
 }
 
-.palette-toolbar > .dialog-separator {
+.palette-toolbar > .modal-separator {
 	margin: 0;
 }
 
@@ -376,23 +376,23 @@ input:disabled {
 	padding: 0;
 }
 
-.dialog-backdrop {
+.modal-backdrop {
 	position: fixed;
 	inset: 0;
 	background: rgba(0, 0, 0, 0.5);
 	z-index: 100;
 }
 
-.dialog-backdrop [role="dialog"] {
-	--dialog-top: 80px;
-	max-height: min(800px, calc(100vh - (2 * var(--dialog-top))));
+.modal-backdrop [role="dialog"] {
+	--modal-top: 80px;
+	max-height: min(800px, calc(100vh - (2 * var(--modal-top))));
 }
 
 /* Shared style for FloatingTooltip (src/renderer/src/components/FloatingTooltip) --
 matches @react95/core's own Tooltip look (dithered yellow background), for use
 wherever the trigger might sit near the edge of a scrolling container (react95's
 Tooltip has no way to reposition itself and gets clipped in that case). Portaled to
-document.body, so its z-index must clear .dialog-backdrop's 100 -- the highest
+document.body, so its z-index must clear .modal-backdrop's 100 -- the highest
 z-index anywhere else in the app -- not react95's own --r95-zIndex-tooltip (3),
 which only matters inside react95's own stacking context. */
 .floating-tooltip {
@@ -413,12 +413,12 @@ which only matters inside react95's own stacking context. */
 	pointer-events: none;
 }
 
-.dialog-content {
+.modal-content {
 	overflow-y: auto;
 	min-height: 0;
 }
 
-.dialog-separator {
+.modal-separator {
 	width: 100%;
 	height: 0;
 	margin: var(--r95-space-6) 0;
@@ -427,11 +427,11 @@ which only matters inside react95's own stacking context. */
 	border-bottom: 1px solid var(--r95-color-borderLightest);
 }
 
-.color-dialog .dialog-content {
+.color-modal .modal-content {
 	padding-top: var(--r95-space-16);
 }
 
-.color-dialog {
+.color-modal {
 	position: fixed;
 	top: 80px;
 	left: 50%;
@@ -466,7 +466,7 @@ which only matters inside react95's own stacking context. */
 	flex: 1;
 }
 
-.blend-dialog {
+.blend-modal {
 	position: fixed;
 	top: 80px;
 	left: 50%;
@@ -474,25 +474,25 @@ which only matters inside react95's own stacking context. */
 	width: 440px;
 }
 
-.blend-dialog__endpoints {
+.blend-modal__endpoints {
 	display: flex;
 	gap: var(--r95-space-8);
 	margin-bottom: var(--r95-space-8);
 }
 
-.blend-dialog__endpoints > .field {
+.blend-modal__endpoints > .field {
 	flex: 1;
 	width: 0;
 	margin-bottom: 0;
 }
 
-.blend-dialog__preview {
+.blend-modal__preview {
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--r95-space-2);
 }
 
-.blend-dialog__preview-swatch {
+.blend-modal__preview-swatch {
 	width: 24px;
 	height: 24px;
 	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
@@ -525,7 +525,7 @@ which only matters inside react95's own stacking context. */
 	box-shadow: 0 0 0 2px var(--r95-color-materialText);
 }
 
-.shade-tint-dialog {
+.shade-tint-modal {
 	position: fixed;
 	top: 80px;
 	left: 50%;
@@ -533,39 +533,39 @@ which only matters inside react95's own stacking context. */
 	width: 520px;
 }
 
-.shade-tint-dialog__section {
+.shade-tint-modal__section {
 	padding: var(--r95-space-8);
 	margin-bottom: var(--r95-space-8);
 }
 
-.shade-tint-dialog__section-title {
+.shade-tint-modal__section-title {
 	font-weight: bold;
 	margin-bottom: var(--r95-space-8);
 }
 
-.shade-tint-dialog__row {
+.shade-tint-modal__row {
 	display: flex;
 	gap: var(--r95-space-8);
 }
 
-.shade-tint-dialog__row .field {
+.shade-tint-modal__row .field {
 	flex: 1;
 	width: 0;
 }
 
-.shade-tint-dialog__preview {
+.shade-tint-modal__preview {
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--r95-space-2);
 }
 
-.shade-tint-dialog__preview-swatch {
+.shade-tint-modal__preview-swatch {
 	width: 24px;
 	height: 24px;
 	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
 }
 
-.material-ramp-dialog {
+.material-ramp-modal {
 	position: fixed;
 	top: 80px;
 	left: 50%;
@@ -573,17 +573,17 @@ which only matters inside react95's own stacking context. */
 	width: 520px;
 }
 
-.material-ramp-dialog__row {
+.material-ramp-modal__row {
 	display: flex;
 	gap: var(--r95-space-8);
 }
 
-.material-ramp-dialog__row .field {
+.material-ramp-modal__row .field {
 	flex: 1;
 	width: 0;
 }
 
-.material-ramp-dialog__section {
+.material-ramp-modal__section {
 	padding: var(--r95-space-8);
 	margin-bottom: var(--r95-space-8);
 }
@@ -599,7 +599,7 @@ which only matters inside react95's own stacking context. */
 	white-space: nowrap;
 }
 
-.material-ramp-dialog__section-title {
+.material-ramp-modal__section-title {
 	font-weight: bold;
 	margin-bottom: var(--r95-space-8);
 }
@@ -607,9 +607,16 @@ which only matters inside react95's own stacking context. */
 /* Inline status banner (Banner component) -- always used with a variant
    modifier below, so there's no unmodified `.banner` appearance of its own. */
 .banner {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--r95-space-6);
 	margin-top: var(--r95-space-6);
 	padding: var(--r95-space-6);
 	font-size: 11px;
+}
+
+.banner .inline-svg {
+	margin-top: 2px;
 }
 
 .banner--warning {
@@ -634,7 +641,7 @@ which only matters inside react95's own stacking context. */
 	color: #14522a;
 }
 
-.material-ramp-dialog__albedo-solving {
+.material-ramp-modal__albedo-solving {
 	font-size: 11px;
 	color: var(--r95-color-materialText);
 	font-style: italic;
@@ -646,18 +653,18 @@ which only matters inside react95's own stacking context. */
    margin-top (rather than the Target base color warning above it having
    margin-bottom) keeps the spacing correct whether or not that warning is
    actually rendered. */
-.material-ramp-dialog__albedo-field {
+.material-ramp-modal__albedo-field {
 	margin-top: var(--r95-space-12);
 	margin-bottom: var(--r95-space-8);
 }
 
-.material-ramp-dialog__albedo-swatch-row {
+.material-ramp-modal__albedo-swatch-row {
 	display: flex;
 	align-items: center;
 	gap: var(--r95-space-6);
 }
 
-.material-ramp-dialog__albedo-field .material-ramp-dialog__value-swatch {
+.material-ramp-modal__albedo-field .material-ramp-modal__value-swatch {
 	cursor: default;
 }
 
@@ -705,64 +712,64 @@ which only matters inside react95's own stacking context. */
 	flex: 1;
 }
 
-.material-ramp-dialog__preview {
+.material-ramp-modal__preview {
 	position: relative;
 	padding-bottom: var(--r95-space-8);
 }
 
-.material-ramp-dialog__value-preview {
+.material-ramp-modal__value-preview {
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--r95-space-2);
 }
 
-.material-ramp-dialog__value-swatch-wrapper {
+.material-ramp-modal__value-swatch-wrapper {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	gap: var(--r95-space-2);
 }
 
-.material-ramp-dialog__value-swatch {
+.material-ramp-modal__value-swatch {
 	width: 24px;
 	height: 24px;
 	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
 }
 
-.material-ramp-dialog__value-swatch--hovered {
+.material-ramp-modal__value-swatch--hovered {
 	box-shadow: var(--r95-shadow-input);
 }
 
-.material-ramp-dialog__value-swatch-label {
+.material-ramp-modal__value-swatch-label {
 	font-size: 8px;
 	color: var(--r95-color-materialText);
 }
 
-.material-ramp-dialog__render-preview {
+.material-ramp-modal__render-preview {
 	display: flex;
 	justify-content: center;
 	gap: var(--r95-space-8);
 	padding: var(--r95-space-8);
 }
 
-.material-ramp-dialog__sphere {
+.material-ramp-modal__sphere {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	gap: var(--r95-space-2);
 }
 
-.material-ramp-dialog__sphere-canvas {
+.material-ramp-modal__sphere-canvas {
 	width: 160px;
 	height: 160px;
 	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
 }
 
-.material-ramp-dialog__sphere-canvas--pixelated {
+.material-ramp-modal__sphere-canvas--pixelated {
 	image-rendering: pixelated;
 }
 
-.material-ramp-dialog__environment-preview {
+.material-ramp-modal__environment-preview {
 	display: block;
 	width: 100%;
 	height: 90px;
@@ -772,44 +779,44 @@ which only matters inside react95's own stacking context. */
 	object-fit: cover;
 }
 
-.material-ramp-dialog__environment-filename {
+.material-ramp-modal__environment-filename {
 	margin-left: var(--r95-space-6);
 	font-size: 11px;
 	color: var(--r95-color-materialText);
 }
 
-.material-ramp-dialog__sphere-label {
+.material-ramp-modal__sphere-label {
 	font-size: 8px;
 	color: var(--r95-color-materialText);
 }
 
-.help-dialog {
+.help-modal {
 	position: fixed;
 	top: 60px;
 	left: 50%;
 	margin-left: -240px;
 	width: 480px;
-	--dialog-top: 60px;
+	--modal-top: 60px;
 }
 
-.help-dialog__section {
+.help-modal__section {
 	margin-bottom: var(--r95-space-8);
 }
 
-.help-dialog__section-title {
+.help-modal__section-title {
 	font-weight: bold;
 	margin-bottom: var(--r95-space-2);
 }
 
-.help-dialog__section-body {
+.help-modal__section-body {
 	margin: 0;
 }
 
-.help-dialog__section-body + .help-dialog__section-body {
+.help-modal__section-body + .help-modal__section-body {
 	margin-top: var(--r95-space-4);
 }
 
-.png-export-dialog {
+.png-export-modal {
 	position: fixed;
 	top: 80px;
 	left: 50%;
@@ -817,12 +824,12 @@ which only matters inside react95's own stacking context. */
 	width: 360px;
 }
 
-.png-export-dialog__preview {
+.png-export-modal__preview {
 	font-size: 11px;
 	color: var(--r95-color-materialTextDisabled);
 }
 
-.confirm-dialog {
+.confirm-modal {
 	position: fixed;
 	top: 80px;
 	left: 50%;
@@ -830,12 +837,12 @@ which only matters inside react95's own stacking context. */
 	width: 280px;
 }
 
-.confirm-dialog__message {
+.confirm-modal__message {
 	margin: 0;
 	padding: var(--r95-space-4) 0;
 }
 
-.update-dialog {
+.update-modal {
 	position: fixed;
 	top: 80px;
 	left: 50%;
@@ -843,7 +850,7 @@ which only matters inside react95's own stacking context. */
 	width: 300px;
 }
 
-.update-dialog__message {
+.update-modal__message {
 	margin: 0;
 	padding: var(--r95-space-4) 0;
 }
