@@ -42,6 +42,7 @@ import {
 } from "../../materialRamp/useAlbedoSolver";
 import { usePaletteStore } from "../../store/paletteStore";
 import {
+	DEFAULT_ENDPOINT_MODE,
 	EndpointMode,
 	EndpointPicker,
 	Rgb,
@@ -91,9 +92,7 @@ export function MaterialRampModal({
 	// section below), solved automatically from the Target base color rather
 	// than picked directly, since artists think in terms of the desired final
 	// appearance, not the underlying BRDF input.
-	const [albedoRgb, setAlbedoRgb] = useState<Rgb>(
-		colors[0] ?? DEFAULT_TARGET_BASE_COLOR
-	);
+	const [albedoRgb, setAlbedoRgb] = useState<Rgb>(DEFAULT_TARGET_BASE_COLOR);
 	const albedoLightnessWarning = warningForAlbedoColor(albedoRgb);
 
 	// Represents the desired final rendered appearance -- changing it (or
@@ -102,13 +101,13 @@ export function MaterialRampModal({
 	// than feeding the BRDF directly. Solves live on every change (not just
 	// on blur/commit) so the effect of a color pick is immediately visible.
 	const [targetMode, setTargetMode] = useState<EndpointMode>(
-		colors.length > 0 ? "palette" : "new"
+		DEFAULT_ENDPOINT_MODE
 	);
 	const [targetPaletteColorId, setTargetPaletteColorId] = useState(
 		colors[0]?.id ?? ""
 	);
 	const [targetCustomRgb, setTargetCustomRgb] = useState<Rgb>(
-		colors[0] ?? DEFAULT_TARGET_BASE_COLOR
+		DEFAULT_TARGET_BASE_COLOR
 	);
 	const [unreachableAchieved, setUnreachableAchieved] = useState<Rgb | null>(
 		null

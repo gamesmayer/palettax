@@ -80,7 +80,21 @@ input:disabled {
 
 .tab__name-input {
 	width: 10ch;
-	padding: 1px 2px 2px;
+}
+
+.editable-text__display,
+.editable-text__input {
+	display: block;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 1px 2px;
+	font-size: inherit;
+	line-height: 1.4;
+}
+
+.editable-text__input {
+	border-top-width: 0;
+	border-left-width: 0;
 }
 
 .tab__close {
@@ -224,10 +238,6 @@ input:disabled {
 	cursor: text;
 }
 
-.group-section__name-input {
-	padding: 1px 2px 2px;
-}
-
 .group-section__count {
 	color: var(--r95-color-materialTextDisabled);
 	font-size: 12px;
@@ -351,8 +361,6 @@ input:disabled {
 
 .color-swatch__name-input {
 	width: 100%;
-	box-sizing: border-box;
-	padding: 2px 3px 3px;
 }
 
 .color-swatch__delete-btn {
@@ -522,7 +530,7 @@ which only matters inside react95's own stacking context. */
 }
 
 .endpoint-picker__chip--selected {
-	box-shadow: 0 0 0 2px var(--r95-color-materialText);
+	box-shadow: var(--r95-shadow-input);
 }
 
 .shade-tint-modal {
@@ -691,6 +699,14 @@ which only matters inside react95's own stacking context. */
 	padding: 0;
 	min-width: 0;
 	cursor: pointer;
+}
+
+/* Matches react95's own Button focus style (a dotted inset outline) instead
+   of the browser's default blue focus ring, which clashes with the Win95
+   look -- Frame doesn't apply this itself when used `as="button"`. */
+.swatch-color-picker__swatch:focus {
+	outline: var(--r95-space-1) dotted var(--r95-color-materialText);
+	outline-offset: calc(var(--r95-space-5) * -1);
 }
 
 .swatch-color-picker__popover {

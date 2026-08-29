@@ -1,9 +1,10 @@
-import { Button, Frame, Input } from "@react95/core";
+import { Button, Frame } from "@react95/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { KeyboardEvent, MouseEvent, useState } from "react";
+import { MouseEvent } from "react";
 import { ColorSystem, formatColorForSystem } from "../../../../shared/color";
 import { PaletteColor } from "../../../../shared/palette-formats";
+import { EditableText } from "../EditableText/EditableText";
 import { CloseIcon } from "../icons/CloseIcon";
 
 interface ColorSwatchProps {
@@ -31,33 +32,11 @@ export function ColorSwatch({
 		transition,
 		isDragging,
 	} = useSortable({ id: color.id, data: { type: "color", groupId } });
-	const [isEditing, setIsEditing] = useState(false);
-	const [draft, setDraft] = useState(color.name ?? "");
 
 	const style = {
 		transform: CSS.Transform.toString(transform),
 		transition,
 	};
-
-	function startEditing(event: MouseEvent): void {
-		event.stopPropagation();
-		setDraft(color.name ?? "");
-		setIsEditing(true);
-	}
-
-	function commit(): void {
-		onRename(draft);
-		setIsEditing(false);
-	}
-
-	function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
-		if (event.key === "Enter") {
-			commit();
-		} else if (event.key === "Escape") {
-			setDraft(color.name ?? "");
-			setIsEditing(false);
-		}
-	}
 
 	return (
 		<Frame
@@ -92,30 +71,20 @@ export function ColorSwatch({
 			>
 				<CloseIcon size="s" />
 			</Button>
-			{isEditing ? (
-				<Input
-					className="color-swatch__name-input"
-					value={draft}
-					autoFocus
-					placeholder="Name"
-					onClick={(event) => event.stopPropagation()}
-					onChange={(event) => setDraft(event.target.value)}
-					onBlur={commit}
-					onKeyDown={handleKeyDown}
-				/>
-			) : (
-				<span
-					className={
-						color.name
-							? "color-swatch__label"
-							: "color-swatch__label color-swatch__label--unnamed"
-					}
-					title={color.name ?? color.hex}
-					onDoubleClick={startEditing}
-				>
-					{color.name ?? color.hex}
-				</span>
-			)}
+			<EditableText
+				value={color.name ?? ""}
+				displayValue={color.name || color.hex}
+				onCommit={onRename}
+				allowEmpty
+				placeholder="Name"
+				className={
+					color.name
+						? "color-swatch__label"
+						: "color-swatch__label color-swatch__label--unnamed"
+				}
+				inputClassName="color-swatch__name-input"
+				title={color.name ?? color.hex}
+			/>
 		</Frame>
 	);
 }

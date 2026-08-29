@@ -8,6 +8,11 @@ import { SwatchColorPicker } from "./SwatchColorPicker";
 export type EndpointMode = "palette" | "new";
 export type Rgb = { r: number; g: number; b: number };
 
+// Defaults to "new" rather than "palette" even when palette colors exist --
+// picking a fresh color is the more common starting point than reusing one
+// already in the palette.
+export const DEFAULT_ENDPOINT_MODE: EndpointMode = "new";
+
 interface EndpointPickerProps {
 	label: string;
 	/** Optional tooltip for the field label, portaled via FloatingTooltip (not react95's Tooltip) so it isn't clipped near the edge of the modal's scrolling content. */

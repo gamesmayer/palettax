@@ -3,6 +3,7 @@ import { ColorSystem, blendRgb, rgbToHex } from "../../../../shared/color";
 import { PaletteGroup } from "../../../../shared/palette-formats";
 import { usePaletteStore } from "../../store/paletteStore";
 import {
+	DEFAULT_ENDPOINT_MODE,
 	EndpointMode,
 	EndpointPicker,
 	Rgb,
@@ -48,9 +49,7 @@ export function BlendModal({
 				[])
 			: [];
 
-	const [fromMode, setFromMode] = useState<EndpointMode>(
-		colors.length > 0 ? "palette" : "new"
-	);
+	const [fromMode, setFromMode] = useState<EndpointMode>(DEFAULT_ENDPOINT_MODE);
 	const [fromPaletteColorId, setFromPaletteColorId] = useState(
 		colors[0]?.id ?? ""
 	);
@@ -58,9 +57,7 @@ export function BlendModal({
 		colors[0] ?? { r: 0, g: 0, b: 0 }
 	);
 
-	const [toMode, setToMode] = useState<EndpointMode>(
-		colors.length > 0 ? "palette" : "new"
-	);
+	const [toMode, setToMode] = useState<EndpointMode>(DEFAULT_ENDPOINT_MODE);
 	const [toPaletteColorId, setToPaletteColorId] = useState(
 		colors[1]?.id ?? colors[0]?.id ?? ""
 	);
@@ -77,10 +74,10 @@ export function BlendModal({
 				? (groups.find((group) => group.id === nextSelection.groupId)?.colors ??
 					[])
 				: [];
-		setFromMode(nextColors.length > 0 ? "palette" : "new");
+		setFromMode(DEFAULT_ENDPOINT_MODE);
 		setFromPaletteColorId(nextColors[0]?.id ?? "");
 		setFromCustomRgb(nextColors[0] ?? { r: 0, g: 0, b: 0 });
-		setToMode(nextColors.length > 0 ? "palette" : "new");
+		setToMode(DEFAULT_ENDPOINT_MODE);
 		setToPaletteColorId(nextColors[1]?.id ?? nextColors[0]?.id ?? "");
 		setToCustomRgb(
 			nextColors[1] ?? nextColors[0] ?? { r: 255, g: 255, b: 255 }

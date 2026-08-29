@@ -58,7 +58,14 @@ export function SwatchColorPicker({
 			}
 		}
 		function handleKeyDown(event: KeyboardEvent): void {
-			if (event.key === "Escape") setIsOpen(false);
+			if (event.key === "Escape") {
+				// Stops the keydown from reaching the enclosing Modal's own
+				// Escape handler (attached on `window`) -- Escape should only
+				// close this popover, not also close a modal it happens to be
+				// nested inside.
+				event.stopPropagation();
+				setIsOpen(false);
+			}
 		}
 
 		document.addEventListener("mousedown", handlePointerDown);

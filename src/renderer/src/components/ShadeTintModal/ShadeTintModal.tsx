@@ -9,6 +9,7 @@ import { Easing } from "../../../../shared/easing";
 import { PaletteGroup } from "../../../../shared/palette-formats";
 import { usePaletteStore } from "../../store/paletteStore";
 import {
+	DEFAULT_ENDPOINT_MODE,
 	EndpointMode,
 	EndpointPicker,
 	Rgb,
@@ -94,9 +95,7 @@ export function ShadeTintModal({
 				[])
 			: [];
 
-	const [mode, setMode] = useState<EndpointMode>(
-		colors.length > 0 ? "palette" : "new"
-	);
+	const [mode, setMode] = useState<EndpointMode>(DEFAULT_ENDPOINT_MODE);
 	const [paletteColorId, setPaletteColorId] = useState(colors[0]?.id ?? "");
 	const [customRgb, setCustomRgb] = useState<Rgb>(
 		colors[0] ?? { r: 255, g: 255, b: 255 }
@@ -109,7 +108,7 @@ export function ShadeTintModal({
 				? (groups.find((group) => group.id === nextSelection.groupId)?.colors ??
 					[])
 				: [];
-		setMode(nextColors.length > 0 ? "palette" : "new");
+		setMode(DEFAULT_ENDPOINT_MODE);
 		setPaletteColorId(nextColors[0]?.id ?? "");
 		setCustomRgb(nextColors[0] ?? { r: 255, g: 255, b: 255 });
 	}

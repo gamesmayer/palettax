@@ -1,5 +1,6 @@
-import { Button, Frame, Input } from "@react95/core";
-import { KeyboardEvent, MouseEvent, useState } from "react";
+import { Button, Frame } from "@react95/core";
+import { MouseEvent } from "react";
+import { EditableText } from "../EditableText/EditableText";
 import { CloseIcon } from "../icons/CloseIcon";
 
 interface TabProps {
@@ -17,53 +18,18 @@ export function Tab({
 	onClose,
 	onRename,
 }: TabProps): JSX.Element {
-	const [isEditing, setIsEditing] = useState(false);
-	const [draft, setDraft] = useState(label);
-
-	function startEditing(event: MouseEvent): void {
-		event.stopPropagation();
-		setDraft(label);
-		setIsEditing(true);
-	}
-
-	function commit(): void {
-		const trimmed = draft.trim();
-		if (trimmed.length > 0 && trimmed !== label) {
-			onRename(trimmed);
-		}
-		setIsEditing(false);
-	}
-
-	function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
-		if (event.key === "Enter") {
-			commit();
-		} else if (event.key === "Escape") {
-			setDraft(label);
-			setIsEditing(false);
-		}
-	}
-
 	return (
 		<Frame
 			as="li"
 			className={`tab ${active ? "tab--active" : ""}`}
 			onClick={onSelect}
 		>
-			{isEditing ? (
-				<Input
-					className="tab__name-input"
-					value={draft}
-					autoFocus
-					onClick={(event) => event.stopPropagation()}
-					onChange={(event) => setDraft(event.target.value)}
-					onBlur={commit}
-					onKeyDown={handleKeyDown}
-				/>
-			) : (
-				<span className="tab__name" onDoubleClick={startEditing}>
-					{label}
-				</span>
-			)}
+			<EditableText
+				value={label}
+				onCommit={onRename}
+				className="tab__name"
+				inputClassName="tab__name-input"
+			/>
 			<Button
 				className="tab__close"
 				onClick={(event: MouseEvent<HTMLButtonElement>) => {
