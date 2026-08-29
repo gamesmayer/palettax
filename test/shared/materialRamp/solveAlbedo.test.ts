@@ -4,12 +4,8 @@ import { solveAlbedoForTarget } from "../../../src/shared/materialRamp/solveAlbe
 describe("solveAlbedoForTarget", () => {
 	it("round-trips to within 1 byte per channel for a plausible mid-range target", () => {
 		// metallic=0 keeps the full diffuse response in play (see
-		// evaluateNeutralBaseColor), so this target sits comfortably inside the
-		// achievable range under DEFAULT_LIGHTING -- unlike higher-metallic
-		// configurations, where dropping the direct-light specular highlight
-		// (deliberately, per evaluateNeutralBaseColor's design) can shrink the
-		// achievable range below what a mid-range target like this needs; that
-		// case is exactly what the "unreachable target" test below covers.
+		// evaluateBaseColor), so this target sits comfortably inside the
+		// achievable range under DEFAULT_LIGHTING.
 		const target = { r: 180, g: 120, b: 90 };
 		const { achieved } = solveAlbedoForTarget(target, 0, 0.5, DEFAULT_LIGHTING);
 		expect(Math.abs(achieved.r - target.r)).toBeLessThanOrEqual(1);
@@ -72,7 +68,7 @@ describe("solveAlbedoForTarget", () => {
 
 	it("reports a mismatched 'achieved' for an unreachable target under degenerate (all-zero) lighting, rather than silently returning a wrong match", () => {
 		// With no light, no ambient, and no environment map, every albedo
-		// evaluates to {0,0,0} (see evaluateNeutralBaseColor's all-zero-lighting
+		// evaluates to {0,0,0} (see evaluateBaseColor's all-zero-lighting
 		// test in brdf.test.ts) -- so any nonzero target is unreachable. The
 		// search itself has no way to detect this (it just walks toward
 		// whichever boundary the always-0 comparison pushes it to); `achieved`

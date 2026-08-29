@@ -2,7 +2,7 @@ import { Button } from "@react95/core";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { rgbToHex } from "../../../../shared/color";
-import { evaluateNeutralBaseColor } from "../../../../shared/materialRamp/brdf";
+import { evaluateBaseColor } from "../../../../shared/materialRamp/brdf";
 import {
 	nearestOklabIndex,
 	rgbBytesToLinear,
@@ -81,17 +81,14 @@ export function MaterialRampPreview({
 
 	// Highlights whichever stop is perceptually closest to the material's
 	// base color, so it's easy to spot where the picked color landed in the
-	// generated ramp at a glance. Matched against
-	// evaluateNeutralBaseColor(material, lighting) -- the same rendered
-	// appearance solveAlbedo.ts back-solves the albedo toward -- rather than
-	// the raw albedo bytes, since stop colors are themselves rendered/shaded
-	// values and comparing them to an un-rendered albedo would compare
-	// unlike quantities.
+	// generated ramp at a glance. Matched against evaluateBaseColor(material,
+	// lighting) -- the same rendered appearance solveAlbedo.ts back-solves
+	// the albedo toward -- rather than the raw albedo bytes, since stop
+	// colors are themselves rendered/shaded values and comparing them to an
+	// un-rendered albedo would compare unlike quantities.
 	const closestToBaseStop = useMemo(() => {
 		if (stops.length === 0) return null;
-		const target = rgbLinearToOklab(
-			evaluateNeutralBaseColor(material, lighting)
-		);
+		const target = rgbLinearToOklab(evaluateBaseColor(material, lighting));
 		const stopOklab = stops.map((stop) =>
 			rgbLinearToOklab(rgbBytesToLinear(stop.color))
 		);

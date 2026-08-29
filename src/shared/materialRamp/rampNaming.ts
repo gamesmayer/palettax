@@ -1,4 +1,4 @@
-import { evaluateNeutralBaseColor } from "./brdf";
+import { evaluateBaseColor } from "./brdf";
 import {
 	nearestOklabIndex,
 	rgbBytesToLinear,
@@ -45,9 +45,9 @@ function nameSide(side: MaterialRampStop[], names: SideNames): string[] {
  * their names -- the input `stops` order (raw sweep position) is not
  * preserved, since it isn't guaranteed to be monotonic in lightness.
  *
- * "Base" is matched against `evaluateNeutralBaseColor(material, lighting)`
- * (the same rendered appearance solveAlbedo.ts back-solves the albedo
- * toward), not against the raw albedo bytes -- stop colors are themselves
+ * "Base" is matched against `evaluateBaseColor(material, lighting)` (the
+ * same rendered appearance solveAlbedo.ts back-solves the albedo toward),
+ * not against the raw albedo bytes -- stop colors are themselves
  * rendered/shaded values, so comparing them to an un-rendered albedo would
  * compare unlike quantities.
  */
@@ -59,7 +59,7 @@ export function assignRampNames(
 	const sorted = [...stops].sort((a, b) => lightnessOf(a) - lightnessOf(b));
 	if (sorted.length === 0) return [];
 
-	const target = rgbLinearToOklab(evaluateNeutralBaseColor(material, lighting));
+	const target = rgbLinearToOklab(evaluateBaseColor(material, lighting));
 	const sortedOklab = sorted.map((stop) =>
 		rgbLinearToOklab(rgbBytesToLinear(stop.color))
 	);

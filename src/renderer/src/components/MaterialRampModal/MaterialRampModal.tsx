@@ -103,7 +103,7 @@ export function MaterialRampModal({
 
 	// Represents the desired final rendered appearance -- changing it (or
 	// changing metallic/roughness/lighting afterward) solves for the Albedo
-	// color above via evaluateNeutralBaseColor/solveAlbedoForTarget, rather
+	// color above via evaluateBaseColor/solveAlbedoForTarget, rather
 	// than feeding the BRDF directly. Solves live on every change (not just
 	// on blur/commit) so the effect of a color pick is immediately visible.
 	const [targetMode, setTargetMode] = useState<EndpointMode>(

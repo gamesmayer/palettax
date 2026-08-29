@@ -6,13 +6,13 @@ import {
 	MaterialRampStop,
 } from "../../../src/shared/materialRamp/types";
 
-// assignRampNames matches "Base" against evaluateNeutralBaseColor(material,
+// assignRampNames matches "Base" against evaluateBaseColor(material,
 // lighting), not the raw albedo bytes (see rampNaming.ts). Mocked here as an
 // identity pass-through on baseColor so these tests can keep asserting on
 // naming/indexing logic in terms of plain gray byte values, independent of
 // the real BRDF math (which is covered separately in brdf.test.ts).
 jest.mock("../../../src/shared/materialRamp/brdf", () => ({
-	evaluateNeutralBaseColor: (material: MaterialDefinition) =>
+	evaluateBaseColor: (material: MaterialDefinition) =>
 		rgbBytesToLinear(material.baseColor),
 }));
 

@@ -1,7 +1,7 @@
 import { encode } from "fast-png";
 import {
+	evaluateBaseColor,
 	evaluateMaterial,
-	evaluateNeutralBaseColor,
 	ggxDistribution,
 	schlickFresnel,
 	smithGeometry,
@@ -366,7 +366,7 @@ describe("evaluateMaterial + environmentMap", () => {
 	});
 });
 
-describe("evaluateNeutralBaseColor", () => {
+describe("evaluateBaseColor", () => {
 	const dielectric = {
 		baseColor: { r: 180, g: 120, b: 90 },
 		metallic: 0,
@@ -384,12 +384,12 @@ describe("evaluateNeutralBaseColor", () => {
 			directionalLightIntensity: 0,
 			ambientLightIntensity: 0,
 		};
-		expect(evaluateNeutralBaseColor(dielectric, darkLighting)).toEqual({
+		expect(evaluateBaseColor(dielectric, darkLighting)).toEqual({
 			r: 0,
 			g: 0,
 			b: 0,
 		});
-		expect(evaluateNeutralBaseColor(metal, darkLighting)).toEqual({
+		expect(evaluateBaseColor(metal, darkLighting)).toEqual({
 			r: 0,
 			g: 0,
 			b: 0,
@@ -397,32 +397,26 @@ describe("evaluateNeutralBaseColor", () => {
 	});
 
 	it("is deterministic across repeated calls", () => {
-		const a = evaluateNeutralBaseColor(dielectric, DEFAULT_LIGHTING);
-		const b = evaluateNeutralBaseColor(dielectric, DEFAULT_LIGHTING);
+		const a = evaluateBaseColor(dielectric, DEFAULT_LIGHTING);
+		const b = evaluateBaseColor(dielectric, DEFAULT_LIGHTING);
 		expect(a).toEqual(b);
 	});
 
-	it("never exceeds evaluateMaterial's response at N=viewDir, since it drops the (non-negative) direct-light specular highlight", () => {
-		// This is an exact structural fact, not an approximation: directLit here
-		// is mulRgb(diffuse, radiance) instead of
-		// mulRgb(addRgb(diffuse, specular), radiance), and specular/radiance are
-		// both non-negative -- so the neutral response can only be <= the full
-		// response at the same normal, for every material/lighting combination.
+	it("is exactly evaluateMaterial evaluated at N=viewDir", () => {
+		// This is the equivalence that keeps the "Base" ramp stop match
+		// (rampNaming.ts/MaterialRampPreview.tsx) and the solved albedo
+		// (solveAlbedo.ts) consistent with what actually gets rendered: both
+		// compare against the same function the ramp itself is built from,
+		// rather than a separate simplified approximation.
 		for (const material of [dielectric, metal]) {
-			const neutral = evaluateNeutralBaseColor(material, DEFAULT_LIGHTING);
-			const full = evaluateMaterial(
-				material,
-				DEFAULT_LIGHTING,
-				DEFAULT_LIGHTING.viewDir
+			expect(evaluateBaseColor(material, DEFAULT_LIGHTING)).toEqual(
+				evaluateMaterial(material, DEFAULT_LIGHTING, DEFAULT_LIGHTING.viewDir)
 			);
-			expect(neutral.r).toBeLessThanOrEqual(full.r + 1e-9);
-			expect(neutral.g).toBeLessThanOrEqual(full.g + 1e-9);
-			expect(neutral.b).toBeLessThanOrEqual(full.b + 1e-9);
 		}
 	});
 
 	it("keeps a pure metal's response non-black via the ambient Fresnel term, even though its diffuse albedo is zero", () => {
-		const response = evaluateNeutralBaseColor(metal, DEFAULT_LIGHTING);
+		const response = evaluateBaseColor(metal, DEFAULT_LIGHTING);
 		expect(Math.max(response.r, response.g, response.b)).toBeGreaterThan(0);
 	});
 
@@ -430,13 +424,14 @@ describe("evaluateNeutralBaseColor", () => {
 		// This is the mathematical premise the per-channel binary-search solver
 		// (solveAlbedo.ts) relies on: no cross-channel coupling anywhere in the
 		// formula (sRGB<->linear, the metallic/f0 lerp, the diffuse scale, the
-		// Fresnel terms, and the Reinhard tonemap are all per-channel-pointwise).
+		// direct-light specular lobe's Fresnel term, the ambient/env Fresnel
+		// terms, and the Reinhard tonemap are all per-channel-pointwise).
 		const fixedGB = { g: 120, b: 90 };
 		let prevR = -Infinity;
 		let firstG: number | null = null;
 		let firstB: number | null = null;
 		for (let r = 0; r <= 255; r += 17) {
-			const response = evaluateNeutralBaseColor(
+			const response = evaluateBaseColor(
 				{ baseColor: { r, ...fixedGB }, metallic: 0.5, roughness: 0.5 },
 				DEFAULT_LIGHTING
 			);
