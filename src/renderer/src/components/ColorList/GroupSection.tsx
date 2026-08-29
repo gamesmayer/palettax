@@ -2,6 +2,7 @@ import { Button, Frame } from "@react95/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ColorSystem } from "../../../../shared/color";
 import {
 	Palette,
@@ -30,6 +31,7 @@ export function GroupSection({
 	group,
 	colorSystem,
 }: GroupSectionProps): JSX.Element {
+	const { t } = useTranslation(["common", "app"]);
 	const renameGroup = usePaletteStore((state) => state.renameGroup);
 	const removeGroup = usePaletteStore((state) => state.removeGroup);
 	const { attributes, listeners, setNodeRef, transform, transition } =
@@ -59,19 +61,19 @@ export function GroupSection({
 				<div className="group-section__title">
 					<EditableText
 						value={group.name ?? ""}
-						displayValue={group.name ?? "Ungrouped"}
+						displayValue={group.name ?? t("app:groupSection.ungrouped")}
 						onCommit={(name) => renameGroup(palette.id, group.id, name)}
 						className="group-section__name"
 					/>
 					<span className="group-section__count">
-						{group.colors.length} color{group.colors.length === 1 ? "" : "s"}
+						{t("app:groupSection.colorCount", { count: group.colors.length })}
 					</span>
 				</div>
 				<div className="group-section__actions">
 					<Button
 						className="group-section__delete-btn"
 						onClick={() => setIsConfirmingDelete(true)}
-						aria-label="Delete group"
+						aria-label={t("app:groupSection.deleteAriaLabel")}
 					>
 						<CloseIcon />
 					</Button>
@@ -96,12 +98,13 @@ export function GroupSection({
 			)}
 			{isConfirmingDelete && (
 				<ConfirmModal
-					title="Delete group"
-					message={`Delete "${group.name ?? "Ungrouped"}"? Its ${group.colors.length} color${
-						group.colors.length === 1 ? "" : "s"
-					} will be lost.`}
-					confirmLabel="Delete"
-					cancelLabel="Cancel"
+					title={t("app:groupSection.deleteConfirmTitle")}
+					message={t("app:groupSection.deleteConfirmMessage", {
+						name: group.name ?? t("app:groupSection.ungrouped"),
+						count: group.colors.length,
+					})}
+					confirmLabel={t("app:groupSection.deleteConfirmLabel")}
+					cancelLabel={t("common:cancel")}
 					onConfirm={() => {
 						removeGroup(palette.id, group.id);
 						setIsConfirmingDelete(false);

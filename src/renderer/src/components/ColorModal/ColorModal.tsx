@@ -1,5 +1,6 @@
 import { Input } from "@react95/core";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ColorSystem, rgbToHex } from "../../../../shared/color";
 import { PaletteColor, PaletteGroup } from "../../../../shared/palette-formats";
 import { usePaletteStore } from "../../store/paletteStore";
@@ -24,6 +25,7 @@ export function ColorModal({
 	colorSystem,
 	onClose,
 }: ColorModalProps): JSX.Element {
+	const { t } = useTranslation(["common", "app"]);
 	const addColor = usePaletteStore((state) => state.addColor);
 	const updateColor = usePaletteStore((state) => state.updateColor);
 	const addGroup = usePaletteStore((state) => state.addGroup);
@@ -62,10 +64,15 @@ export function ColorModal({
 	return (
 		<Modal
 			className="color-modal"
-			title={color ? "Edit color" : "Add color"}
+			title={
+				color ? t("app:colorModal.editTitle") : t("app:colorModal.addTitle")
+			}
 			buttons={[
-				{ value: "Cancel", onClick: onClose },
-				{ value: color ? "Save" : "Add", onClick: handleSubmit },
+				{ value: t("common:cancel"), onClick: onClose },
+				{
+					value: color ? t("common:save") : t("common:add"),
+					onClick: handleSubmit,
+				},
 			]}
 			onClose={onClose}
 		>
@@ -79,7 +86,7 @@ export function ColorModal({
 				type="text"
 				value={name}
 				onChange={(event) => setName(event.target.value)}
-				placeholder="Name"
+				placeholder={t("app:colorModal.namePlaceholder")}
 			/>
 			{!color && (
 				<>

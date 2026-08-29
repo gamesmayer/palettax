@@ -1,3 +1,4 @@
+import i18next from "i18next";
 import {
 	ALBEDO_LIGHTNESS_WARN_HIGH,
 	ALBEDO_LIGHTNESS_WARN_LOW,
@@ -8,9 +9,26 @@ import {
 	clampIntensity,
 	clampStopCount,
 	clampUnit,
+	Translate,
 	warningForAlbedoColor,
 	warningForUnreachableTarget,
 } from "../../../src/shared/materialRamp/dialogValidation";
+import { resources } from "../../../src/shared/i18n/resources";
+
+let t: Translate;
+
+beforeAll(async () => {
+	const instance = i18next.createInstance();
+	await instance.init({
+		resources,
+		lng: "en",
+		fallbackLng: "en",
+		ns: ["app"],
+		defaultNS: "app",
+		interpolation: { escapeValue: false },
+	});
+	t = instance.t as unknown as Translate;
+});
 
 describe("clampUnit", () => {
 	it("clamps values below 0 up to 0", () => {
@@ -57,19 +75,19 @@ describe("clampStopCount", () => {
 
 describe("warningForAlbedoColor", () => {
 	it("warns when lightness is at or above ALBEDO_LIGHTNESS_WARN_HIGH", () => {
-		expect(warningForAlbedoColor({ r: 255, g: 255, b: 255 })).toMatch(
+		expect(warningForAlbedoColor({ r: 255, g: 255, b: 255 }, t)).toMatch(
 			/close to white/
 		);
 	});
 
 	it("warns when lightness is at or below ALBEDO_LIGHTNESS_WARN_LOW", () => {
-		expect(warningForAlbedoColor({ r: 0, g: 0, b: 0 })).toMatch(
+		expect(warningForAlbedoColor({ r: 0, g: 0, b: 0 }, t)).toMatch(
 			/close to black/
 		);
 	});
 
 	it("returns null for a mid-lightness color", () => {
-		expect(warningForAlbedoColor({ r: 128, g: 128, b: 128 })).toBeNull();
+		expect(warningForAlbedoColor({ r: 128, g: 128, b: 128 }, t)).toBeNull();
 	});
 
 	// Sanity-checks the thresholds actually gate the warning, independent of
@@ -87,7 +105,8 @@ describe("warningForUnreachableTarget", () => {
 		const result = warningForUnreachableTarget(
 			{ r: 180, g: 120, b: 90 },
 			{ r: 180, g: 120, b: 90 },
-			"hex"
+			"hex",
+			t
 		);
 		expect(result.severity).toBe("success");
 		expect(result.message).toMatch(/achievable exactly/);
@@ -97,7 +116,8 @@ describe("warningForUnreachableTarget", () => {
 		const result = warningForUnreachableTarget(
 			{ r: 180, g: 120, b: 90 },
 			{ r: 180, g: 121, b: 90 },
-			"hex"
+			"hex",
+			t
 		);
 		expect(result.severity).toBe("warning");
 	});
@@ -106,7 +126,8 @@ describe("warningForUnreachableTarget", () => {
 		const result = warningForUnreachableTarget(
 			{ r: 180, g: 120, b: 90 },
 			{ r: 180, g: 120, b: 40 },
-			"hex"
+			"hex",
+			t
 		);
 		expect(result.severity).toBe("error");
 		expect(result.message).toMatch(/isn't achievable/);
@@ -116,7 +137,8 @@ describe("warningForUnreachableTarget", () => {
 		const result = warningForUnreachableTarget(
 			{ r: 255, g: 255, b: 255 },
 			{ r: 140, g: 140, b: 140 },
-			"hex"
+			"hex",
+			t
 		);
 		expect(result.severity).toBe("error");
 	});
@@ -125,7 +147,8 @@ describe("warningForUnreachableTarget", () => {
 		const result = warningForUnreachableTarget(
 			{ r: 180, g: 120, b: 90 },
 			{ r: 180, g: 120, b: 40 },
-			"rgb"
+			"rgb",
+			t
 		);
 		expect(result.message).toContain("RGB(180, 120, 90)");
 		expect(result.message).toContain("RGB(180, 120, 40)");

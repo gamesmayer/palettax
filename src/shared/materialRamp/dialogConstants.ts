@@ -9,7 +9,7 @@ export const DEFAULT_STOP_COUNT = 16;
 // Named lookup rather than MATERIAL_PRESETS[0] -- the default shouldn't
 // silently change if the preset list gets reordered.
 const DEFAULT_PRESET =
-	MATERIAL_PRESETS.find((preset) => preset.name === "Skin") ??
+	MATERIAL_PRESETS.find((preset) => preset.id === "skin") ??
 	MATERIAL_PRESETS[0];
 export const DEFAULT_METALLIC = DEFAULT_PRESET.metallic;
 export const DEFAULT_ROUGHNESS = DEFAULT_PRESET.roughness;

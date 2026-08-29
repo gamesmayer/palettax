@@ -1,10 +1,12 @@
 import { Frame } from "@react95/core";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ConfirmModal } from "../ConfirmModal/ConfirmModal";
-import { usePaletteStore } from "../../store/paletteStore";
+import { formatPaletteName, usePaletteStore } from "../../store/paletteStore";
 import { Tab } from "./Tab";
 
 export function TabBar(): JSX.Element {
+	const { t } = useTranslation(["common", "app"]);
 	const tabOrder = usePaletteStore((state) => state.tabOrder);
 	const palettes = usePaletteStore((state) => state.palettes);
 	const activeId = usePaletteStore((state) => state.activeId);
@@ -26,7 +28,9 @@ export function TabBar(): JSX.Element {
 					return (
 						<Tab
 							key={id}
-							label={palette.name}
+							label={formatPaletteName(palette.name, () =>
+								t("app:untitledPalette")
+							)}
 							active={id === activeId}
 							onSelect={() => setActive(id)}
 							onClose={() => setPendingCloseId(id)}
@@ -37,10 +41,14 @@ export function TabBar(): JSX.Element {
 			</Frame>
 			{pendingCloseId && pendingClosePalette && (
 				<ConfirmModal
-					title="Close palette"
-					message={`Close "${pendingClosePalette.name}"? Any unexported changes will be lost.`}
-					confirmLabel="Close"
-					cancelLabel="Cancel"
+					title={t("app:tabBar.closeConfirmTitle")}
+					message={t("app:tabBar.closeConfirmMessage", {
+						name: formatPaletteName(pendingClosePalette.name, () =>
+							t("app:untitledPalette")
+						),
+					})}
+					confirmLabel={t("common:close")}
+					cancelLabel={t("common:cancel")}
 					onConfirm={() => {
 						closeTab(pendingCloseId);
 						setPendingCloseId(null);

@@ -1,5 +1,6 @@
 import { Frame } from "@react95/core";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	ColorSystem,
 	generateShadesAndTints,
@@ -38,16 +39,13 @@ const MIN_CHROMA_SHIFT = -100;
 const MAX_CHROMA_SHIFT = 100;
 const DEFAULT_LIGHTNESS_SHIFT = 50;
 
-const EASING_LABELS: Record<Easing, string> = {
-	linear: "Linear",
-	"ease-in": "Ease In",
-	"ease-out": "Ease Out",
-	"ease-in-out": "Ease In-Out",
-	smootherstep: "Smootherstep",
-};
-const EASING_BY_LABEL: Record<string, Easing> = Object.fromEntries(
-	Object.entries(EASING_LABELS).map(([key, label]) => [label, key as Easing])
-);
+const EASING_ORDER: Easing[] = [
+	"linear",
+	"ease-in",
+	"ease-out",
+	"ease-in-out",
+	"smootherstep",
+];
 
 function clampCount(value: number): number {
 	return Math.min(MAX_COUNT, Math.max(MIN_COUNT, Math.round(value)));
@@ -78,6 +76,7 @@ export function ShadeTintModal({
 	colorSystem,
 	onClose,
 }: ShadeTintModalProps): JSX.Element {
+	const { t } = useTranslation(["common", "app"]);
 	const addColors = usePaletteStore((state) => state.addColors);
 	const insertColorsAroundId = usePaletteStore(
 		(state) => state.insertColorsAroundId
@@ -124,6 +123,21 @@ export function ShadeTintModal({
 	const [tintChromaShift, setTintChromaShift] = useState(0);
 
 	const [easing, setEasing] = useState<Easing>("linear");
+
+	const easingLabel = useMemo(
+		() =>
+			Object.fromEntries(
+				EASING_ORDER.map((key) => [key, t(`app:shadeTintModal.easing.${key}`)])
+			) as Record<Easing, string>,
+		[t]
+	);
+	const easingByLabel = useMemo(
+		() =>
+			Object.fromEntries(
+				EASING_ORDER.map((key) => [easingLabel[key], key])
+			) as Record<string, Easing>,
+		[easingLabel]
+	);
 
 	const base =
 		mode === "palette"
@@ -187,15 +201,15 @@ export function ShadeTintModal({
 	return (
 		<Modal
 			className="shade-tint-modal"
-			title="Add shades/tints"
+			title={t("app:shadeTintModal.title")}
 			buttons={[
-				{ value: "Cancel", onClick: onClose },
-				{ value: "Add", onClick: handleSubmit },
+				{ value: t("common:cancel"), onClick: onClose },
+				{ value: t("common:add"), onClick: handleSubmit },
 			]}
 			onClose={onClose}
 		>
 			<EndpointPicker
-				label="Color"
+				label={t("app:shadeTintModal.colorLabel")}
 				mode={mode}
 				onModeChange={setMode}
 				colors={colors}
@@ -207,99 +221,103 @@ export function ShadeTintModal({
 			/>
 
 			<Dropdown
-				label="Interpolation"
-				options={Object.values(EASING_LABELS)}
-				value={EASING_LABELS[easing]}
-				onChange={(label) => setEasing(EASING_BY_LABEL[label])}
-				aria-label="Interpolation method"
+				label={t("app:shadeTintModal.interpolationLabel")}
+				options={Object.values(easingLabel)}
+				value={easingLabel[easing]}
+				onChange={(label) => setEasing(easingByLabel[label])}
+				aria-label={t("app:shadeTintModal.interpolationAriaLabel")}
 			/>
 
 			<Frame className="shade-tint-modal__section">
-				<div className="shade-tint-modal__section-title">Shades</div>
+				<div className="shade-tint-modal__section-title">
+					{t("app:shadeTintModal.shadesTitle")}
+				</div>
 				<div className="shade-tint-modal__row">
 					<NumberInput
-						label="Amount"
+						label={t("app:shadeTintModal.amountLabel")}
 						min={MIN_COUNT}
 						max={MAX_COUNT}
 						value={shadeCount}
 						onChange={setShadeCount}
 						clamp={clampCount}
-						aria-label="Number of shades"
+						aria-label={t("app:shadeTintModal.shadeCountAriaLabel")}
 					/>
 					<NumberInput
-						label="Darkness %"
+						label={t("app:shadeTintModal.darknessLabel")}
 						min={MIN_LIGHTNESS_SHIFT}
 						max={MAX_LIGHTNESS_SHIFT}
 						value={shadeDarkness}
 						onChange={setShadeDarkness}
 						clamp={clampLightnessShift}
-						aria-label="Shade darkness"
+						aria-label={t("app:shadeTintModal.shadeDarknessAriaLabel")}
 					/>
 					<NumberInput
-						label="Hue Shift °"
+						label={t("app:shadeTintModal.hueShiftLabel")}
 						min={MIN_HUE_SHIFT}
 						max={MAX_HUE_SHIFT}
 						value={shadeHueShift}
 						onChange={setShadeHueShift}
 						clamp={clampHueShift}
-						aria-label="Shade hue shift"
+						aria-label={t("app:shadeTintModal.shadeHueShiftAriaLabel")}
 					/>
 					<NumberInput
-						label="Chroma Shift %"
+						label={t("app:shadeTintModal.chromaShiftLabel")}
 						min={MIN_CHROMA_SHIFT}
 						max={MAX_CHROMA_SHIFT}
 						value={shadeChromaShift}
 						onChange={setShadeChromaShift}
 						clamp={clampChromaShift}
-						aria-label="Shade chroma shift"
+						aria-label={t("app:shadeTintModal.shadeChromaShiftAriaLabel")}
 					/>
 				</div>
 			</Frame>
 
 			<Frame className="shade-tint-modal__section">
-				<div className="shade-tint-modal__section-title">Tints</div>
+				<div className="shade-tint-modal__section-title">
+					{t("app:shadeTintModal.tintsTitle")}
+				</div>
 				<div className="shade-tint-modal__row">
 					<NumberInput
-						label="Amount"
+						label={t("app:shadeTintModal.amountLabel")}
 						min={MIN_COUNT}
 						max={MAX_COUNT}
 						value={tintCount}
 						onChange={setTintCount}
 						clamp={clampCount}
-						aria-label="Number of tints"
+						aria-label={t("app:shadeTintModal.tintCountAriaLabel")}
 					/>
 					<NumberInput
-						label="Lightness %"
+						label={t("app:shadeTintModal.lightnessLabel")}
 						min={MIN_LIGHTNESS_SHIFT}
 						max={MAX_LIGHTNESS_SHIFT}
 						value={tintLightness}
 						onChange={setTintLightness}
 						clamp={clampLightnessShift}
-						aria-label="Tint lightness"
+						aria-label={t("app:shadeTintModal.tintLightnessAriaLabel")}
 					/>
 					<NumberInput
-						label="Hue Shift °"
+						label={t("app:shadeTintModal.hueShiftLabel")}
 						min={MIN_HUE_SHIFT}
 						max={MAX_HUE_SHIFT}
 						value={tintHueShift}
 						onChange={setTintHueShift}
 						clamp={clampHueShift}
-						aria-label="Tint hue shift"
+						aria-label={t("app:shadeTintModal.tintHueShiftAriaLabel")}
 					/>
 					<NumberInput
-						label="Chroma Shift %"
+						label={t("app:shadeTintModal.chromaShiftLabel")}
 						min={MIN_CHROMA_SHIFT}
 						max={MAX_CHROMA_SHIFT}
 						value={tintChromaShift}
 						onChange={setTintChromaShift}
 						clamp={clampChromaShift}
-						aria-label="Tint chroma shift"
+						aria-label={t("app:shadeTintModal.tintChromaShiftAriaLabel")}
 					/>
 				</div>
 			</Frame>
 
 			<Field
-				label={`Preview (${newColorCount} new color${newColorCount === 1 ? "" : "s"})`}
+				label={t("app:shadeTintModal.previewLabel", { count: newColorCount })}
 			>
 				<div className="shade-tint-modal__preview">
 					{preview.map(({ r, g, b }, index) => (

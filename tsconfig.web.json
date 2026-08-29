@@ -13,5 +13,9 @@
     "types": ["vite/client"],
     "outDir": "out/renderer-types"
   },
-  "include": ["src/renderer/src/**/*", "src/shared/**/*"]
+  "include": [
+    "src/renderer/src/**/*",
+    "src/shared/**/*",
+    "src/shared/**/*.json"
+  ]
 }

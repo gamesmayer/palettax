@@ -1,0 +1,40 @@
+{
+	"title": "Cómo funciona",
+	"tabs": {
+		"palettes": "Paletas",
+		"importExport": "Importar y exportar",
+		"colorTools": "Herramientas de color"
+	},
+	"palettes": {
+		"tabsTitle": "Paletas y pestañas",
+		"tabsBody": "Importa uno o varios archivos de paleta a la vez; cada uno se abre en su propia pestaña, y pueden estar abiertas varias paletas al mismo tiempo. Cambia de pestaña haciendo clic y cierra una con su «×».",
+		"groupsTitle": "Grupos",
+		"groupsBody": "Una paleta se organiza en grupos con nombre, como carpetas. Añade uno con «+ Añadir grupo», renómbralo haciendo doble clic en su nombre, reordénalo arrastrando su tirador «⠿» y elimínalo con «✕». Solo Adobe Swatch Exchange (.ase) conserva los grupos al importar/exportar: el resto de formatos aplana todos los grupos en una sola lista, en el orden de los grupos.",
+		"colorsTitle": "Colores",
+		"colorsBody": "Añade un color con el selector (con un nombre opcional), elimínalo con «✕», reordénalo arrastrando o con los botones ↑/↓, o arrástralo a otro grupo.",
+		"colorSystemsTitle": "Sistemas de color",
+		"colorSystemsBody": "Cada color se puede ver y editar como Hex, RGB, HSL, HSB o CMYK desde la barra de herramientas de la paleta. Son solo representaciones de visualización/edición, independientes del formato de archivo desde el que se importó la paleta o al que se exportará.",
+		"undoRedoTitle": "Deshacer / rehacer",
+		"undoRedoBody": "Cada edición se registra por paleta, de forma independiente para cada pestaña abierta."
+	},
+	"importExport": {
+		"supportedFormatsTitle": "Formatos admitidos",
+		"pal": "<strong>.pal</strong> — JASC/Gale, no admite nombres de color.",
+		"gpl": "<strong>.gpl</strong> — Paleta de GIMP, admite un nombre de paleta, un número de columnas y un nombre por color.",
+		"txt": "<strong>.txt</strong> — una lista simple de colores en hexadecimal, uno por línea, sin nombres.",
+		"css": "<strong>.css</strong> — un bloque `:root` de propiedades personalizadas de CSS; al importar, solo se leen los valores hexadecimales.",
+		"ase": "<strong>.ase</strong> — Adobe Swatch Exchange, el único formato que conserva los grupos. Al importar, las muestras pueden usar cualquiera de los modelos de color de Adobe RGB, CMYK, Escala de grises o Lab, todos convertidos a RGB; la exportación siempre escribe en RGB.",
+		"aco": "<strong>.aco</strong> — Adobe Color Swatch, una lista plana (sin grupos). Misma conversión de RGB/HSB/CMYK/Escala de grises/Lab a RGB que .ase al importar.",
+		"png": "<strong>.png</strong> — al importar, cada color de píxel distinto se conserva una vez, en el orden en que aparece por primera vez (los píxeles transparentes se omiten); al exportar, elige una disposición de muestras en fila, columna o cuadrícula."
+	},
+	"colorTools": {
+		"blendTitle": "Mezcla",
+		"blendBody": "Genera un degradado entre dos colores interpolando de forma independiente y lineal cada uno de los canales R, G y B: para una fracción de paso t entre 0 y 1, cada canal es inicio + (fin − inicio) × t, redondeado al entero más cercano. Como esto ocurre directamente en RGB —no en un espacio de color perceptual—, una mezcla entre dos tonos muy distintos puede pasar por un punto medio más apagado y grisáceo. Eso es lo esperado en una interpolación RGB en línea recta, no un error.",
+		"shadesTintsTitle": "Sombras y tintes",
+		"shadesTintsBody": "Genera sombras más oscuras y tintes más claros alrededor de un color base convirtiéndolo una vez a OKLCH (luminosidad, croma, tono). Oscuridad/Luminosidad fija una luminosidad objetivo —un porcentaje del recorrido hacia el negro (para sombras) o el blanco (para tintes)—; Cambio de tono y Cambio de croma fijan el desplazamiento total de tono/croma alcanzado en el paso más extremo. Los tres se interpolan desde el color base hasta ese objetivo a lo largo de la rampa, con el tono ajustándose correctamente alrededor de la rueda de color (por ejemplo, 350° + 20° da 10°, no 370°). Si un color interpolado quedara fuera del gamut sRGB, el croma se reduce lo justo para devolverlo al rango válido manteniendo intactos su tono y luminosidad, en lugar de recortar ingenuamente cada canal RGB, lo que distorsionaría visiblemente el tono. Un ajuste de Interpolación controla cómo se distribuye ese avance a lo largo de la rampa: Lineal (el valor predeterminado) reparte los pasos de forma uniforme, mientras que Entrada suave, Salida suave, Entrada-salida suave y Suavizado extra concentran más el cambio hacia un extremo, el centro, o lo reparten de forma más gradual, sin cambiar dónde empieza o termina la rampa.",
+		"materialRampTitle": "Rampa de material",
+		"materialRampBody1": "Genera una rampa a partir de un pequeño modelo de material físicamente realista —un modelo de reflectancia Cook-Torrance/GGX simplificado, las mismas matemáticas de iluminación que usan los renderizadores 3D modernos— en lugar de interpolar entre dos colores. El color base fija el albedo subyacente del material; Metálico (0 = plástico, madera, piedra; 1 = metal puro) y Rugosidad (0 = similar a un espejo; 1 = mate) determinan cómo refleja la luz. Los preajustes rellenan combinaciones habituales de Metálico/Rugosidad (plástico rugoso, metal cepillado, goma, etc.) sin cambiar el color base.",
+		"materialRampBody2": "El color/intensidad de la luz Ambiental y Direccional se pueden ajustar; la dirección de la luz y de la vista permanecen fijas por ahora (está previsto que sean editables más adelante). Con esas fijas, la rampa varía solo el ángulo entre la luz y la superficie, no un control literal de brillo, así que un material brillante muestra un reflejo nítido y estrecho en algún punto de la rampa, mientras que el brillo de un material rugoso cambia de forma gradual a lo largo de todo el rango.",
+		"materialRampBody3": "Colores de la rampa es un presupuesto de compresión, no un reparto uniforme: los puntos se colocan de forma adaptativa, concentrados donde la respuesta del material cambia más rápido (como un reflejo brillante) y dispersos donde apenas cambia, así que una rampa de 7 colores para metal pulido se ve muy distinta de una rampa de 7 colores para tela. Añadir convierte la rampa en colores de paleta normales; la posición de iluminación de cada punto no se conserva una vez añadida."
+	}
+}

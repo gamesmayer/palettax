@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ColorSystem, blendRgb, rgbToHex } from "../../../../shared/color";
 import { PaletteGroup } from "../../../../shared/palette-formats";
 import { usePaletteStore } from "../../store/paletteStore";
@@ -35,6 +36,7 @@ export function BlendModal({
 	colorSystem,
 	onClose,
 }: BlendModalProps): JSX.Element {
+	const { t } = useTranslation(["common", "app"]);
 	const addColors = usePaletteStore((state) => state.addColors);
 	const addGroup = usePaletteStore((state) => state.addGroup);
 
@@ -122,16 +124,16 @@ export function BlendModal({
 	return (
 		<Modal
 			className="blend-modal"
-			title="Add blending"
+			title={t("app:blendModal.title")}
 			buttons={[
-				{ value: "Cancel", onClick: onClose },
-				{ value: "Add", onClick: handleSubmit },
+				{ value: t("common:cancel"), onClick: onClose },
+				{ value: t("common:add"), onClick: handleSubmit },
 			]}
 			onClose={onClose}
 		>
 			<div className="blend-modal__endpoints">
 				<EndpointPicker
-					label="From"
+					label={t("app:blendModal.fromLabel")}
 					mode={fromMode}
 					onModeChange={setFromMode}
 					colors={colors}
@@ -143,7 +145,7 @@ export function BlendModal({
 				/>
 
 				<EndpointPicker
-					label="To"
+					label={t("app:blendModal.toLabel")}
 					mode={toMode}
 					onModeChange={setToMode}
 					colors={colors}
@@ -156,18 +158,16 @@ export function BlendModal({
 			</div>
 
 			<NumberInput
-				label="Steps"
+				label={t("app:blendModal.stepsLabel")}
 				min={MIN_STEPS}
 				max={MAX_STEPS}
 				value={steps}
 				onChange={setSteps}
 				clamp={clampSteps}
-				aria-label="Number of steps"
+				aria-label={t("app:blendModal.stepsAriaLabel")}
 			/>
 
-			<Field
-				label={`Preview (${newColorCount} new color${newColorCount === 1 ? "" : "s"})`}
-			>
+			<Field label={t("app:blendModal.previewLabel", { count: newColorCount })}>
 				<div className="blend-modal__preview">
 					{preview.map(({ r, g, b }, index) => (
 						<div

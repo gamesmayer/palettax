@@ -1,4 +1,5 @@
 import { Button, Frame } from "@react95/core";
+import { useTranslation } from "react-i18next";
 import { ColorSystem, formatColorForSystem } from "../../../../shared/color";
 import { PaletteColor } from "../../../../shared/palette-formats";
 import { FieldLabel } from "../Field/Field";
@@ -39,6 +40,7 @@ export function EndpointPicker({
 	customRgb,
 	onCustomRgbChange,
 }: EndpointPickerProps): JSX.Element {
+	const { t } = useTranslation("app");
 	return (
 		<div className="field">
 			<FieldLabel text={label} tooltip={tooltip} />
@@ -52,7 +54,7 @@ export function EndpointPicker({
 					disabled={colors.length === 0}
 					onClick={() => onModeChange("palette")}
 				>
-					Palette color
+					{t("endpointPicker.paletteColorButton")}
 				</Button>
 				<Button
 					className={
@@ -62,7 +64,7 @@ export function EndpointPicker({
 					}
 					onClick={() => onModeChange("new")}
 				>
-					New color
+					{t("endpointPicker.newColorButton")}
 				</Button>
 			</div>
 			{mode === "palette" ? (
@@ -81,7 +83,10 @@ export function EndpointPicker({
 								}
 								style={{ backgroundColor: color.hex }}
 								onClick={() => onPaletteColorChange(color.id)}
-								aria-label={`${label}: ${formatColorForSystem(color, colorSystem)}`}
+								aria-label={t("endpointPicker.colorAriaLabel", {
+									label,
+									value: formatColorForSystem(color, colorSystem),
+								})}
 							/>
 						</FloatingTooltip>
 					))}

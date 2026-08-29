@@ -1,0 +1,288 @@
+{
+	"preferencesModal": {
+		"title": "Preferences",
+		"languageLabel": "Language"
+	},
+	"languages": {
+		"en": "English",
+		"es": "Español"
+	},
+	"appCloseConfirm": {
+		"title": "Close Palettax",
+		"message": "Close the application? Any unexported changes in open palettes will be lost."
+	},
+	"updateModal": {
+		"title": "Update Available",
+		"message": "Palettax {{tag}} is available. Download it from GitHub?"
+	},
+	"untitledPalette": "Untitled",
+	"tabBar": {
+		"closeConfirmTitle": "Close palette",
+		"closeConfirmMessage": "Close \"{{name}}\"? Any unexported changes will be lost."
+	},
+	"tab": {
+		"closeAriaLabel": "Close {{name}}"
+	},
+	"groupSection": {
+		"ungrouped": "Ungrouped",
+		"deleteAriaLabel": "Delete group",
+		"deleteConfirmTitle": "Delete group",
+		"deleteConfirmLabel": "Delete",
+		"colorCount_one": "{{count}} color",
+		"colorCount_other": "{{count}} colors",
+		"deleteConfirmMessage_one": "Delete \"{{name}}\"? Its {{count}} color will be lost.",
+		"deleteConfirmMessage_other": "Delete \"{{name}}\"? Its {{count}} colors will be lost."
+	},
+	"alerts": {
+		"importFailed": "Could not import {{filePath}}: {{message}}",
+		"exportFailed": "Could not export palette: {{message}}",
+		"exportSucceeded": "Palette exported to {{filePath}}"
+	},
+	"blendModal": {
+		"title": "Add blending",
+		"fromLabel": "From",
+		"toLabel": "To",
+		"stepsLabel": "Steps",
+		"stepsAriaLabel": "Number of steps",
+		"previewLabel_one": "Preview ({{count}} new color)",
+		"previewLabel_other": "Preview ({{count}} new colors)"
+	},
+	"shadeTintModal": {
+		"title": "Add shades/tints",
+		"colorLabel": "Color",
+		"interpolationLabel": "Interpolation",
+		"interpolationAriaLabel": "Interpolation method",
+		"easing": {
+			"linear": "Linear",
+			"ease-in": "Ease In",
+			"ease-out": "Ease Out",
+			"ease-in-out": "Ease In-Out",
+			"smootherstep": "Smootherstep"
+		},
+		"shadesTitle": "Shades",
+		"tintsTitle": "Tints",
+		"amountLabel": "Amount",
+		"darknessLabel": "Darkness %",
+		"lightnessLabel": "Lightness %",
+		"hueShiftLabel": "Hue Shift °",
+		"chromaShiftLabel": "Chroma Shift %",
+		"shadeCountAriaLabel": "Number of shades",
+		"shadeDarknessAriaLabel": "Shade darkness",
+		"shadeHueShiftAriaLabel": "Shade hue shift",
+		"shadeChromaShiftAriaLabel": "Shade chroma shift",
+		"tintCountAriaLabel": "Number of tints",
+		"tintLightnessAriaLabel": "Tint lightness",
+		"tintHueShiftAriaLabel": "Tint hue shift",
+		"tintChromaShiftAriaLabel": "Tint chroma shift",
+		"previewLabel_one": "Preview ({{count}} new color)",
+		"previewLabel_other": "Preview ({{count}} new colors)"
+	},
+	"pngExportModal": {
+		"title": "Export as PNG",
+		"exportButton": "Export",
+		"shapeLabel": "Shape",
+		"shapeRow": "Row (1×N)",
+		"shapeColumn": "Column (N×1)",
+		"shapeGrid": "Grid",
+		"specifyByLabel": "Specify by",
+		"dimensionColumns": "Columns",
+		"dimensionRows": "Rows",
+		"columnsCountAriaLabel": "Number of columns",
+		"rowsCountAriaLabel": "Number of rows",
+		"emptySuffix_one": ", {{count}} empty",
+		"emptySuffix_other": ", {{count}} empty",
+		"resultLabel_one": "Result: {{columns}} × {{rows}} ({{totalCells}} cell{{emptySuffix}})",
+		"resultLabel_other": "Result: {{columns}} × {{rows}} ({{totalCells}} cells{{emptySuffix}})"
+	},
+	"groupPicker": {
+		"addToGroupLabel": "Add to group",
+		"existingGroup": "Existing group",
+		"newGroup": "New group",
+		"groupNamePlaceholder": "Group name",
+		"groupNameAriaLabel": "New group name"
+	},
+	"paletteToolbar": {
+		"colorSystem": {
+			"hex": "Hex",
+			"rgb": "RGB",
+			"hsl": "HSL",
+			"hsb": "HSB",
+			"cmyk": "CMYK"
+		},
+		"colorSystemAriaLabel": "Color system",
+		"undo": "Undo",
+		"redo": "Redo",
+		"addGroup": "Add group",
+		"addColor": "Add color",
+		"blending": "Blending",
+		"shadesTints": "Shades/Tints",
+		"materialRamp": "Material Ramp"
+	},
+	"colorModal": {
+		"editTitle": "Edit color",
+		"addTitle": "Add color",
+		"namePlaceholder": "Name"
+	},
+	"colorSystemFields": {
+		"hexLabel": "Hex",
+		"hexAriaLabel": "Hex code",
+		"rgbRLabel": "R",
+		"rgbRAriaLabel": "Red",
+		"rgbGLabel": "G",
+		"rgbGAriaLabel": "Green",
+		"rgbBLabel": "B",
+		"rgbBAriaLabel": "Blue",
+		"hslHLabel": "H",
+		"hslHAriaLabel": "Hue",
+		"hslSLabel": "S",
+		"hslSAriaLabel": "Saturation",
+		"hslLLabel": "L",
+		"hslLAriaLabel": "Lightness",
+		"hsbHLabel": "H",
+		"hsbHAriaLabel": "Hue",
+		"hsbSLabel": "S",
+		"hsbSAriaLabel": "Saturation",
+		"hsbBLabel": "B",
+		"hsbBAriaLabel": "Brightness",
+		"cmykCLabel": "C",
+		"cmykCAriaLabel": "Cyan",
+		"cmykMLabel": "M",
+		"cmykMAriaLabel": "Magenta",
+		"cmykYLabel": "Y",
+		"cmykYAriaLabel": "Yellow",
+		"cmykKLabel": "K",
+		"cmykKAriaLabel": "Key (black)"
+	},
+	"endpointPicker": {
+		"paletteColorButton": "Palette color",
+		"newColorButton": "New color",
+		"colorAriaLabel": "{{label}}: {{value}}"
+	},
+	"swatchColorPicker": {
+		"swatchAriaLabel": "{{label}}: {{value}}"
+	},
+	"colorGrid": {
+		"emptyText": "This group has no colors yet."
+	},
+	"colorSwatch": {
+		"editAriaLabel": "Edit color {{hex}}",
+		"removeAriaLabel": "Remove color",
+		"namePlaceholder": "Name"
+	},
+	"materialRampModal": {
+		"title": "Generate material ramp",
+		"previewLabel_one": "Preview ({{count}} color)",
+		"previewLabel_other": "Preview ({{count}} colors)",
+		"sections": {
+			"color": "Color",
+			"properties": "Properties",
+			"ambient": "Ambient",
+			"environmentReflection": "Environment reflection",
+			"directionalLight": "Directional light",
+			"view": "View"
+		},
+		"targetBaseColorLabel": "Target base color",
+		"albedoColorLabel": "Albedo color",
+		"albedoColorAriaLabel": "Albedo color: {{color}}",
+		"calculating": "Calculating…",
+		"presetsLabel": "Presets",
+		"presetExampleTooltip": "e.g. {{examples}}",
+		"presetAriaLabel": "Preset: {{name}}",
+		"metallicLabel": "Metallic",
+		"roughnessLabel": "Roughness",
+		"rampColorsLabel": "Ramp colors",
+		"rampColorsAriaLabel": "Number of ramp colors",
+		"ambientColorLabel": "Ambient color",
+		"ambientIntensityLabel": "Ambient intensity",
+		"environmentLabel": "Environment",
+		"defaultImage": "Default image",
+		"customImage": "Custom image",
+		"chooseFile": "Choose file…",
+		"environmentIntensityLabel": "Environment intensity",
+		"environmentReadError": "Couldn't read that file as a PNG image.",
+		"lightColorLabel": "Light color",
+		"lightIntensityLabel": "Light intensity",
+		"lightDirectionLabel": "Light direction",
+		"viewDirectionLabel": "View direction",
+		"tooltips": {
+			"targetBaseColor": "The desired final rendered appearance — the Albedo color below is solved to match it.",
+			"albedoColor": "The raw material input the ramp is actually generated from — solved automatically from the Target base color above. Rarely needed directly.",
+			"presets": "Quickly set Metallic and Roughness to common material presets. Your base color is unchanged.",
+			"metallic": "How metallic the surface is. 0 = dielectric (plastic, cloth, stone); 1 = pure metal (steel, gold, copper).",
+			"roughness": "How rough the surface is. Low values give a small, sharp, bright highlight; high values spread it into a soft, dim sheen.",
+			"rampColors": "How many colors to compress the material's full light response into. More colors preserve finer value changes; fewer colors force a tighter, more stylized ramp.",
+			"ambientColor": "A flat fill light hitting the material from every direction equally, independent of surface orientation — keeps the darkest end of the ramp from going to pure black, including for pure metals via an approximate Fresnel specular term.",
+			"ambientIntensity": "How bright the ambient fill light is.",
+			"environment": "A real reflection image sampled by the material's mirror direction and roughness — richer than the flat ambient fill above, especially for polished or metallic materials.",
+			"environmentIntensity": "How strongly the environment reflection contributes, on top of the ambient fill above.",
+			"lightColor": "The color of the direct light illuminating the material.",
+			"lightIntensity": "How bright the direct light is.",
+			"lightDirection": "Direction the light shines from, as a normalized (x, y, z) vector. Fixed for now — will be editable in a future version. Together with the view direction, this also defines the plane surface orientation is swept through to generate the ramp.",
+			"viewDirection": "Direction the camera is looking from, as a normalized (x, y, z) vector. Fixed for now — will be editable in a future version. Pairs with the light direction to define the plane surface orientation is swept through."
+		},
+		"warnings": {
+			"albedoNearWhite": "The albedo color is very close to white, leaving little room to show highlights — bright stops in the ramp may look nearly identical. Try a less extreme Target base color.",
+			"albedoNearBlack": "The albedo color is very close to black, leaving little room to show shadows — dark stops in the ramp may look nearly identical. Try a less extreme Target base color.",
+			"achievableExactly": "This target base color is achievable exactly — {{target}}.",
+			"unreachable": "This target base color isn't achievable with the current metallic, roughness, and lighting settings — target {{target}}, closest achievable {{achieved}}.",
+			"imprecise": "The exact target base color couldn't be matched precisely — target {{target}}, closest achievable {{achieved}}."
+		}
+	},
+	"environmentMapPreview": {
+		"ariaLabel": "Environment reflection image"
+	},
+	"materialRampPreview": {
+		"sphere": "Sphere",
+		"cube": "Cube",
+		"continuous": "Continuous",
+		"posterized": "Posterized",
+		"base": "Base"
+	},
+	"paletteView": {
+		"emptyPrompt": "Where do you want to start?",
+		"newPalette": "New palette",
+		"importPalette": "Import palette"
+	},
+	"materialPresets": {
+		"skin": {
+			"name": "Skin",
+			"examples": "human skin, faces, hands"
+		},
+		"fabric": {
+			"name": "Fabric",
+			"examples": "cloth, canvas, upholstery, carpet"
+		},
+		"wood": {
+			"name": "Wood",
+			"examples": "furniture, floorboards, crates, tool handles"
+		},
+		"roughPlastic": {
+			"name": "Rough plastic",
+			"examples": "toy bricks, bottle caps, appliance casings, PVC pipe"
+		},
+		"smoothPlastic": {
+			"name": "Smooth plastic",
+			"examples": "glossy packaging, plastic buttons, phone cases, laminate"
+		},
+		"rubber": {
+			"name": "Rubber",
+			"examples": "tires, rubber grips, hoses, shoe soles"
+		},
+		"brushedMetal": {
+			"name": "Brushed metal",
+			"examples": "stainless steel appliances, brushed aluminum panels, elevator doors"
+		},
+		"polishedMetal": {
+			"name": "Polished metal",
+			"examples": "chrome trim, mirrors, cutlery, jewelry"
+		},
+		"rustedMetal": {
+			"name": "Rusted metal",
+			"examples": "old pipes, weathered railings, corroded machinery"
+		},
+		"ceramic": {
+			"name": "Ceramic",
+			"examples": "tiles, porcelain, glazed pottery, sinks"
+		}
+	}
+}

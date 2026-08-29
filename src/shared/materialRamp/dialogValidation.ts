@@ -1,4 +1,9 @@
 import { ColorSystem, formatColorForSystem } from "../color";
+
+export type Translate = (
+	key: string,
+	options?: Record<string, string>
+) => string;
 import {
 	ALBEDO_LIGHTNESS_WARN_HIGH,
 	ALBEDO_LIGHTNESS_WARN_LOW,
@@ -24,17 +29,20 @@ export function clampStopCount(value: number): number {
 	return Math.min(MAX_STOPS, Math.max(MIN_STOPS, Math.round(value)));
 }
 
-export function warningForAlbedoColor(rgb: {
-	r: number;
-	g: number;
-	b: number;
-}): string | null {
+export function warningForAlbedoColor(
+	rgb: {
+		r: number;
+		g: number;
+		b: number;
+	},
+	t: Translate
+): string | null {
 	const lightness = rgbLinearToOklab(rgbBytesToLinear(rgb)).L;
 	if (lightness >= ALBEDO_LIGHTNESS_WARN_HIGH) {
-		return "The albedo color is very close to white, leaving little room to show highlights — bright stops in the ramp may look nearly identical. Try a less extreme Target base color.";
+		return t("app:materialRampModal.warnings.albedoNearWhite");
 	}
 	if (lightness <= ALBEDO_LIGHTNESS_WARN_LOW) {
-		return "The albedo color is very close to black, leaving little room to show shadows — dark stops in the ramp may look nearly identical. Try a less extreme Target base color.";
+		return t("app:materialRampModal.warnings.albedoNearBlack");
 	}
 	return null;
 }
@@ -59,7 +67,8 @@ const UNREACHABLE_TARGET_ERROR_THRESHOLD = 1;
 export function warningForUnreachableTarget(
 	target: { r: number; g: number; b: number },
 	achieved: { r: number; g: number; b: number },
-	colorSystem: ColorSystem
+	colorSystem: ColorSystem,
+	t: Translate
 ): UnreachableTargetWarning {
 	const maxDiff = Math.max(
 		Math.abs(target.r - achieved.r),
@@ -70,18 +79,26 @@ export function warningForUnreachableTarget(
 	if (maxDiff === 0) {
 		return {
 			severity: "success",
-			message: `This target base color is achievable exactly — ${targetLabel}.`,
+			message: t("app:materialRampModal.warnings.achievableExactly", {
+				target: targetLabel,
+			}),
 		};
 	}
 	const achievedLabel = formatColorForSystem(achieved, colorSystem);
 	if (maxDiff > UNREACHABLE_TARGET_ERROR_THRESHOLD) {
 		return {
 			severity: "error",
-			message: `This target base color isn't achievable with the current metallic, roughness, and lighting settings — target ${targetLabel}, closest achievable ${achievedLabel}.`,
+			message: t("app:materialRampModal.warnings.unreachable", {
+				target: targetLabel,
+				achieved: achievedLabel,
+			}),
 		};
 	}
 	return {
 		severity: "warning",
-		message: `The exact target base color couldn't be matched precisely — target ${targetLabel}, closest achievable ${achievedLabel}.`,
+		message: t("app:materialRampModal.warnings.imprecise", {
+			target: targetLabel,
+			achieved: achievedLabel,
+		}),
 	};
 }

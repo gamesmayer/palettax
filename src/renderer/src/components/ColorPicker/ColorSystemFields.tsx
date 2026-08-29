@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	HexColorPicker,
 	HslColorPicker,
@@ -31,6 +32,7 @@ export function ColorSystemFields({
 	rgb,
 	onChange,
 }: ColorSystemFieldsProps): JSX.Element {
+	const { t } = useTranslation("app");
 	const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
 	const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
 	const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
@@ -100,131 +102,131 @@ export function ColorSystemFields({
 
 			{colorSystem === "hex" && (
 				<TextInput
-					label="Hex"
+					label={t("colorSystemFields.hexLabel")}
 					value={hexDraft}
 					onChange={handleHexInput}
-					aria-label="Hex code"
+					aria-label={t("colorSystemFields.hexAriaLabel")}
 				/>
 			)}
 			{colorSystem === "rgb" && (
 				<div className="color-picker__channels">
 					<NumberInput
-						label="R"
+						label={t("colorSystemFields.rgbRLabel")}
 						min={0}
 						max={255}
 						value={rgb.r}
 						onChange={(v) => onChange({ ...rgb, r: clampByte(v) })}
-						aria-label="Red"
+						aria-label={t("colorSystemFields.rgbRAriaLabel")}
 					/>
 					<NumberInput
-						label="G"
+						label={t("colorSystemFields.rgbGLabel")}
 						min={0}
 						max={255}
 						value={rgb.g}
 						onChange={(v) => onChange({ ...rgb, g: clampByte(v) })}
-						aria-label="Green"
+						aria-label={t("colorSystemFields.rgbGAriaLabel")}
 					/>
 					<NumberInput
-						label="B"
+						label={t("colorSystemFields.rgbBLabel")}
 						min={0}
 						max={255}
 						value={rgb.b}
 						onChange={(v) => onChange({ ...rgb, b: clampByte(v) })}
-						aria-label="Blue"
+						aria-label={t("colorSystemFields.rgbBAriaLabel")}
 					/>
 				</div>
 			)}
 			{colorSystem === "hsl" && (
 				<div className="color-picker__channels">
 					<NumberInput
-						label="H"
+						label={t("colorSystemFields.hslHLabel")}
 						min={0}
 						max={360}
 						dragSensitivity={8}
 						value={hsl.h}
 						onChange={(v) => onChange(hslToRgb(v, hsl.s, hsl.l))}
-						aria-label="Hue"
+						aria-label={t("colorSystemFields.hslHAriaLabel")}
 					/>
 					<NumberInput
-						label="S"
+						label={t("colorSystemFields.hslSLabel")}
 						min={0}
 						max={100}
 						value={hsl.s}
 						onChange={(v) => onChange(hslToRgb(hsl.h, v, hsl.l))}
-						aria-label="Saturation"
+						aria-label={t("colorSystemFields.hslSAriaLabel")}
 					/>
 					<NumberInput
-						label="L"
+						label={t("colorSystemFields.hslLLabel")}
 						min={0}
 						max={100}
 						value={hsl.l}
 						onChange={(v) => onChange(hslToRgb(hsl.h, hsl.s, v))}
-						aria-label="Lightness"
+						aria-label={t("colorSystemFields.hslLAriaLabel")}
 					/>
 				</div>
 			)}
 			{colorSystem === "hsb" && (
 				<div className="color-picker__channels">
 					<NumberInput
-						label="H"
+						label={t("colorSystemFields.hsbHLabel")}
 						min={0}
 						max={360}
 						dragSensitivity={8}
 						value={hsv.h}
 						onChange={(v) => onChange(hsvToRgb(v, hsv.s, hsv.v))}
-						aria-label="Hue"
+						aria-label={t("colorSystemFields.hsbHAriaLabel")}
 					/>
 					<NumberInput
-						label="S"
+						label={t("colorSystemFields.hsbSLabel")}
 						min={0}
 						max={100}
 						value={hsv.s}
 						onChange={(v) => onChange(hsvToRgb(hsv.h, v, hsv.v))}
-						aria-label="Saturation"
+						aria-label={t("colorSystemFields.hsbSAriaLabel")}
 					/>
 					<NumberInput
-						label="B"
+						label={t("colorSystemFields.hsbBLabel")}
 						min={0}
 						max={100}
 						value={hsv.v}
 						onChange={(v) => onChange(hsvToRgb(hsv.h, hsv.s, v))}
-						aria-label="Brightness"
+						aria-label={t("colorSystemFields.hsbBAriaLabel")}
 					/>
 				</div>
 			)}
 			{colorSystem === "cmyk" && (
 				<div className="color-picker__channels">
 					<NumberInput
-						label="C"
+						label={t("colorSystemFields.cmykCLabel")}
 						min={0}
 						max={100}
 						value={cmyk.c}
 						onChange={(v) => onChange(cmykToRgb(v, cmyk.m, cmyk.y, cmyk.k))}
-						aria-label="Cyan"
+						aria-label={t("colorSystemFields.cmykCAriaLabel")}
 					/>
 					<NumberInput
-						label="M"
+						label={t("colorSystemFields.cmykMLabel")}
 						min={0}
 						max={100}
 						value={cmyk.m}
 						onChange={(v) => onChange(cmykToRgb(cmyk.c, v, cmyk.y, cmyk.k))}
-						aria-label="Magenta"
+						aria-label={t("colorSystemFields.cmykMAriaLabel")}
 					/>
 					<NumberInput
-						label="Y"
+						label={t("colorSystemFields.cmykYLabel")}
 						min={0}
 						max={100}
 						value={cmyk.y}
 						onChange={(v) => onChange(cmykToRgb(cmyk.c, cmyk.m, v, cmyk.k))}
-						aria-label="Yellow"
+						aria-label={t("colorSystemFields.cmykYAriaLabel")}
 					/>
 					<NumberInput
-						label="K"
+						label={t("colorSystemFields.cmykKLabel")}
 						min={0}
 						max={100}
 						value={cmyk.k}
 						onChange={(v) => onChange(cmykToRgb(cmyk.c, cmyk.m, cmyk.y, v))}
-						aria-label="Key (black)"
+						aria-label={t("colorSystemFields.cmykKAriaLabel")}
 					/>
 				</div>
 			)}

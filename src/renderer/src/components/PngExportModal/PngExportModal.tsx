@@ -1,5 +1,6 @@
 import { Button } from "@react95/core";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { PngExportOptions } from "../../../../shared/palette-formats";
 import { Field } from "../Field/Field";
 import { Modal } from "../Modal/Modal";
@@ -24,6 +25,7 @@ export function PngExportModal({
 	onClose,
 	onConfirm,
 }: PngExportModalProps): JSX.Element {
+	const { t } = useTranslation(["common", "app"]);
 	const [shape, setShape] = useState<Shape>("row");
 	const [gridDimension, setGridDimension] = useState<GridDimension>("columns");
 	const [gridCount, setGridCount] = useState(() =>
@@ -50,53 +52,61 @@ export function PngExportModal({
 			: "endpoint-picker__mode-btn";
 	}
 
+	const emptySuffix =
+		emptyCells > 0
+			? t("app:pngExportModal.emptySuffix", { count: emptyCells })
+			: "";
+
 	return (
 		<Modal
 			className="png-export-modal"
-			title="Export as PNG"
+			title={t("app:pngExportModal.title")}
 			buttons={[
-				{ value: "Cancel", onClick: onClose },
-				{ value: "Export", onClick: () => onConfirm({ columns }) },
+				{ value: t("common:cancel"), onClick: onClose },
+				{
+					value: t("app:pngExportModal.exportButton"),
+					onClick: () => onConfirm({ columns }),
+				},
 			]}
 			onClose={onClose}
 		>
-			<Field label="Shape">
+			<Field label={t("app:pngExportModal.shapeLabel")}>
 				<div className="endpoint-picker__mode-toggle">
 					<Button
 						className={modeButtonClass(shape === "row")}
 						onClick={() => setShape("row")}
 					>
-						Row (1×N)
+						{t("app:pngExportModal.shapeRow")}
 					</Button>
 					<Button
 						className={modeButtonClass(shape === "column")}
 						onClick={() => setShape("column")}
 					>
-						Column (N×1)
+						{t("app:pngExportModal.shapeColumn")}
 					</Button>
 					<Button
 						className={modeButtonClass(shape === "grid")}
 						onClick={() => setShape("grid")}
 					>
-						Grid
+						{t("app:pngExportModal.shapeGrid")}
 					</Button>
 				</div>
 			</Field>
 
 			{shape === "grid" && (
-				<Field label="Specify by">
+				<Field label={t("app:pngExportModal.specifyByLabel")}>
 					<div className="endpoint-picker__mode-toggle">
 						<Button
 							className={modeButtonClass(gridDimension === "columns")}
 							onClick={() => setGridDimension("columns")}
 						>
-							Columns
+							{t("app:pngExportModal.dimensionColumns")}
 						</Button>
 						<Button
 							className={modeButtonClass(gridDimension === "rows")}
 							onClick={() => setGridDimension("rows")}
 						>
-							Rows
+							{t("app:pngExportModal.dimensionRows")}
 						</Button>
 					</div>
 					<NumberInput
@@ -105,15 +115,23 @@ export function PngExportModal({
 						value={gridCount}
 						onChange={setGridCount}
 						clamp={(v) => clampCount(v, colorCount)}
-						aria-label={`Number of ${gridDimension}`}
+						aria-label={t(
+							gridDimension === "columns"
+								? "app:pngExportModal.columnsCountAriaLabel"
+								: "app:pngExportModal.rowsCountAriaLabel"
+						)}
 					/>
 				</Field>
 			)}
 
 			<p className="png-export-modal__preview">
-				Result: {columns} × {rows} ({totalCells} cell
-				{totalCells === 1 ? "" : "s"}
-				{emptyCells > 0 ? `, ${emptyCells} empty` : ""})
+				{t("app:pngExportModal.resultLabel", {
+					columns,
+					rows,
+					totalCells,
+					emptySuffix,
+					count: totalCells,
+				})}
 			</p>
 		</Modal>
 	);

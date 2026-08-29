@@ -1,6 +1,7 @@
 import { Frame } from "@react95/core";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
+import { useTranslation } from "react-i18next";
 import { ColorSystem } from "../../../../shared/color";
 import { PaletteColor } from "../../../../shared/palette-formats";
 import { usePaletteStore } from "../../store/paletteStore";
@@ -21,6 +22,7 @@ export function ColorGrid({
 	colorSystem,
 	onEditColor,
 }: ColorGridProps): JSX.Element {
+	const { t } = useTranslation("app");
 	const removeColor = usePaletteStore((state) => state.removeColor);
 	const renameColor = usePaletteStore((state) => state.renameColor);
 	const { setNodeRef } = useDroppable({
@@ -41,9 +43,7 @@ export function ColorGrid({
 					<span className="color-swatch__label" aria-hidden="true">
 						&nbsp;
 					</span>
-					<p className="color-grid__empty-text">
-						This group has no colors yet.
-					</p>
+					<p className="color-grid__empty-text">{t("colorGrid.emptyText")}</p>
 				</div>
 			) : (
 				<SortableContext items={colorIds} strategy={rectSortingStrategy}>

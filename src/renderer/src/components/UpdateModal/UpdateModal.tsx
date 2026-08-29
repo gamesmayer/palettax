@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { UpdateInfo } from "../../../../shared/ipc-contract";
 import { Modal } from "../Modal/Modal";
 
@@ -12,18 +13,19 @@ export function UpdateModal({
 	onDownload,
 	onDismiss,
 }: UpdateModalProps): JSX.Element {
+	const { t } = useTranslation(["common", "app"]);
 	return (
 		<Modal
 			className="update-modal"
-			title="Update Available"
+			title={t("app:updateModal.title")}
 			buttons={[
-				{ value: "Later", onClick: onDismiss },
-				{ value: "Download", onClick: onDownload },
+				{ value: t("common:later"), onClick: onDismiss },
+				{ value: t("common:download"), onClick: onDownload },
 			]}
 			onClose={onDismiss}
 		>
 			<p className="update-modal__message">
-				Palettax {updateInfo.tagName} is available. Download it from GitHub?
+				{t("app:updateModal.message", { tag: updateInfo.tagName })}
 			</p>
 		</Modal>
 	);

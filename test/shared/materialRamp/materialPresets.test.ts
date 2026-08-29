@@ -1,4 +1,5 @@
 import { MATERIAL_PRESETS } from "../../../src/shared/materialRamp/materialPresets";
+import { resources } from "../../../src/shared/i18n/resources";
 
 describe("MATERIAL_PRESETS", () => {
 	it("is non-empty", () => {
@@ -19,14 +20,20 @@ describe("MATERIAL_PRESETS", () => {
 		}
 	});
 
-	it("has a unique name per preset", () => {
-		const names = MATERIAL_PRESETS.map((preset) => preset.name);
-		expect(new Set(names).size).toBe(names.length);
+	it("has a unique id per preset", () => {
+		const ids = MATERIAL_PRESETS.map((preset) => preset.id);
+		expect(new Set(ids).size).toBe(ids.length);
 	});
 
-	it("has a non-empty examples string per preset", () => {
-		for (const preset of MATERIAL_PRESETS) {
-			expect(preset.examples.length).toBeGreaterThan(0);
+	it("has a translated name and examples string for every preset id, in every supported language", () => {
+		for (const language of Object.keys(resources) as (keyof typeof resources)[]) {
+			for (const preset of MATERIAL_PRESETS) {
+				const entry = resources[language].app.materialPresets[
+					preset.id as keyof (typeof resources)[typeof language]["app"]["materialPresets"]
+				] as { name: string; examples: string } | undefined;
+				expect(entry?.name.length).toBeGreaterThan(0);
+				expect(entry?.examples.length).toBeGreaterThan(0);
+			}
 		}
 	});
 });

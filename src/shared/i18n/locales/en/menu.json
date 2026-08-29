@@ -1,0 +1,18 @@
+{
+	"preferences": "Preferences…",
+	"file": "File",
+	"newPalette": "New Palette",
+	"importPalette": "Import Palette…",
+	"exportPaletteAs": "Export Palette as",
+	"export": {
+		"pal": "JASC/Gale (.pal)",
+		"gpl": "GIMP Palette (.gpl)",
+		"txt": "Hex List (.txt)",
+		"css": "CSS Stylesheet (.css)",
+		"ase": "Adobe Swatch Exchange (.ase)",
+		"aco": "Adobe Color Swatch (.aco)",
+		"png": "PNG Image (.png)"
+	},
+	"help": "Help",
+	"howItWorks": "How It Works"
+}

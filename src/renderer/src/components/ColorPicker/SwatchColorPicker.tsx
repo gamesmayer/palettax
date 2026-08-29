@@ -8,6 +8,7 @@ import {
 import { Frame } from "@react95/core";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import {
 	ColorSystem,
 	formatColorForSystem,
@@ -41,6 +42,7 @@ export function SwatchColorPicker({
 	rgb,
 	onChange,
 }: SwatchColorPickerProps): JSX.Element {
+	const { t } = useTranslation("app");
 	const [isOpen, setIsOpen] = useState(false);
 	const swatchRef = useRef<HTMLButtonElement>(null);
 	const popoverRef = useRef<HTMLDivElement>(null);
@@ -115,7 +117,10 @@ export function SwatchColorPicker({
 						className="swatch-color-picker__swatch"
 						style={{ backgroundColor: hex }}
 						onClick={() => setIsOpen((open) => !open)}
-						aria-label={`${label}: ${formatColorForSystem(rgb, colorSystem)}`}
+						aria-label={t("swatchColorPicker.swatchAriaLabel", {
+							label,
+							value: formatColorForSystem(rgb, colorSystem),
+						})}
 					/>
 				</span>
 			</FloatingTooltip>

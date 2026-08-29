@@ -2,8 +2,11 @@ import { app, BrowserWindow, ipcMain, Menu, shell } from "electron";
 import { join } from "node:path";
 import { registerEnvironmentImageHandlers } from "./ipc/environmentImageHandlers";
 import { registerPaletteFileHandlers } from "./ipc/paletteFileHandlers";
+import { registerSettingsHandlers } from "./ipc/settingsHandlers";
 import { registerUpdateHandlers } from "./ipc/updateHandlers";
+import { initMainI18n } from "./i18n";
 import { buildMenu } from "./menu";
+import { readSettings } from "./settingsStore";
 import { checkForUpdates } from "./updates/checkForUpdates";
 
 app.setName("Palettax");
@@ -16,7 +19,7 @@ app.setAboutPanelOptions({
 
 const devIconPath = join(__dirname, "../../build/icon.png");
 
-function createWindow(): void {
+function createWindow(): BrowserWindow {
 	const mainWindow = new BrowserWindow({
 		width: 1100,
 		height: 720,
@@ -68,17 +71,23 @@ function createWindow(): void {
 	} else {
 		mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
 	}
+
+	return mainWindow;
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
 	if (!app.isPackaged && process.platform === "darwin") {
 		app.dock?.setIcon(devIconPath);
 	}
 
+	const settings = await readSettings();
+	await initMainI18n(settings.language);
+
 	registerPaletteFileHandlers();
 	registerEnvironmentImageHandlers();
 	registerUpdateHandlers();
-	createWindow();
+	const mainWindow = createWindow();
+	registerSettingsHandlers(mainWindow);
 
 	app.on("activate", () => {
 		if (BrowserWindow.getAllWindows().length === 0) {

@@ -1,59 +1,91 @@
-import { BrowserWindow, Menu, MenuItemConstructorOptions } from "electron";
+import { app, BrowserWindow, Menu, MenuItemConstructorOptions } from "electron";
+import { t } from "./i18n";
 
 export function buildMenu(mainWindow: BrowserWindow): Menu {
 	const isMac = process.platform === "darwin";
 
+	const preferencesItem: MenuItemConstructorOptions = {
+		label: t("preferences"),
+		accelerator: "CmdOrCtrl+,",
+		click: () => mainWindow.webContents.send("menu:trigger-preferences"),
+	};
+
 	const template: MenuItemConstructorOptions[] = [
-		...(isMac ? [{ role: "appMenu" } as MenuItemConstructorOptions] : []),
+		...(isMac
+			? [
+					{
+						label: app.name,
+						submenu: [
+							{ role: "about" },
+							{ type: "separator" },
+							preferencesItem,
+							{ type: "separator" },
+							{ role: "services" },
+							{ type: "separator" },
+							{ role: "hide" },
+							{ role: "hideOthers" },
+							{ role: "unhide" },
+							{ type: "separator" },
+							{ role: "quit" },
+						],
+					} as MenuItemConstructorOptions,
+				]
+			: []),
 		{
-			label: "File",
+			label: t("file"),
 			submenu: [
+				...(isMac
+					? []
+					: [
+							preferencesItem,
+							{ type: "separator" } as MenuItemConstructorOptions,
+						]),
 				{
-					label: "New Palette",
+					label: t("newPalette"),
 					accelerator: "CmdOrCtrl+N",
 					click: () => mainWindow.webContents.send("menu:trigger-new-palette"),
 				},
 				{ type: "separator" },
 				{
-					label: "Import Palette…",
+					label: t("importPalette"),
 					accelerator: "CmdOrCtrl+O",
 					click: () => mainWindow.webContents.send("menu:trigger-import"),
 				},
 				{
-					label: "Export Palette as",
+					label: t("exportPaletteAs"),
 					submenu: [
 						{
-							label: "JASC/Gale (.pal)",
+							label: t("export.pal"),
 							click: () =>
 								mainWindow.webContents.send("menu:trigger-export", "pal"),
 						},
 						{
-							label: "GIMP Palette (.gpl)",
+							label: t("export.gpl"),
 							click: () =>
 								mainWindow.webContents.send("menu:trigger-export", "gpl"),
 						},
 						{
-							label: "Hex List (.txt)",
+							label: t("export.txt"),
 							click: () =>
 								mainWindow.webContents.send("menu:trigger-export", "txt"),
 						},
 						{
-							label: "CSS Stylesheet (.css)",
+							label: t("export.css"),
 							click: () =>
 								mainWindow.webContents.send("menu:trigger-export", "css"),
 						},
 						{
-							label: "Adobe Swatch Exchange (.ase)",
+							label: t("export.ase"),
 							click: () =>
 								mainWindow.webContents.send("menu:trigger-export", "ase"),
 						},
 						{
-							label: "Adobe Color Swatch (.aco)",
+							label: t("export.aco"),
 							click: () =>
 								mainWindow.webContents.send("menu:trigger-export", "aco"),
 						},
 						{
-							label: "PNG Image (.png)",
+							label: t("export.png"),
 							click: () =>
 								mainWindow.webContents.send("menu:trigger-export", "png"),
 						},
@@ -67,10 +99,10 @@ export function buildMenu(mainWindow: BrowserWindow): Menu {
 		{ role: "viewMenu" },
 		{ role: "windowMenu" },
 		{
-			label: "Help",
+			label: t("help"),
 			submenu: [
 				{
-					label: "How It Works",
+					label: t("howItWorks"),
 					click: () => mainWindow.webContents.send("menu:trigger-help"),
 				},
 			],

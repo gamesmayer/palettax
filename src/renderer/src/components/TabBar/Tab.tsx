@@ -1,5 +1,6 @@
 import { Button, Frame } from "@react95/core";
 import { MouseEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { EditableText } from "../EditableText/EditableText";
 import { CloseIcon } from "../icons/CloseIcon";
 
@@ -18,6 +19,7 @@ export function Tab({
 	onClose,
 	onRename,
 }: TabProps): JSX.Element {
+	const { t } = useTranslation("app");
 	return (
 		<Frame
 			as="li"
@@ -36,7 +38,7 @@ export function Tab({
 					event.stopPropagation();
 					onClose();
 				}}
-				aria-label={`Close ${label}`}
+				aria-label={t("tab.closeAriaLabel", { name: label })}
 			>
 				<CloseIcon size="s" />
 			</Button>

@@ -5,6 +5,7 @@ import {
 	PngExportOptions,
 	serializePaletteFile,
 } from "../../../shared/palette-formats";
+import i18n from "../i18n/i18n";
 import { usePaletteStore } from "../store/paletteStore";
 
 export function usePaletteActions(): {
@@ -26,7 +27,10 @@ export function usePaletteActions(): {
 				addPalette(palette);
 			} catch (error) {
 				window.alert(
-					`Could not import ${file.filePath}: ${(error as Error).message}`
+					i18n.t("app:alerts.importFailed", {
+						filePath: file.filePath,
+						message: (error as Error).message,
+					})
 				);
 			}
 		}
@@ -44,7 +48,11 @@ export function usePaletteActions(): {
 			try {
 				content = serializePaletteFile(palette, format, pngOptions);
 			} catch (error) {
-				window.alert(`Could not export palette: ${(error as Error).message}`);
+				window.alert(
+					i18n.t("app:alerts.exportFailed", {
+						message: (error as Error).message,
+					})
+				);
 				return;
 			}
 			const suggestedFileName = `${palette.name}.${format}`;
@@ -58,7 +66,9 @@ export function usePaletteActions(): {
 			});
 
 			if (!result.canceled) {
-				window.alert(`Palette exported to ${result.filePath}`);
+				window.alert(
+					i18n.t("app:alerts.exportSucceeded", { filePath: result.filePath })
+				);
 			}
 		},
 		[]

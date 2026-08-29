@@ -1,5 +1,6 @@
 import { Button, Dropdown, Frame } from "@react95/core";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { ColorSystem } from "../../../../shared/color";
 import { PlusIcon } from "../icons/PlusIcon";
 import { RedoIcon } from "../icons/RedoIcon";
@@ -19,21 +20,7 @@ interface PaletteToolbarProps {
 	canRedo: boolean;
 }
 
-const COLOR_SYSTEM_LABELS: Record<ColorSystem, string> = {
-	hex: "Hex",
-	rgb: "RGB",
-	hsl: "HSL",
-	hsb: "HSB",
-	cmyk: "CMYK",
-};
-
-const COLOR_SYSTEM_BY_LABEL: Record<string, ColorSystem> = {
-	Hex: "hex",
-	RGB: "rgb",
-	HSL: "hsl",
-	HSB: "hsb",
-	CMYK: "cmyk",
-};
+const COLOR_SYSTEM_ORDER: ColorSystem[] = ["hex", "rgb", "hsl", "hsb", "cmyk"];
 
 export function PaletteToolbar({
 	colorSystem,
@@ -48,17 +35,37 @@ export function PaletteToolbar({
 	canUndo,
 	canRedo,
 }: PaletteToolbarProps): JSX.Element {
+	const { t } = useTranslation("app");
+
+	const colorSystemLabel = useMemo(
+		() =>
+			Object.fromEntries(
+				COLOR_SYSTEM_ORDER.map((key) => [
+					key,
+					t(`paletteToolbar.colorSystem.${key}`),
+				])
+			) as Record<ColorSystem, string>,
+		[t]
+	);
+	const colorSystemByLabel = useMemo(
+		() =>
+			Object.fromEntries(
+				COLOR_SYSTEM_ORDER.map((key) => [colorSystemLabel[key], key])
+			) as Record<string, ColorSystem>,
+		[colorSystemLabel]
+	);
+
 	return (
 		<Frame className="palette-toolbar">
 			<div className="palette-toolbar__top">
 				<Dropdown
 					className="palette-toolbar__color-system"
-					options={Object.values(COLOR_SYSTEM_LABELS)}
-					value={COLOR_SYSTEM_LABELS[colorSystem]}
+					options={Object.values(colorSystemLabel)}
+					value={colorSystemLabel[colorSystem]}
 					onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-						onColorSystemChange(COLOR_SYSTEM_BY_LABEL[event.target.value])
+						onColorSystemChange(colorSystemByLabel[event.target.value])
 					}
-					aria-label="Color system"
+					aria-label={t("paletteToolbar.colorSystemAriaLabel")}
 				/>
 			</div>
 			<hr className="modal-separator" />
@@ -68,7 +75,7 @@ export function PaletteToolbar({
 						className="palette-toolbar__icon-btn"
 						onClick={onUndo}
 						disabled={!canUndo}
-						aria-label="Undo"
+						aria-label={t("paletteToolbar.undo")}
 					>
 						<UndoIcon />
 					</Button>
@@ -76,21 +83,25 @@ export function PaletteToolbar({
 						className="palette-toolbar__icon-btn"
 						onClick={onRedo}
 						disabled={!canRedo}
-						aria-label="Redo"
+						aria-label={t("paletteToolbar.redo")}
 					>
 						<RedoIcon />
 					</Button>
 				</div>
 				<div className="palette-toolbar__right">
 					<Button onClick={onAddGroup}>
-						<PlusIcon /> Add group
+						<PlusIcon /> {t("paletteToolbar.addGroup")}
 					</Button>
 					<Button onClick={onAddColor}>
-						<PlusIcon /> Add color
+						<PlusIcon /> {t("paletteToolbar.addColor")}
 					</Button>
-					<Button onClick={onOpenBlend}>Blending</Button>
-					<Button onClick={onOpenShadeTint}>Shades/Tints</Button>
-					<Button onClick={onOpenMaterialRamp}>Material Ramp</Button>
+					<Button onClick={onOpenBlend}>{t("paletteToolbar.blending")}</Button>
+					<Button onClick={onOpenShadeTint}>
+						{t("paletteToolbar.shadesTints")}
+					</Button>
+					<Button onClick={onOpenMaterialRamp}>
+						{t("paletteToolbar.materialRamp")}
+					</Button>
 				</div>
 			</div>
 		</Frame>

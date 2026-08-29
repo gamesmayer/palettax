@@ -870,3 +870,11 @@ which only matters inside react95's own stacking context. */
 	margin: 0;
 	padding: var(--r95-space-4) 0;
 }
+
+.preferences-modal {
+	position: fixed;
+	top: 80px;
+	left: 50%;
+	margin-left: -140px;
+	width: 280px;
+}

@@ -1,5 +1,6 @@
 import { Button, Frame } from "@react95/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	ColorSystem,
 	formatColorForSystem,
@@ -19,6 +20,7 @@ import {
 	clampIntensity,
 	clampStopCount,
 	clampUnit,
+	Translate,
 	warningForAlbedoColor,
 	warningForUnreachableTarget,
 } from "../../../../shared/materialRamp/dialogValidation";
@@ -77,6 +79,7 @@ export function MaterialRampModal({
 	colorSystem,
 	onClose,
 }: MaterialRampModalProps): JSX.Element {
+	const { t } = useTranslation(["common", "app"]);
 	const addColors = usePaletteStore((state) => state.addColors);
 	const addGroup = usePaletteStore((state) => state.addGroup);
 
@@ -93,7 +96,10 @@ export function MaterialRampModal({
 	// than picked directly, since artists think in terms of the desired final
 	// appearance, not the underlying BRDF input.
 	const [albedoRgb, setAlbedoRgb] = useState<Rgb>(DEFAULT_TARGET_BASE_COLOR);
-	const albedoLightnessWarning = warningForAlbedoColor(albedoRgb);
+	const albedoLightnessWarning = warningForAlbedoColor(
+		albedoRgb,
+		t as Translate
+	);
 
 	// Represents the desired final rendered appearance -- changing it (or
 	// changing metallic/roughness/lighting afterward) solves for the Albedo
@@ -166,7 +172,7 @@ export function MaterialRampModal({
 			);
 			setEnvironmentError(null);
 		} catch {
-			setEnvironmentError("Couldn't read that file as a PNG image.");
+			setEnvironmentError(t("app:materialRampModal.environmentReadError"));
 		}
 	}
 
@@ -181,7 +187,12 @@ export function MaterialRampModal({
 				targetCustomRgb)
 			: targetCustomRgb;
 	const unreachableWarning = unreachableAchieved
-		? warningForUnreachableTarget(targetRgb, unreachableAchieved, colorSystem)
+		? warningForUnreachableTarget(
+				targetRgb,
+				unreachableAchieved,
+				colorSystem,
+				t as Translate
+			)
 		: null;
 
 	const material: MaterialDefinition = useMemo(
@@ -287,15 +298,15 @@ export function MaterialRampModal({
 	return (
 		<Modal
 			className="material-ramp-modal"
-			title="Generate material ramp"
+			title={t("app:materialRampModal.title")}
 			buttons={[
-				{ value: "Cancel", onClick: onClose },
-				{ value: "Add", onClick: handleSubmit },
+				{ value: t("common:cancel"), onClick: onClose },
+				{ value: t("common:add"), onClick: handleSubmit },
 			]}
 			onClose={onClose}
 		>
 			<Field
-				label={`Preview (${stops.length} color${stops.length === 1 ? "" : "s"})`}
+				label={t("app:materialRampModal.previewLabel", { count: stops.length })}
 			>
 				<MaterialRampPreview
 					stops={stops}
@@ -306,11 +317,13 @@ export function MaterialRampModal({
 			<hr className="modal-separator" />
 
 			<Frame className="material-ramp-modal__section">
-				<div className="material-ramp-modal__section-title">Color</div>
+				<div className="material-ramp-modal__section-title">
+					{t("app:materialRampModal.sections.color")}
+				</div>
 
 				<EndpointPicker
-					label="Target base color"
-					tooltip="The desired final rendered appearance — the Albedo color below is solved to match it."
+					label={t("app:materialRampModal.targetBaseColorLabel")}
+					tooltip={t("app:materialRampModal.tooltips.targetBaseColor")}
 					mode={targetMode}
 					onModeChange={setTargetMode}
 					colors={colors}
@@ -324,8 +337,8 @@ export function MaterialRampModal({
 				<div className="material-ramp-modal__albedo-field">
 					<div className="material-ramp-modal__albedo-swatch-row">
 						<FieldLabel
-							text="Albedo color"
-							tooltip="The raw material input the ramp is actually generated from — solved automatically from the Target base color above. Rarely needed directly."
+							text={t("app:materialRampModal.albedoColorLabel")}
+							tooltip={t("app:materialRampModal.tooltips.albedoColor")}
 						/>
 						<FloatingTooltip
 							text={formatColorForSystem(albedoRgb, colorSystem)}
@@ -339,12 +352,14 @@ export function MaterialRampModal({
 										albedoRgb.b
 									),
 								}}
-								aria-label={`Albedo color: ${formatColorForSystem(albedoRgb, colorSystem)}`}
+								aria-label={t("app:materialRampModal.albedoColorAriaLabel", {
+									color: formatColorForSystem(albedoRgb, colorSystem),
+								})}
 							/>
 						</FloatingTooltip>
 						{isSolving && (
 							<span className="material-ramp-modal__albedo-solving">
-								Calculating…
+								{t("app:materialRampModal.calculating")}
 							</span>
 						)}
 					</div>
@@ -361,98 +376,110 @@ export function MaterialRampModal({
 			</Frame>
 
 			<Frame className="material-ramp-modal__section">
-				<div className="material-ramp-modal__section-title">Properties</div>
+				<div className="material-ramp-modal__section-title">
+					{t("app:materialRampModal.sections.properties")}
+				</div>
 				<Field
-					label="Presets"
-					tooltip="Quickly set Metallic and Roughness to common material presets. Your base color is unchanged."
+					label={t("app:materialRampModal.presetsLabel")}
+					tooltip={t("app:materialRampModal.tooltips.presets")}
 				>
 					<div className="material-preset-chips">
-						{MATERIAL_PRESETS.map((preset) => (
-							<FloatingTooltip
-								key={preset.name}
-								text={`e.g. ${preset.examples}`}
-							>
-								<Button
-									className="material-preset-chip"
-									onClick={() => {
-										setMetallic(preset.metallic);
-										setRoughness(preset.roughness);
-									}}
-									aria-label={`Preset: ${preset.name}`}
+						{MATERIAL_PRESETS.map((preset) => {
+							const name = t(`app:materialPresets.${preset.id}.name`);
+							const examples = t(`app:materialPresets.${preset.id}.examples`);
+							return (
+								<FloatingTooltip
+									key={preset.id}
+									text={t("app:materialRampModal.presetExampleTooltip", {
+										examples,
+									})}
 								>
-									{preset.name}
-								</Button>
-							</FloatingTooltip>
-						))}
+									<Button
+										className="material-preset-chip"
+										onClick={() => {
+											setMetallic(preset.metallic);
+											setRoughness(preset.roughness);
+										}}
+										aria-label={t("app:materialRampModal.presetAriaLabel", {
+											name,
+										})}
+									>
+										{name}
+									</Button>
+								</FloatingTooltip>
+							);
+						})}
 					</div>
 				</Field>
 
 				<div className="material-ramp-modal__row">
 					<NumberInput
-						label="Metallic"
-						tooltip="How metallic the surface is. 0 = dielectric (plastic, cloth, stone); 1 = pure metal (steel, gold, copper)."
+						label={t("app:materialRampModal.metallicLabel")}
+						tooltip={t("app:materialRampModal.tooltips.metallic")}
 						min={MIN_UNIT}
 						max={MAX_UNIT}
 						step={0.01}
 						value={metallic}
 						onChange={setMetallic}
 						clamp={clampUnit}
-						aria-label="Metallic"
+						aria-label={t("app:materialRampModal.metallicLabel")}
 					/>
 					<NumberInput
-						label="Roughness"
-						tooltip="How rough the surface is. Low values give a small, sharp, bright highlight; high values spread it into a soft, dim sheen."
+						label={t("app:materialRampModal.roughnessLabel")}
+						tooltip={t("app:materialRampModal.tooltips.roughness")}
 						min={MIN_UNIT}
 						max={MAX_UNIT}
 						step={0.01}
 						value={roughness}
 						onChange={setRoughness}
 						clamp={clampUnit}
-						aria-label="Roughness"
+						aria-label={t("app:materialRampModal.roughnessLabel")}
 					/>
 					<NumberInput
-						label="Ramp colors"
-						tooltip="How many colors to compress the material's full light response into. More colors preserve finer value changes; fewer colors force a tighter, more stylized ramp."
+						label={t("app:materialRampModal.rampColorsLabel")}
+						tooltip={t("app:materialRampModal.tooltips.rampColors")}
 						min={MIN_STOPS}
 						max={MAX_STOPS}
 						value={stopCount}
 						onChange={setStopCount}
 						clamp={clampStopCount}
-						aria-label="Number of ramp colors"
-					/>
-				</div>
-			</Frame>
-
-			<Frame className="material-ramp-modal__section">
-				<div className="material-ramp-modal__section-title">Ambient</div>
-				<div className="material-ramp-modal__row">
-					<SwatchColorPicker
-						label="Ambient color"
-						tooltip="A flat fill light hitting the material from every direction equally, independent of surface orientation — keeps the darkest end of the ramp from going to pure black, including for pure metals via an approximate Fresnel specular term."
-						colorSystem={colorSystem}
-						rgb={ambientColor}
-						onChange={setAmbientColor}
-					/>
-					<NumberInput
-						label="Ambient intensity"
-						tooltip="How bright the ambient fill light is."
-						min={MIN_UNIT}
-						step={0.01}
-						value={ambientIntensity}
-						onChange={setAmbientIntensity}
-						clamp={clampIntensity}
-						aria-label="Ambient intensity"
+						aria-label={t("app:materialRampModal.rampColorsAriaLabel")}
 					/>
 				</div>
 			</Frame>
 
 			<Frame className="material-ramp-modal__section">
 				<div className="material-ramp-modal__section-title">
-					Environment reflection
+					{t("app:materialRampModal.sections.ambient")}
+				</div>
+				<div className="material-ramp-modal__row">
+					<SwatchColorPicker
+						label={t("app:materialRampModal.ambientColorLabel")}
+						tooltip={t("app:materialRampModal.tooltips.ambientColor")}
+						colorSystem={colorSystem}
+						rgb={ambientColor}
+						onChange={setAmbientColor}
+					/>
+					<NumberInput
+						label={t("app:materialRampModal.ambientIntensityLabel")}
+						tooltip={t("app:materialRampModal.tooltips.ambientIntensity")}
+						min={MIN_UNIT}
+						step={0.01}
+						value={ambientIntensity}
+						onChange={setAmbientIntensity}
+						clamp={clampIntensity}
+						aria-label={t("app:materialRampModal.ambientIntensityLabel")}
+					/>
+				</div>
+			</Frame>
+
+			<Frame className="material-ramp-modal__section">
+				<div className="material-ramp-modal__section-title">
+					{t("app:materialRampModal.sections.environmentReflection")}
 				</div>
 				<Field
-					label="Environment"
-					tooltip="A real reflection image sampled by the material's mirror direction and roughness — richer than the flat ambient fill above, especially for polished or metallic materials."
+					label={t("app:materialRampModal.environmentLabel")}
+					tooltip={t("app:materialRampModal.tooltips.environment")}
 				>
 					<div className="endpoint-picker__mode-toggle">
 						<Button
@@ -463,7 +490,7 @@ export function MaterialRampModal({
 							}
 							onClick={() => setEnvironmentMode("default")}
 						>
-							Default image
+							{t("app:materialRampModal.defaultImage")}
 						</Button>
 						<Button
 							className={
@@ -473,13 +500,15 @@ export function MaterialRampModal({
 							}
 							onClick={() => setEnvironmentMode("custom")}
 						>
-							Custom image
+							{t("app:materialRampModal.customImage")}
 						</Button>
 					</div>
 				</Field>
 				{environmentMode === "custom" && (
 					<div className="field">
-						<Button onClick={handleChooseEnvironmentImage}>Choose file…</Button>
+						<Button onClick={handleChooseEnvironmentImage}>
+							{t("app:materialRampModal.chooseFile")}
+						</Button>
 						{customEnvironmentFileName && (
 							<span className="material-ramp-modal__environment-filename">
 								{customEnvironmentFileName}
@@ -490,42 +519,42 @@ export function MaterialRampModal({
 				<EnvironmentMapPreview environmentMap={activeEnvironmentMap} />
 				{environmentError && <Banner type="error" message={environmentError} />}
 				<NumberInput
-					label="Environment intensity"
-					tooltip="How strongly the environment reflection contributes, on top of the ambient fill above."
+					label={t("app:materialRampModal.environmentIntensityLabel")}
+					tooltip={t("app:materialRampModal.tooltips.environmentIntensity")}
 					min={MIN_UNIT}
 					step={0.01}
 					value={environmentIntensity}
 					onChange={setEnvironmentIntensity}
 					clamp={clampIntensity}
-					aria-label="Environment intensity"
+					aria-label={t("app:materialRampModal.environmentIntensityLabel")}
 				/>
 			</Frame>
 
 			<Frame className="material-ramp-modal__section">
 				<div className="material-ramp-modal__section-title">
-					Directional light
+					{t("app:materialRampModal.sections.directionalLight")}
 				</div>
 				<div className="material-ramp-modal__row">
 					<SwatchColorPicker
-						label="Light color"
-						tooltip="The color of the direct light illuminating the material."
+						label={t("app:materialRampModal.lightColorLabel")}
+						tooltip={t("app:materialRampModal.tooltips.lightColor")}
 						colorSystem={colorSystem}
 						rgb={lightColor}
 						onChange={setLightColor}
 					/>
 					<NumberInput
-						label="Light intensity"
-						tooltip="How bright the direct light is."
+						label={t("app:materialRampModal.lightIntensityLabel")}
+						tooltip={t("app:materialRampModal.tooltips.lightIntensity")}
 						min={MIN_UNIT}
 						step={0.01}
 						value={lightIntensity}
 						onChange={setLightIntensity}
 						clamp={clampIntensity}
-						aria-label="Light intensity"
+						aria-label={t("app:materialRampModal.lightIntensityLabel")}
 					/>
 					<VectorInput
-						label="Light direction"
-						tooltip="Direction the light shines from, as a normalized (x, y, z) vector. Fixed for now — will be editable in a future version. Together with the view direction, this also defines the plane surface orientation is swept through to generate the ramp."
+						label={t("app:materialRampModal.lightDirectionLabel")}
+						tooltip={t("app:materialRampModal.tooltips.lightDirection")}
 						value={DEFAULT_LIGHTING.directionalLightDir}
 						disabled
 					/>
@@ -533,10 +562,12 @@ export function MaterialRampModal({
 			</Frame>
 
 			<Frame className="material-ramp-modal__section">
-				<div className="material-ramp-modal__section-title">View</div>
+				<div className="material-ramp-modal__section-title">
+					{t("app:materialRampModal.sections.view")}
+				</div>
 				<VectorInput
-					label="View direction"
-					tooltip="Direction the camera is looking from, as a normalized (x, y, z) vector. Fixed for now — will be editable in a future version. Pairs with the light direction to define the plane surface orientation is swept through."
+					label={t("app:materialRampModal.viewDirectionLabel")}
+					tooltip={t("app:materialRampModal.tooltips.viewDirection")}
 					value={DEFAULT_LIGHTING.viewDir}
 					disabled
 				/>

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { EnvironmentMap } from "../../../../shared/materialRamp/environmentMap";
 
 interface EnvironmentMapPreviewProps {
@@ -8,6 +9,7 @@ interface EnvironmentMapPreviewProps {
 export function EnvironmentMapPreview({
 	environmentMap,
 }: EnvironmentMapPreviewProps): JSX.Element {
+	const { t } = useTranslation("app");
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const base = environmentMap?.levels[0] ?? null;
 
@@ -37,7 +39,7 @@ export function EnvironmentMapPreview({
 			height={base.height}
 			className="material-ramp-modal__environment-preview"
 			role="img"
-			aria-label="Environment reflection image"
+			aria-label={t("environmentMapPreview.ariaLabel")}
 		/>
 	);
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { UpdateInfo } from "../../shared/ipc-contract";
 import { flattenGroups } from "../../shared/paletteGroups";
 import { ConfirmModal } from "./components/ConfirmModal/ConfirmModal";
@@ -6,17 +7,20 @@ import { HelpModal } from "./components/HelpModal/HelpModal";
 import { KeyboardShortcuts } from "./components/KeyboardShortcuts/KeyboardShortcuts";
 import { PaletteView } from "./components/PaletteView/PaletteView";
 import { PngExportModal } from "./components/PngExportModal/PngExportModal";
+import { PreferencesModal } from "./components/PreferencesModal/PreferencesModal";
 import { TabBar } from "./components/TabBar/TabBar";
 import { UpdateModal } from "./components/UpdateModal/UpdateModal";
 import { usePaletteActions } from "./hooks/usePaletteActions";
 import { usePaletteStore } from "./store/paletteStore";
 
 export function App(): JSX.Element {
+	const { t } = useTranslation(["common", "app"]);
 	const { importPalettes, exportActivePalette } = usePaletteActions();
 	const createPalette = usePaletteStore((state) => state.createPalette);
 	const hasOpenPalettes = usePaletteStore((state) => state.tabOrder.length > 0);
 	const [isConfirmingAppClose, setIsConfirmingAppClose] = useState(false);
 	const [showHelp, setShowHelp] = useState(false);
+	const [showPreferences, setShowPreferences] = useState(false);
 	const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
 	const [pngExportContext, setPngExportContext] = useState<{
 		colorCount: number;
@@ -54,6 +58,9 @@ export function App(): JSX.Element {
 		const offHelp = window.paletteApi.onTriggerHelp(() => {
 			setShowHelp(true);
 		});
+		const offPreferences = window.settingsApi.onTriggerPreferences(() => {
+			setShowPreferences(true);
+		});
 		return () => {
 			offImport();
 			offExport();
@@ -61,6 +68,7 @@ export function App(): JSX.Element {
 			offRequestClose();
 			offUpdateAvailable();
 			offHelp();
+			offPreferences();
 		};
 	}, [importPalettes, exportActivePalette, createPalette]);
 
@@ -71,10 +79,10 @@ export function App(): JSX.Element {
 			<PaletteView />
 			{isConfirmingAppClose && (
 				<ConfirmModal
-					title="Close Palettax"
-					message="Close the application? Any unexported changes in open palettes will be lost."
-					confirmLabel="Close"
-					cancelLabel="Cancel"
+					title={t("app:appCloseConfirm.title")}
+					message={t("app:appCloseConfirm.message")}
+					confirmLabel={t("common:close")}
+					cancelLabel={t("common:cancel")}
 					onConfirm={() => window.paletteApi.confirmClose()}
 					onCancel={() => setIsConfirmingAppClose(false)}
 				/>
@@ -90,6 +98,9 @@ export function App(): JSX.Element {
 				/>
 			)}
 			{showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+			{showPreferences && (
+				<PreferencesModal onClose={() => setShowPreferences(false)} />
+			)}
 			{pngExportContext && (
 				<PngExportModal
 					colorCount={pngExportContext.colorCount}

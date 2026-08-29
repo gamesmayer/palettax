@@ -1,0 +1,288 @@
+{
+	"preferencesModal": {
+		"title": "Preferencias",
+		"languageLabel": "Idioma"
+	},
+	"languages": {
+		"en": "English",
+		"es": "Español"
+	},
+	"appCloseConfirm": {
+		"title": "Cerrar Palettax",
+		"message": "¿Cerrar la aplicación? Se perderán los cambios no exportados en las paletas abiertas."
+	},
+	"updateModal": {
+		"title": "Actualización disponible",
+		"message": "Palettax {{tag}} está disponible. ¿Descargarlo desde GitHub?"
+	},
+	"untitledPalette": "Sin título",
+	"tabBar": {
+		"closeConfirmTitle": "Cerrar paleta",
+		"closeConfirmMessage": "¿Cerrar \"{{name}}\"? Se perderán los cambios no exportados."
+	},
+	"tab": {
+		"closeAriaLabel": "Cerrar {{name}}"
+	},
+	"groupSection": {
+		"ungrouped": "Sin agrupar",
+		"deleteAriaLabel": "Eliminar grupo",
+		"deleteConfirmTitle": "Eliminar grupo",
+		"deleteConfirmLabel": "Eliminar",
+		"colorCount_one": "{{count}} color",
+		"colorCount_other": "{{count}} colores",
+		"deleteConfirmMessage_one": "¿Eliminar \"{{name}}\"? Se perderá su {{count}} color.",
+		"deleteConfirmMessage_other": "¿Eliminar \"{{name}}\"? Se perderán sus {{count}} colores."
+	},
+	"alerts": {
+		"importFailed": "No se pudo importar {{filePath}}: {{message}}",
+		"exportFailed": "No se pudo exportar la paleta: {{message}}",
+		"exportSucceeded": "Paleta exportada a {{filePath}}"
+	},
+	"blendModal": {
+		"title": "Añadir mezcla",
+		"fromLabel": "Desde",
+		"toLabel": "Hasta",
+		"stepsLabel": "Pasos",
+		"stepsAriaLabel": "Número de pasos",
+		"previewLabel_one": "Vista previa ({{count}} color nuevo)",
+		"previewLabel_other": "Vista previa ({{count}} colores nuevos)"
+	},
+	"shadeTintModal": {
+		"title": "Añadir sombras/tintes",
+		"colorLabel": "Color",
+		"interpolationLabel": "Interpolación",
+		"interpolationAriaLabel": "Método de interpolación",
+		"easing": {
+			"linear": "Lineal",
+			"ease-in": "Entrada suave",
+			"ease-out": "Salida suave",
+			"ease-in-out": "Entrada-salida suave",
+			"smootherstep": "Suavizado extra"
+		},
+		"shadesTitle": "Sombras",
+		"tintsTitle": "Tintes",
+		"amountLabel": "Cantidad",
+		"darknessLabel": "Oscuridad %",
+		"lightnessLabel": "Luminosidad %",
+		"hueShiftLabel": "Cambio de tono °",
+		"chromaShiftLabel": "Cambio de croma %",
+		"shadeCountAriaLabel": "Número de sombras",
+		"shadeDarknessAriaLabel": "Oscuridad de la sombra",
+		"shadeHueShiftAriaLabel": "Cambio de tono de la sombra",
+		"shadeChromaShiftAriaLabel": "Cambio de croma de la sombra",
+		"tintCountAriaLabel": "Número de tintes",
+		"tintLightnessAriaLabel": "Luminosidad del tinte",
+		"tintHueShiftAriaLabel": "Cambio de tono del tinte",
+		"tintChromaShiftAriaLabel": "Cambio de croma del tinte",
+		"previewLabel_one": "Vista previa ({{count}} color nuevo)",
+		"previewLabel_other": "Vista previa ({{count}} colores nuevos)"
+	},
+	"pngExportModal": {
+		"title": "Exportar como PNG",
+		"exportButton": "Exportar",
+		"shapeLabel": "Forma",
+		"shapeRow": "Fila (1×N)",
+		"shapeColumn": "Columna (N×1)",
+		"shapeGrid": "Cuadrícula",
+		"specifyByLabel": "Especificar por",
+		"dimensionColumns": "Columnas",
+		"dimensionRows": "Filas",
+		"columnsCountAriaLabel": "Número de columnas",
+		"rowsCountAriaLabel": "Número de filas",
+		"emptySuffix_one": ", {{count}} vacía",
+		"emptySuffix_other": ", {{count}} vacías",
+		"resultLabel_one": "Resultado: {{columns}} × {{rows}} ({{totalCells}} celda{{emptySuffix}})",
+		"resultLabel_other": "Resultado: {{columns}} × {{rows}} ({{totalCells}} celdas{{emptySuffix}})"
+	},
+	"groupPicker": {
+		"addToGroupLabel": "Añadir al grupo",
+		"existingGroup": "Grupo existente",
+		"newGroup": "Grupo nuevo",
+		"groupNamePlaceholder": "Nombre del grupo",
+		"groupNameAriaLabel": "Nombre del grupo nuevo"
+	},
+	"paletteToolbar": {
+		"colorSystem": {
+			"hex": "Hex",
+			"rgb": "RGB",
+			"hsl": "HSL",
+			"hsb": "HSB",
+			"cmyk": "CMYK"
+		},
+		"colorSystemAriaLabel": "Sistema de color",
+		"undo": "Deshacer",
+		"redo": "Rehacer",
+		"addGroup": "Añadir grupo",
+		"addColor": "Añadir color",
+		"blending": "Mezcla",
+		"shadesTints": "Sombras/Tintes",
+		"materialRamp": "Rampa de material"
+	},
+	"colorModal": {
+		"editTitle": "Editar color",
+		"addTitle": "Añadir color",
+		"namePlaceholder": "Nombre"
+	},
+	"colorSystemFields": {
+		"hexLabel": "Hex",
+		"hexAriaLabel": "Código hexadecimal",
+		"rgbRLabel": "R",
+		"rgbRAriaLabel": "Rojo",
+		"rgbGLabel": "G",
+		"rgbGAriaLabel": "Verde",
+		"rgbBLabel": "B",
+		"rgbBAriaLabel": "Azul",
+		"hslHLabel": "H",
+		"hslHAriaLabel": "Tono",
+		"hslSLabel": "S",
+		"hslSAriaLabel": "Saturación",
+		"hslLLabel": "L",
+		"hslLAriaLabel": "Luminosidad",
+		"hsbHLabel": "H",
+		"hsbHAriaLabel": "Tono",
+		"hsbSLabel": "S",
+		"hsbSAriaLabel": "Saturación",
+		"hsbBLabel": "B",
+		"hsbBAriaLabel": "Brillo",
+		"cmykCLabel": "C",
+		"cmykCAriaLabel": "Cian",
+		"cmykMLabel": "M",
+		"cmykMAriaLabel": "Magenta",
+		"cmykYLabel": "Y",
+		"cmykYAriaLabel": "Amarillo",
+		"cmykKLabel": "K",
+		"cmykKAriaLabel": "Negro"
+	},
+	"endpointPicker": {
+		"paletteColorButton": "Color de la paleta",
+		"newColorButton": "Color nuevo",
+		"colorAriaLabel": "{{label}}: {{value}}"
+	},
+	"swatchColorPicker": {
+		"swatchAriaLabel": "{{label}}: {{value}}"
+	},
+	"colorGrid": {
+		"emptyText": "Este grupo aún no tiene colores."
+	},
+	"colorSwatch": {
+		"editAriaLabel": "Editar color {{hex}}",
+		"removeAriaLabel": "Eliminar color",
+		"namePlaceholder": "Nombre"
+	},
+	"materialRampModal": {
+		"title": "Generar rampa de material",
+		"previewLabel_one": "Vista previa ({{count}} color)",
+		"previewLabel_other": "Vista previa ({{count}} colores)",
+		"sections": {
+			"color": "Color",
+			"properties": "Propiedades",
+			"ambient": "Ambiente",
+			"environmentReflection": "Reflejo del entorno",
+			"directionalLight": "Luz direccional",
+			"view": "Vista"
+		},
+		"targetBaseColorLabel": "Color base objetivo",
+		"albedoColorLabel": "Color de albedo",
+		"albedoColorAriaLabel": "Color de albedo: {{color}}",
+		"calculating": "Calculando…",
+		"presetsLabel": "Preajustes",
+		"presetExampleTooltip": "p. ej. {{examples}}",
+		"presetAriaLabel": "Preajuste: {{name}}",
+		"metallicLabel": "Metálico",
+		"roughnessLabel": "Rugosidad",
+		"rampColorsLabel": "Colores de la rampa",
+		"rampColorsAriaLabel": "Número de colores de la rampa",
+		"ambientColorLabel": "Color ambiental",
+		"ambientIntensityLabel": "Intensidad ambiental",
+		"environmentLabel": "Entorno",
+		"defaultImage": "Imagen predeterminada",
+		"customImage": "Imagen personalizada",
+		"chooseFile": "Elegir archivo…",
+		"environmentIntensityLabel": "Intensidad del entorno",
+		"environmentReadError": "No se pudo leer ese archivo como una imagen PNG.",
+		"lightColorLabel": "Color de la luz",
+		"lightIntensityLabel": "Intensidad de la luz",
+		"lightDirectionLabel": "Dirección de la luz",
+		"viewDirectionLabel": "Dirección de la vista",
+		"tooltips": {
+			"targetBaseColor": "La apariencia final deseada del render — el color de Albedo de abajo se calcula para igualarla.",
+			"albedoColor": "La entrada de material sin procesar a partir de la cual se genera realmente la rampa — se calcula automáticamente a partir del Color base objetivo de arriba. Rara vez es necesario ajustarlo directamente.",
+			"presets": "Ajusta rápidamente el Metálico y la Rugosidad a preajustes de material habituales. Tu color base no se modifica.",
+			"metallic": "Cuán metálica es la superficie. 0 = dieléctrico (plástico, tela, piedra); 1 = metal puro (acero, oro, cobre).",
+			"roughness": "Cuán rugosa es la superficie. Los valores bajos generan un brillo pequeño, nítido y luminoso; los valores altos lo extienden en un resplandor suave y tenue.",
+			"rampColors": "Cuántos colores se usan para comprimir la respuesta lumínica completa del material. Más colores preservan cambios de valor más finos; menos colores generan una rampa más ajustada y estilizada.",
+			"ambientColor": "Una luz de relleno plana que incide sobre el material por igual desde todas las direcciones, independientemente de la orientación de la superficie — evita que el extremo más oscuro de la rampa llegue a negro puro, incluso en metales puros, mediante un término especular de Fresnel aproximado.",
+			"ambientIntensity": "Cuán intensa es la luz de relleno ambiental.",
+			"environment": "Una imagen de reflejo real muestreada según la dirección especular y la rugosidad del material — más rica que el relleno ambiental plano de arriba, especialmente para materiales pulidos o metálicos.",
+			"environmentIntensity": "Cuánto contribuye el reflejo del entorno, sumado al relleno ambiental de arriba.",
+			"lightColor": "El color de la luz directa que ilumina el material.",
+			"lightIntensity": "Cuán intensa es la luz directa.",
+			"lightDirection": "Dirección desde la que incide la luz, como un vector normalizado (x, y, z). Fija por ahora — será editable en una futura versión. Junto con la dirección de la vista, también define el plano a través del cual se recorre la orientación de la superficie para generar la rampa.",
+			"viewDirection": "Dirección desde la que mira la cámara, como un vector normalizado (x, y, z). Fija por ahora — será editable en una futura versión. Se combina con la dirección de la luz para definir el plano a través del cual se recorre la orientación de la superficie."
+		},
+		"warnings": {
+			"albedoNearWhite": "El color de albedo está muy cerca del blanco, dejando poco margen para mostrar brillos — los tonos claros de la rampa pueden verse casi idénticos. Prueba con un color base objetivo menos extremo.",
+			"albedoNearBlack": "El color de albedo está muy cerca del negro, dejando poco margen para mostrar sombras — los tonos oscuros de la rampa pueden verse casi idénticos. Prueba con un color base objetivo menos extremo.",
+			"achievableExactly": "Este color base objetivo es alcanzable con exactitud — {{target}}.",
+			"unreachable": "Este color base objetivo no se puede alcanzar con los ajustes actuales de metálico, rugosidad e iluminación — objetivo {{target}}, más cercano alcanzable {{achieved}}.",
+			"imprecise": "No se pudo igualar con precisión el color base objetivo exacto — objetivo {{target}}, más cercano alcanzable {{achieved}}."
+		}
+	},
+	"environmentMapPreview": {
+		"ariaLabel": "Imagen de reflejo del entorno"
+	},
+	"materialRampPreview": {
+		"sphere": "Esfera",
+		"cube": "Cubo",
+		"continuous": "Continuo",
+		"posterized": "Posterizado",
+		"base": "Base"
+	},
+	"paletteView": {
+		"emptyPrompt": "¿Por dónde quieres empezar?",
+		"newPalette": "Nueva paleta",
+		"importPalette": "Importar paleta"
+	},
+	"materialPresets": {
+		"skin": {
+			"name": "Piel",
+			"examples": "piel humana, rostros, manos"
+		},
+		"fabric": {
+			"name": "Tela",
+			"examples": "tela, lona, tapicería, alfombra"
+		},
+		"wood": {
+			"name": "Madera",
+			"examples": "muebles, tarimas, cajas, mangos de herramientas"
+		},
+		"roughPlastic": {
+			"name": "Plástico rugoso",
+			"examples": "ladrillos de juguete, tapones de botella, carcasas de electrodomésticos, tubo de PVC"
+		},
+		"smoothPlastic": {
+			"name": "Plástico liso",
+			"examples": "envases brillantes, botones de plástico, fundas de teléfono, laminado"
+		},
+		"rubber": {
+			"name": "Goma",
+			"examples": "neumáticos, empuñaduras de goma, mangueras, suelas de zapato"
+		},
+		"brushedMetal": {
+			"name": "Metal cepillado",
+			"examples": "electrodomésticos de acero inoxidable, paneles de aluminio cepillado, puertas de ascensor"
+		},
+		"polishedMetal": {
+			"name": "Metal pulido",
+			"examples": "molduras cromadas, espejos, cubertería, joyería"
+		},
+		"rustedMetal": {
+			"name": "Metal oxidado",
+			"examples": "tuberías viejas, barandillas desgastadas, maquinaria corroída"
+		},
+		"ceramic": {
+			"name": "Cerámica",
+			"examples": "azulejos, porcelana, cerámica esmaltada, fregaderos"
+		}
+	}
+}

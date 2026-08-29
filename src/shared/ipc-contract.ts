@@ -6,6 +6,8 @@ export const IPC_CHANNELS = {
 	IMPORT_ENVIRONMENT_IMAGE: "environment:import-image",
 	UPDATE_AVAILABLE: "update:available",
 	OPEN_EXTERNAL_URL: "update:open-external-url",
+	GET_SETTINGS: "settings:get",
+	SET_LANGUAGE: "settings:set-language",
 } as const;
 
 export interface ImportedFile {
@@ -41,4 +43,8 @@ export interface UpdateInfo {
 	releaseUrl: string;
 	releaseNotes?: string;
 	publishedAt?: string;
+}
+
+export interface AppSettings {
+	language: string;
 }

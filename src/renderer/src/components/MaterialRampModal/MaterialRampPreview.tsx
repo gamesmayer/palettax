@@ -1,5 +1,6 @@
 import { Button } from "@react95/core";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { rgbToHex } from "../../../../shared/color";
 import { evaluateNeutralBaseColor } from "../../../../shared/materialRamp/brdf";
 import {
@@ -42,6 +43,7 @@ export function MaterialRampPreview({
 	material,
 	lighting,
 }: MaterialRampPreviewProps): JSX.Element {
+	const { t } = useTranslation("app");
 	const [shape, setShape] = useState<PreviewShape>("sphere");
 	const [hoveredPixel, setHoveredPixel] = useState<{
 		r: number;
@@ -107,7 +109,7 @@ export function MaterialRampPreview({
 					}
 					onClick={() => setShape("sphere")}
 				>
-					Sphere
+					{t("materialRampPreview.sphere")}
 				</Button>
 				<Button
 					className={
@@ -117,14 +119,14 @@ export function MaterialRampPreview({
 					}
 					onClick={() => setShape("cube")}
 				>
-					Cube
+					{t("materialRampPreview.cube")}
 				</Button>
 			</div>
 			<div className="material-ramp-modal__render-preview">
 				<MaterialSphereCanvas
 					pixels={continuousPixels}
 					size={CONTINUOUS_SPHERE_SIZE}
-					label="Continuous"
+					label={t("materialRampPreview.continuous")}
 					pixelated={false}
 					onHoverPixel={setHoveredPixel}
 					highlightColor={hoveredSwatchColor}
@@ -132,7 +134,7 @@ export function MaterialRampPreview({
 				<MaterialSphereCanvas
 					pixels={posterizedPixels}
 					size={POSTERIZED_SPHERE_SIZE}
-					label="Posterized"
+					label={t("materialRampPreview.posterized")}
 					pixelated
 					onHoverPixel={setHoveredPixel}
 					highlightColor={hoveredSwatchColor}
@@ -173,7 +175,7 @@ export function MaterialRampPreview({
 							</FloatingTooltip>
 							{isClosestToBase && (
 								<span className="material-ramp-modal__value-swatch-label">
-									Base
+									{t("materialRampPreview.base")}
 								</span>
 							)}
 						</div>

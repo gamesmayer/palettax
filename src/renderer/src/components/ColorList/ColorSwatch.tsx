@@ -2,6 +2,7 @@ import { Button, Frame } from "@react95/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { MouseEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { ColorSystem, formatColorForSystem } from "../../../../shared/color";
 import { PaletteColor } from "../../../../shared/palette-formats";
 import { EditableText } from "../EditableText/EditableText";
@@ -24,6 +25,7 @@ export function ColorSwatch({
 	onRename,
 	onEdit,
 }: ColorSwatchProps): JSX.Element {
+	const { t } = useTranslation("app");
 	const {
 		attributes,
 		listeners,
@@ -62,12 +64,12 @@ export function ColorSwatch({
 					event.stopPropagation();
 					onEdit();
 				}}
-				aria-label={`Edit color ${color.hex}`}
+				aria-label={t("colorSwatch.editAriaLabel", { hex: color.hex })}
 			/>
 			<Button
 				className="color-swatch__delete-btn"
 				onClick={onRemove}
-				aria-label="Remove color"
+				aria-label={t("colorSwatch.removeAriaLabel")}
 			>
 				<CloseIcon size="s" />
 			</Button>
@@ -76,7 +78,7 @@ export function ColorSwatch({
 				displayValue={color.name || color.hex}
 				onCommit={onRename}
 				allowEmpty
-				placeholder="Name"
+				placeholder={t("colorSwatch.namePlaceholder")}
 				className={
 					color.name
 						? "color-swatch__label"

@@ -1,5 +1,6 @@
 import { contextBridge, IpcRendererEvent, ipcRenderer } from "electron";
 import {
+	AppSettings,
 	ExportPaletteRequest,
 	ExportPaletteResult,
 	IPC_CHANNELS,
@@ -67,5 +68,21 @@ const environmentApi = {
 
 export type EnvironmentApi = typeof environmentApi;
 
+const settingsApi = {
+	getSettings: (): Promise<AppSettings> =>
+		ipcRenderer.invoke(IPC_CHANNELS.GET_SETTINGS),
+	setLanguage: (language: string): Promise<AppSettings> =>
+		ipcRenderer.invoke(IPC_CHANNELS.SET_LANGUAGE, language),
+	onTriggerPreferences: (callback: () => void): (() => void) => {
+		const listener = (): void => callback();
+		ipcRenderer.on("menu:trigger-preferences", listener);
+		return () =>
+			ipcRenderer.removeListener("menu:trigger-preferences", listener);
+	},
+};
+
+export type SettingsApi = typeof settingsApi;
+
 contextBridge.exposeInMainWorld("paletteApi", paletteApi);
 contextBridge.exposeInMainWorld("environmentApi", environmentApi);
+contextBridge.exposeInMainWorld("settingsApi", settingsApi);

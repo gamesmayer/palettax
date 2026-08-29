@@ -1,5 +1,6 @@
 import { Button } from "@react95/core";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { usePaletteActions } from "../../hooks/usePaletteActions";
 import { usePaletteStore } from "../../store/paletteStore";
 import { BlendModal } from "../BlendModal/BlendModal";
@@ -10,6 +11,7 @@ import { ShadeTintModal } from "../ShadeTintModal/ShadeTintModal";
 import { PaletteToolbar } from "./PaletteToolbar";
 
 export function PaletteView(): JSX.Element {
+	const { t } = useTranslation("app");
 	const activePalette = usePaletteStore((state) =>
 		state.activeId ? (state.palettes[state.activeId] ?? null) : null
 	);
@@ -43,9 +45,11 @@ export function PaletteView(): JSX.Element {
 	if (!activePalette) {
 		return (
 			<div className="palette-view palette-view--empty">
-				<p>Where do you want to start?</p>
-				<Button onClick={createPalette}>New palette</Button>
-				<Button onClick={importPalettes}>Import palette</Button>
+				<p>{t("paletteView.emptyPrompt")}</p>
+				<Button onClick={createPalette}>{t("paletteView.newPalette")}</Button>
+				<Button onClick={importPalettes}>
+					{t("paletteView.importPalette")}
+				</Button>
 			</div>
 		);
 	}

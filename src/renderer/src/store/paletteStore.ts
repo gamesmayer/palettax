@@ -97,11 +97,28 @@ function insertPalette(
 	};
 }
 
+const UNTITLED_PATTERN = /^Untitled(?: (\d+))?$/;
+
 function nextUntitledName(palettes: Record<string, Palette>): string {
 	const untitledCount = Object.values(palettes).filter((palette) =>
-		/^Untitled( \d+)?$/.test(palette.name)
+		UNTITLED_PATTERN.test(palette.name)
 	).length;
 	return untitledCount === 0 ? "Untitled" : `Untitled ${untitledCount + 1}`;
+}
+
+/**
+ * `Palette.name` stores the untitled marker in English (matched by
+ * `UNTITLED_PATTERN` above and used as a filename default), independent of
+ * the UI language — this formats it for display only.
+ */
+export function formatPaletteName(
+	name: string,
+	translateUntitled: () => string
+): string {
+	const match = UNTITLED_PATTERN.exec(name);
+	if (!match) return name;
+	const base = translateUntitled();
+	return match[1] ? `${base} ${match[1]}` : base;
 }
 
 function withHistory(

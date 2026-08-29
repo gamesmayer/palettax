@@ -1,4 +1,5 @@
 import { Button } from "@react95/core";
+import { useTranslation } from "react-i18next";
 import { PaletteGroup } from "../../../../shared/palette-formats";
 import { Dropdown } from "../Dropdown/Dropdown";
 import { Field } from "../Field/Field";
@@ -13,7 +14,10 @@ interface GroupPickerProps {
 	onChange: (selection: GroupSelection) => void;
 }
 
-function buildLabels(groups: PaletteGroup[]): {
+function buildLabels(
+	groups: PaletteGroup[],
+	ungroupedLabel: string
+): {
 	idToLabel: Record<string, string>;
 	labelToId: Record<string, string>;
 } {
@@ -21,7 +25,7 @@ function buildLabels(groups: PaletteGroup[]): {
 	const idToLabel: Record<string, string> = {};
 	const labelToId: Record<string, string> = {};
 	for (const group of groups) {
-		const base = group.name?.trim() || "Ungrouped";
+		const base = group.name?.trim() || ungroupedLabel;
 		const n = (counts.get(base) ?? 0) + 1;
 		counts.set(base, n);
 		const label = n === 1 ? base : `${base} (${n})`;
@@ -36,10 +40,14 @@ export function GroupPicker({
 	value,
 	onChange,
 }: GroupPickerProps): JSX.Element {
-	const { idToLabel, labelToId } = buildLabels(groups);
+	const { t } = useTranslation("app");
+	const { idToLabel, labelToId } = buildLabels(
+		groups,
+		t("groupSection.ungrouped")
+	);
 
 	return (
-		<Field label="Add to group">
+		<Field label={t("groupPicker.addToGroupLabel")}>
 			<div className="endpoint-picker__mode-toggle">
 				<Button
 					className={
@@ -52,7 +60,7 @@ export function GroupPicker({
 						onChange({ kind: "existing", groupId: groups[0]?.id ?? "" })
 					}
 				>
-					Existing group
+					{t("groupPicker.existingGroup")}
 				</Button>
 				<Button
 					className={
@@ -62,7 +70,7 @@ export function GroupPicker({
 					}
 					onClick={() => onChange({ kind: "new", name: "" })}
 				>
-					New group
+					{t("groupPicker.newGroup")}
 				</Button>
 			</div>
 			{value.kind === "existing" ? (
@@ -75,14 +83,14 @@ export function GroupPicker({
 							onChange({ kind: "existing", groupId });
 						}
 					}}
-					aria-label="Add to group"
+					aria-label={t("groupPicker.addToGroupLabel")}
 				/>
 			) : (
 				<TextInput
 					value={value.name}
 					onChange={(name) => onChange({ kind: "new", name })}
-					placeholder="Group name"
-					aria-label="New group name"
+					placeholder={t("groupPicker.groupNamePlaceholder")}
+					aria-label={t("groupPicker.groupNameAriaLabel")}
 					autoFocus
 				/>
 			)}
