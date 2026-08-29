@@ -198,6 +198,31 @@ export function rgbToCmyk(
 	};
 }
 
+/** Formats an RGB color as a display string in the given ColorSystem -- shared by any swatch/chip whose label should reflect the user's chosen system rather than always showing hex. */
+export function formatColorForSystem(
+	rgb: { r: number; g: number; b: number },
+	system: ColorSystem
+): string {
+	switch (system) {
+		case "hex":
+			return rgbToHex(rgb.r, rgb.g, rgb.b);
+		case "rgb":
+			return `RGB(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+		case "hsl": {
+			const { h, s, l } = rgbToHsl(rgb.r, rgb.g, rgb.b);
+			return `HSL(${h}, ${s}%, ${l}%)`;
+		}
+		case "hsb": {
+			const { h, s, v } = rgbToHsv(rgb.r, rgb.g, rgb.b);
+			return `HSB(${h}, ${s}%, ${v}%)`;
+		}
+		case "cmyk": {
+			const { c, m, y, k } = rgbToCmyk(rgb.r, rgb.g, rgb.b);
+			return `CMYK(${c}%, ${m}%, ${y}%, ${k}%)`;
+		}
+	}
+}
+
 export function blendRgb(
 	start: { r: number; g: number; b: number },
 	end: { r: number; g: number; b: number },

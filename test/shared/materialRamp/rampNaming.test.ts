@@ -1,5 +1,22 @@
+import { rgbBytesToLinear } from "../../../src/shared/materialRamp/colorSpace";
 import { assignRampNames } from "../../../src/shared/materialRamp/rampNaming";
-import { MaterialRampStop } from "../../../src/shared/materialRamp/types";
+import {
+	LightingConfig,
+	MaterialDefinition,
+	MaterialRampStop,
+} from "../../../src/shared/materialRamp/types";
+
+// assignRampNames matches "Base" against evaluateNeutralBaseColor(material,
+// lighting), not the raw albedo bytes (see rampNaming.ts). Mocked here as an
+// identity pass-through on baseColor so these tests can keep asserting on
+// naming/indexing logic in terms of plain gray byte values, independent of
+// the real BRDF math (which is covered separately in brdf.test.ts).
+jest.mock("../../../src/shared/materialRamp/brdf", () => ({
+	evaluateNeutralBaseColor: (material: MaterialDefinition) =>
+		rgbBytesToLinear(material.baseColor),
+}));
+
+const DUMMY_LIGHTING = {} as LightingConfig;
 
 function stopAt(t: number, r: number, g: number, b: number): MaterialRampStop {
 	return { position: t, color: { r, g, b } };
@@ -9,10 +26,14 @@ function gray(v: number): MaterialRampStop {
 	return stopAt(v / 255, v, v, v);
 }
 
+function grayMaterial(v: number): MaterialDefinition {
+	return { baseColor: { r: v, g: v, b: v }, metallic: 0, roughness: 0.5 };
+}
+
 describe("assignRampNames", () => {
 	it("names a 5-stop ramp with the base color in the middle", () => {
 		const stops = [gray(0), gray(64), gray(128), gray(192), gray(255)];
-		const named = assignRampNames(stops, { r: 128, g: 128, b: 128 });
+		const named = assignRampNames(stops, grayMaterial(128), DUMMY_LIGHTING);
 		expect(named.map((n) => n.name)).toEqual([
 			"Deep Shadow",
 			"Shadow",
@@ -32,7 +53,7 @@ describe("assignRampNames", () => {
 			gray(224),
 			gray(255),
 		];
-		const named = assignRampNames(stops, { r: 128, g: 128, b: 128 });
+		const named = assignRampNames(stops, grayMaterial(128), DUMMY_LIGHTING);
 		expect(named.map((n) => n.name)).toEqual([
 			"Deep Shadow",
 			"Shadow 2",
@@ -46,7 +67,7 @@ describe("assignRampNames", () => {
 
 	it("has no shadow names when the base color is the darkest stop", () => {
 		const stops = [gray(0), gray(96), gray(192), gray(255)];
-		const named = assignRampNames(stops, { r: 0, g: 0, b: 0 });
+		const named = assignRampNames(stops, grayMaterial(0), DUMMY_LIGHTING);
 		expect(named.map((n) => n.name)).toEqual([
 			"Base",
 			"Light 1",
@@ -57,7 +78,7 @@ describe("assignRampNames", () => {
 
 	it("has no light names when the base color is the lightest stop", () => {
 		const stops = [gray(0), gray(64), gray(160), gray(255)];
-		const named = assignRampNames(stops, { r: 255, g: 255, b: 255 });
+		const named = assignRampNames(stops, grayMaterial(255), DUMMY_LIGHTING);
 		expect(named.map((n) => n.name)).toEqual([
 			"Deep Shadow",
 			"Shadow 2",
@@ -71,13 +92,13 @@ describe("assignRampNames", () => {
 		// for when there's a middle step to distinguish it from (see the
 		// 5-stop and 7-stop cases above) -- a lone step just gets "Light".
 		const stops = [gray(0), gray(255)];
-		const named = assignRampNames(stops, { r: 0, g: 0, b: 0 });
+		const named = assignRampNames(stops, grayMaterial(0), DUMMY_LIGHTING);
 		expect(named.map((n) => n.name)).toEqual(["Base", "Light"]);
 	});
 
 	it("names a single-stop ramp as Base", () => {
 		const stops = [gray(128)];
-		const named = assignRampNames(stops, { r: 128, g: 128, b: 128 });
+		const named = assignRampNames(stops, grayMaterial(128), DUMMY_LIGHTING);
 		expect(named.map((n) => n.name)).toEqual(["Base"]);
 	});
 
@@ -86,7 +107,7 @@ describe("assignRampNames", () => {
 		// posterize()'s actual output, which is sorted by sweep position, not
 		// lightness (see stopLightness.ts / posterize.ts).
 		const stops = [gray(64), gray(255), gray(0), gray(160)];
-		const named = assignRampNames(stops, { r: 64, g: 64, b: 64 });
+		const named = assignRampNames(stops, grayMaterial(64), DUMMY_LIGHTING);
 		expect(named.map((n) => n.stop.color.r)).toEqual([0, 64, 160, 255]);
 		expect(named.map((n) => n.name)).toEqual([
 			"Shadow",

@@ -5,10 +5,16 @@ import {
 	offset,
 	shift,
 } from "@floating-ui/dom";
-import { Frame, Tooltip } from "@react95/core";
+import { Frame } from "@react95/core";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ColorSystem, rgbToHex } from "../../../../shared/color";
+import {
+	ColorSystem,
+	formatColorForSystem,
+	rgbToHex,
+} from "../../../../shared/color";
+import { FieldLabel } from "../Field/Field";
+import { FloatingTooltip } from "../FloatingTooltip/FloatingTooltip";
 import { ColorSystemFields } from "./ColorSystemFields";
 
 interface SwatchColorPickerProps {
@@ -36,7 +42,6 @@ export function SwatchColorPicker({
 	onChange,
 }: SwatchColorPickerProps): JSX.Element {
 	const [isOpen, setIsOpen] = useState(false);
-	const containerRef = useRef<HTMLDivElement>(null);
 	const swatchRef = useRef<HTMLButtonElement>(null);
 	const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +51,7 @@ export function SwatchColorPicker({
 		function handlePointerDown(event: MouseEvent): void {
 			const target = event.target as Node;
 			if (
-				!containerRef.current?.contains(target) &&
+				!swatchRef.current?.contains(target) &&
 				!popoverRef.current?.contains(target)
 			) {
 				setIsOpen(false);
@@ -82,29 +87,31 @@ export function SwatchColorPicker({
 	}, [isOpen]);
 
 	const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
-	const labelSpan = (
-		<span className="endpoint-picker__field-label">{label}</span>
-	);
 
 	return (
 		<div
 			className={
-				hideLabel
-					? "swatch-color-picker"
-					: "endpoint-picker__field swatch-color-picker"
+				hideLabel ? "swatch-color-picker" : "field swatch-color-picker"
 			}
-			ref={containerRef}
 		>
-			{!hideLabel &&
-				(tooltip ? <Tooltip text={tooltip}>{labelSpan}</Tooltip> : labelSpan)}
-			<Frame
-				as="button"
-				ref={swatchRef}
-				className="swatch-color-picker__swatch"
-				style={{ backgroundColor: hex }}
-				onClick={() => setIsOpen((open) => !open)}
-				aria-label={`${label}: ${hex}`}
-			/>
+			{!hideLabel && <FieldLabel text={label} tooltip={tooltip} />}
+			<FloatingTooltip text={formatColorForSystem(rgb, colorSystem)}>
+				{/* display:contents wrapper -- FloatingTooltip needs a single
+				    ref-forwarding child to attach hover/focus handlers to, but the
+				    swatch button already owns swatchRef (for the popover's own
+				    floating-ui anchor), so it can't also be FloatingTooltip's
+				    direct child without the two refs colliding. */}
+				<span className="swatch-color-picker__swatch-wrapper">
+					<Frame
+						as="button"
+						ref={swatchRef}
+						className="swatch-color-picker__swatch"
+						style={{ backgroundColor: hex }}
+						onClick={() => setIsOpen((open) => !open)}
+						aria-label={`${label}: ${formatColorForSystem(rgb, colorSystem)}`}
+					/>
+				</span>
+			</FloatingTooltip>
 			{isOpen &&
 				createPortal(
 					<Frame ref={popoverRef} className="swatch-color-picker__popover">

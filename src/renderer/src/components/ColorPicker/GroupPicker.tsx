@@ -1,6 +1,8 @@
-import { Button, Dropdown, Input } from "@react95/core";
-import { ChangeEvent } from "react";
+import { Button } from "@react95/core";
 import { PaletteGroup } from "../../../../shared/palette-formats";
+import { Dropdown } from "../Dropdown/Dropdown";
+import { Field } from "../Field/Field";
+import { TextInput } from "../TextInput/TextInput";
 
 export type GroupSelection =
 	{ kind: "existing"; groupId: string } | { kind: "new"; name: string };
@@ -37,8 +39,7 @@ export function GroupPicker({
 	const { idToLabel, labelToId } = buildLabels(groups);
 
 	return (
-		<div className="endpoint-picker__field">
-			<span className="endpoint-picker__field-label">Add to group</span>
+		<Field label="Add to group">
 			<div className="endpoint-picker__mode-toggle">
 				<Button
 					className={
@@ -68,8 +69,8 @@ export function GroupPicker({
 				<Dropdown
 					options={groups.map((group) => idToLabel[group.id])}
 					value={idToLabel[value.groupId] ?? ""}
-					onChange={(event: ChangeEvent<HTMLSelectElement>) => {
-						const groupId = labelToId[event.target.value];
+					onChange={(label) => {
+						const groupId = labelToId[label];
 						if (groupId) {
 							onChange({ kind: "existing", groupId });
 						}
@@ -77,17 +78,14 @@ export function GroupPicker({
 					aria-label="Add to group"
 				/>
 			) : (
-				<Input
-					type="text"
+				<TextInput
 					value={value.name}
-					onChange={(event: ChangeEvent<HTMLInputElement>) =>
-						onChange({ kind: "new", name: event.target.value })
-					}
+					onChange={(name) => onChange({ kind: "new", name })}
 					placeholder="Group name"
 					aria-label="New group name"
 					autoFocus
 				/>
 			)}
-		</div>
+		</Field>
 	);
 }

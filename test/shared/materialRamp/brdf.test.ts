@@ -1,6 +1,7 @@
 import { encode } from "fast-png";
 import {
 	evaluateMaterial,
+	evaluateNeutralBaseColor,
 	ggxDistribution,
 	schlickFresnel,
 	smithGeometry,
@@ -10,8 +11,8 @@ import {
 	computeSweepBasis,
 	normalAtT,
 } from "../../../src/shared/materialRamp/orientationSweep";
+import { DEFAULT_LIGHTING } from "../../../src/shared/materialRamp/lightingConstants";
 import { posterize } from "../../../src/shared/materialRamp/posterize";
-import { DEFAULT_LIGHTING } from "../../../src/shared/materialRamp/types";
 
 describe("ggxDistribution", () => {
 	it("peaks at NdotH=1", () => {
@@ -361,6 +362,93 @@ describe("evaluateMaterial + environmentMap", () => {
 			const maxChannel = Math.max(response.r, response.g, response.b);
 			expect(maxChannel).toBeGreaterThanOrEqual(prevMax - 1e-9);
 			prevMax = maxChannel;
+		}
+	});
+});
+
+describe("evaluateNeutralBaseColor", () => {
+	const dielectric = {
+		baseColor: { r: 180, g: 120, b: 90 },
+		metallic: 0,
+		roughness: 0.9,
+	};
+	const metal = {
+		baseColor: { r: 180, g: 120, b: 90 },
+		metallic: 1,
+		roughness: 0.4,
+	};
+
+	it("is exactly black when lightIntensity=0 AND ambientIntensity=0, and no environment map", () => {
+		const darkLighting = {
+			...DEFAULT_LIGHTING,
+			directionalLightIntensity: 0,
+			ambientLightIntensity: 0,
+		};
+		expect(evaluateNeutralBaseColor(dielectric, darkLighting)).toEqual({
+			r: 0,
+			g: 0,
+			b: 0,
+		});
+		expect(evaluateNeutralBaseColor(metal, darkLighting)).toEqual({
+			r: 0,
+			g: 0,
+			b: 0,
+		});
+	});
+
+	it("is deterministic across repeated calls", () => {
+		const a = evaluateNeutralBaseColor(dielectric, DEFAULT_LIGHTING);
+		const b = evaluateNeutralBaseColor(dielectric, DEFAULT_LIGHTING);
+		expect(a).toEqual(b);
+	});
+
+	it("never exceeds evaluateMaterial's response at N=viewDir, since it drops the (non-negative) direct-light specular highlight", () => {
+		// This is an exact structural fact, not an approximation: directLit here
+		// is mulRgb(diffuse, radiance) instead of
+		// mulRgb(addRgb(diffuse, specular), radiance), and specular/radiance are
+		// both non-negative -- so the neutral response can only be <= the full
+		// response at the same normal, for every material/lighting combination.
+		for (const material of [dielectric, metal]) {
+			const neutral = evaluateNeutralBaseColor(material, DEFAULT_LIGHTING);
+			const full = evaluateMaterial(
+				material,
+				DEFAULT_LIGHTING,
+				DEFAULT_LIGHTING.viewDir
+			);
+			expect(neutral.r).toBeLessThanOrEqual(full.r + 1e-9);
+			expect(neutral.g).toBeLessThanOrEqual(full.g + 1e-9);
+			expect(neutral.b).toBeLessThanOrEqual(full.b + 1e-9);
+		}
+	});
+
+	it("keeps a pure metal's response non-black via the ambient Fresnel term, even though its diffuse albedo is zero", () => {
+		const response = evaluateNeutralBaseColor(metal, DEFAULT_LIGHTING);
+		expect(Math.max(response.r, response.g, response.b)).toBeGreaterThan(0);
+	});
+
+	it("each output channel depends only on the matching input baseColor channel, holding metallic/roughness/lighting fixed", () => {
+		// This is the mathematical premise the per-channel binary-search solver
+		// (solveAlbedo.ts) relies on: no cross-channel coupling anywhere in the
+		// formula (sRGB<->linear, the metallic/f0 lerp, the diffuse scale, the
+		// Fresnel terms, and the Reinhard tonemap are all per-channel-pointwise).
+		const fixedGB = { g: 120, b: 90 };
+		let prevR = -Infinity;
+		let firstG: number | null = null;
+		let firstB: number | null = null;
+		for (let r = 0; r <= 255; r += 17) {
+			const response = evaluateNeutralBaseColor(
+				{ baseColor: { r, ...fixedGB }, metallic: 0.5, roughness: 0.5 },
+				DEFAULT_LIGHTING
+			);
+			expect(response.r).toBeGreaterThanOrEqual(prevR - 1e-9);
+			prevR = response.r;
+			if (firstG === null) {
+				firstG = response.g;
+				firstB = response.b;
+			} else {
+				expect(response.g).toBeCloseTo(firstG, 12);
+				expect(response.b).toBeCloseTo(firstB as number, 12);
+			}
 		}
 	});
 });

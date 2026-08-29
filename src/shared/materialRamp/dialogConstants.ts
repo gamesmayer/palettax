@@ -13,11 +13,11 @@ const DEFAULT_PRESET =
 	MATERIAL_PRESETS[0];
 export const DEFAULT_METALLIC = DEFAULT_PRESET.metallic;
 export const DEFAULT_ROUGHNESS = DEFAULT_PRESET.roughness;
-export const DEFAULT_BASE_COLOR = { r: 0xf9, g: 0xa9, b: 0x7f };
+export const DEFAULT_TARGET_BASE_COLOR = { r: 0xc8, g: 0xa0, b: 0x8b };
 
-// OKLab L (perceptual lightness, 0=black, ~1=white). A base color this close
-// to either extreme leaves the BRDF almost no room to lighten or darken it
+// OKLab L (perceptual lightness, 0=black, ~1=white). An albedo this close to
+// either extreme leaves the BRDF almost no room to lighten or darken it
 // further, so the generated ramp's bright or dark stops end up nearly
-// identical to the base color instead of forming a usable gradient.
-export const BASE_COLOR_LIGHTNESS_WARN_HIGH = 0.92;
-export const BASE_COLOR_LIGHTNESS_WARN_LOW = 0.08;
+// identical to the albedo instead of forming a usable gradient.
+export const ALBEDO_LIGHTNESS_WARN_HIGH = 0.92;
+export const ALBEDO_LIGHTNESS_WARN_LOW = 0.08;

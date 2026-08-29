@@ -1,4 +1,4 @@
-import { Input, Modal, TitleBar } from "@react95/core";
+import { Modal, TitleBar } from "@react95/core";
 import { MouseEvent, useState } from "react";
 import { ColorSystem, blendRgb, rgbToHex } from "../../../../shared/color";
 import { PaletteGroup } from "../../../../shared/palette-formats";
@@ -9,6 +9,8 @@ import {
 	Rgb,
 } from "../ColorPicker/EndpointPicker";
 import { GroupPicker, GroupSelection } from "../ColorPicker/GroupPicker";
+import { Field } from "../Field/Field";
+import { NumberInput } from "../NumberInput/NumberInput";
 
 interface BlendDialogProps {
 	paletteId: string;
@@ -165,25 +167,19 @@ export function BlendDialog({
 						/>
 					</div>
 
-					<div className="blend-dialog__field">
-						<span className="blend-dialog__field-label">Steps</span>
-						<Input
-							type="number"
-							min={MIN_STEPS}
-							max={MAX_STEPS}
-							value={steps}
-							onChange={(event) =>
-								setSteps(clampSteps(Number(event.target.value)))
-							}
-							aria-label="Number of steps"
-						/>
-					</div>
+					<NumberInput
+						label="Steps"
+						min={MIN_STEPS}
+						max={MAX_STEPS}
+						value={steps}
+						onChange={setSteps}
+						clamp={clampSteps}
+						aria-label="Number of steps"
+					/>
 
-					<div className="blend-dialog__field">
-						<span className="blend-dialog__field-label">
-							Preview ({newColorCount} new color{newColorCount === 1 ? "" : "s"}
-							)
-						</span>
+					<Field
+						label={`Preview (${newColorCount} new color${newColorCount === 1 ? "" : "s"})`}
+					>
 						<div className="blend-dialog__preview">
 							{preview.map(({ r, g, b }, index) => (
 								<div
@@ -194,7 +190,7 @@ export function BlendDialog({
 								/>
 							))}
 						</div>
-					</div>
+					</Field>
 
 					<hr className="dialog-separator" />
 					<GroupPicker

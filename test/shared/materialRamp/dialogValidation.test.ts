@@ -1,6 +1,6 @@
 import {
-	BASE_COLOR_LIGHTNESS_WARN_HIGH,
-	BASE_COLOR_LIGHTNESS_WARN_LOW,
+	ALBEDO_LIGHTNESS_WARN_HIGH,
+	ALBEDO_LIGHTNESS_WARN_LOW,
 	MAX_STOPS,
 	MIN_STOPS,
 } from "../../../src/shared/materialRamp/dialogConstants";
@@ -8,7 +8,8 @@ import {
 	clampIntensity,
 	clampStopCount,
 	clampUnit,
-	warningForBaseColor,
+	warningForAlbedoColor,
+	warningForUnreachableTarget,
 } from "../../../src/shared/materialRamp/dialogValidation";
 
 describe("clampUnit", () => {
@@ -54,31 +55,79 @@ describe("clampStopCount", () => {
 	});
 });
 
-describe("warningForBaseColor", () => {
-	it("warns when lightness is at or above BASE_COLOR_LIGHTNESS_WARN_HIGH", () => {
-		expect(warningForBaseColor({ r: 255, g: 255, b: 255 })).toMatch(
+describe("warningForAlbedoColor", () => {
+	it("warns when lightness is at or above ALBEDO_LIGHTNESS_WARN_HIGH", () => {
+		expect(warningForAlbedoColor({ r: 255, g: 255, b: 255 })).toMatch(
 			/close to white/
 		);
 	});
 
-	it("warns when lightness is at or below BASE_COLOR_LIGHTNESS_WARN_LOW", () => {
-		expect(warningForBaseColor({ r: 0, g: 0, b: 0 })).toMatch(
+	it("warns when lightness is at or below ALBEDO_LIGHTNESS_WARN_LOW", () => {
+		expect(warningForAlbedoColor({ r: 0, g: 0, b: 0 })).toMatch(
 			/close to black/
 		);
 	});
 
 	it("returns null for a mid-lightness color", () => {
-		expect(warningForBaseColor({ r: 128, g: 128, b: 128 })).toBeNull();
+		expect(warningForAlbedoColor({ r: 128, g: 128, b: 128 })).toBeNull();
 	});
 
 	// Sanity-checks the thresholds actually gate the warning, independent of
 	// the specific RGB->OKLab conversion (pure black/white above already
 	// cover the conversion itself).
 	it("thresholds are within (0, 1), leaving a genuine mid-range with no warning", () => {
-		expect(BASE_COLOR_LIGHTNESS_WARN_LOW).toBeGreaterThan(0);
-		expect(BASE_COLOR_LIGHTNESS_WARN_HIGH).toBeLessThan(1);
-		expect(BASE_COLOR_LIGHTNESS_WARN_LOW).toBeLessThan(
-			BASE_COLOR_LIGHTNESS_WARN_HIGH
+		expect(ALBEDO_LIGHTNESS_WARN_LOW).toBeGreaterThan(0);
+		expect(ALBEDO_LIGHTNESS_WARN_HIGH).toBeLessThan(1);
+		expect(ALBEDO_LIGHTNESS_WARN_LOW).toBeLessThan(ALBEDO_LIGHTNESS_WARN_HIGH);
+	});
+});
+
+describe("warningForUnreachableTarget", () => {
+	it("returns a 'success' severity when achieved matches the target exactly", () => {
+		const result = warningForUnreachableTarget(
+			{ r: 180, g: 120, b: 90 },
+			{ r: 180, g: 120, b: 90 },
+			"hex"
 		);
+		expect(result.severity).toBe("success");
+		expect(result.message).toMatch(/achievable exactly/);
+	});
+
+	it("returns a 'warning' severity when off by exactly the rounding floor (1 byte)", () => {
+		const result = warningForUnreachableTarget(
+			{ r: 180, g: 120, b: 90 },
+			{ r: 180, g: 121, b: 90 },
+			"hex"
+		);
+		expect(result.severity).toBe("warning");
+	});
+
+	it("escalates to 'error' severity when any single channel differs by more than the rounding floor", () => {
+		const result = warningForUnreachableTarget(
+			{ r: 180, g: 120, b: 90 },
+			{ r: 180, g: 120, b: 40 },
+			"hex"
+		);
+		expect(result.severity).toBe("error");
+		expect(result.message).toMatch(/isn't achievable/);
+	});
+
+	it("returns an 'error' severity when the target is far brighter than what can be achieved", () => {
+		const result = warningForUnreachableTarget(
+			{ r: 255, g: 255, b: 255 },
+			{ r: 140, g: 140, b: 140 },
+			"hex"
+		);
+		expect(result.severity).toBe("error");
+	});
+
+	it("includes both the target and achieved colors, formatted in the requested color system, in the message", () => {
+		const result = warningForUnreachableTarget(
+			{ r: 180, g: 120, b: 90 },
+			{ r: 180, g: 120, b: 40 },
+			"rgb"
+		);
+		expect(result.message).toContain("RGB(180, 120, 90)");
+		expect(result.message).toContain("RGB(180, 120, 40)");
 	});
 });

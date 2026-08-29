@@ -1,11 +1,11 @@
 import { rgbBytesToLinear } from "../../../src/shared/materialRamp/colorSpace";
+import { DEFAULT_LIGHTING } from "../../../src/shared/materialRamp/lightingConstants";
 import {
 	computeViewBasis,
 	nearestStopColors,
 	renderMaterialCube,
 	renderMaterialSphere,
 } from "../../../src/shared/materialRamp/sphereRender";
-import { DEFAULT_LIGHTING } from "../../../src/shared/materialRamp/types";
 import { dot3 } from "../../../src/shared/materialRamp/vec3";
 
 function isUnit(v: readonly [number, number, number]): boolean {

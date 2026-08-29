@@ -194,3 +194,82 @@ export function evaluateMaterial(
 
 	return reinhardTonemap(addRgb(addRgb(directLit, ambientLit), envLit));
 }
+
+/**
+ * "Neutral" material response used to back-solve albedo from a desired
+ * target appearance (see solveAlbedo.ts). Structurally evaluateMaterial's
+ * body with the direct-light GGX specular lobe (D, G, and their
+ * contribution to directLit) removed, evaluated at a fixed normal N =
+ * lighting.viewDir -- NdotV = 1 exactly, which makes schlickFresnel(NdotV,
+ * f0) reduce to exactly f0 (zero grazing brightening), so the Fresnel-tinted
+ * ambient/env specular terms read as a clean, un-distorted reflectance tint.
+ * Deliberately keeps those terms (rather than dropping specular entirely)
+ * because they're what keeps pure metals (metallic=1, zero diffuse albedo)
+ * from evaluating to black -- only the sharp, geometry-dependent highlight
+ * lobe is excluded, not the material's overall reflective color.
+ */
+export function evaluateNeutralBaseColor(
+	material: MaterialDefinition,
+	lighting: LightingConfig
+): RgbLinear {
+	const baseLinear = rgbBytesToLinear(material.baseColor);
+	const dielectricF0: RgbLinear = {
+		r: DIELECTRIC_F0,
+		g: DIELECTRIC_F0,
+		b: DIELECTRIC_F0,
+	};
+	const f0 = lerpRgb(dielectricF0, baseLinear, material.metallic);
+	const albedoDiffuse = scaleRgb(baseLinear, 1 - material.metallic);
+
+	const geometry = computeGeometry(lighting, lighting.viewDir);
+
+	// Still needed for kd (the diffuse energy-conservation term) even though
+	// the specular lobe it originally fed (D, G) is dropped below.
+	const F = schlickFresnel(geometry.VdotH, f0);
+	const kd = scaleRgb(
+		{ r: 1 - F.r, g: 1 - F.g, b: 1 - F.b },
+		1 - material.metallic
+	);
+	const diffuse = scaleRgb(mulRgb(kd, albedoDiffuse), 1 / Math.PI);
+
+	const lightLinear = rgbBytesToLinear(lighting.directionalLightColor);
+	const radiance = scaleRgb(
+		lightLinear,
+		lighting.directionalLightIntensity * LIGHT_POWER * geometry.NdotL
+	);
+	const directLit = mulRgb(diffuse, radiance);
+
+	const ambientLinear = rgbBytesToLinear(lighting.ambientLightColor);
+	const fresnelAmbient = schlickFresnel(geometry.NdotV, f0);
+	const ambientDiffuse = scaleRgb(
+		mulRgb(ambientLinear, albedoDiffuse),
+		lighting.ambientLightIntensity
+	);
+	const ambientSpecular = scaleRgb(
+		mulRgb(ambientLinear, fresnelAmbient),
+		lighting.ambientLightIntensity
+	);
+	const ambientLit = addRgb(ambientDiffuse, ambientSpecular);
+
+	const envLit = lighting.environmentMap
+		? scaleRgb(
+				addRgb(
+					mulRgb(
+						sampleEnvironment(lighting.environmentMap, geometry.N, 1),
+						albedoDiffuse
+					),
+					mulRgb(
+						sampleEnvironment(
+							lighting.environmentMap,
+							reflect3(geometry.V, geometry.N),
+							material.roughness
+						),
+						fresnelAmbient
+					)
+				),
+				lighting.environmentIntensity
+			)
+		: { r: 0, g: 0, b: 0 };
+
+	return reinhardTonemap(addRgb(addRgb(directLit, ambientLit), envLit));
+}

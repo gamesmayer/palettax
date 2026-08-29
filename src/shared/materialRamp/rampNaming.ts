@@ -1,10 +1,11 @@
+import { evaluateNeutralBaseColor } from "./brdf";
 import {
 	nearestOklabIndex,
 	rgbBytesToLinear,
 	rgbLinearToOklab,
 } from "./colorSpace";
 import { lightnessOf } from "./stopLightness";
-import { MaterialRampStop } from "./types";
+import { LightingConfig, MaterialDefinition, MaterialRampStop } from "./types";
 
 export interface NamedRampStop {
 	stop: MaterialRampStop;
@@ -38,20 +39,27 @@ function nameSide(side: MaterialRampStop[], names: SideNames): string[] {
 /**
  * Assigns default palette names to generated material ramp stops, based on
  * each stop's position relative to the material's base color: the stop
- * perceptually closest to `baseColor` is named "Base", stops darker than it
- * get shadow-tier names, and stops lighter than it get light/highlight-tier
- * names (see nameSide). Returns the stops re-sorted dark-to-light, paired
- * with their names -- the input `stops` order (raw sweep position) is not
+ * perceptually closest to "Base" is named "Base", stops darker than it get
+ * shadow-tier names, and stops lighter than it get light/highlight-tier names
+ * (see nameSide). Returns the stops re-sorted dark-to-light, paired with
+ * their names -- the input `stops` order (raw sweep position) is not
  * preserved, since it isn't guaranteed to be monotonic in lightness.
+ *
+ * "Base" is matched against `evaluateNeutralBaseColor(material, lighting)`
+ * (the same rendered appearance solveAlbedo.ts back-solves the albedo
+ * toward), not against the raw albedo bytes -- stop colors are themselves
+ * rendered/shaded values, so comparing them to an un-rendered albedo would
+ * compare unlike quantities.
  */
 export function assignRampNames(
 	stops: MaterialRampStop[],
-	baseColor: { r: number; g: number; b: number }
+	material: MaterialDefinition,
+	lighting: LightingConfig
 ): NamedRampStop[] {
 	const sorted = [...stops].sort((a, b) => lightnessOf(a) - lightnessOf(b));
 	if (sorted.length === 0) return [];
 
-	const target = rgbLinearToOklab(rgbBytesToLinear(baseColor));
+	const target = rgbLinearToOklab(evaluateNeutralBaseColor(material, lighting));
 	const sortedOklab = sorted.map((stop) =>
 		rgbLinearToOklab(rgbBytesToLinear(stop.color))
 	);

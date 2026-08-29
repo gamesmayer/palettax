@@ -2,12 +2,7 @@ import { Button, Frame, Input } from "@react95/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { KeyboardEvent, MouseEvent, useState } from "react";
-import {
-	ColorSystem,
-	rgbToCmyk,
-	rgbToHsl,
-	rgbToHsv,
-} from "../../../../shared/color";
+import { ColorSystem, formatColorForSystem } from "../../../../shared/color";
 import { PaletteColor } from "../../../../shared/palette-formats";
 import { CloseIcon } from "../icons/CloseIcon";
 
@@ -18,27 +13,6 @@ interface ColorSwatchProps {
 	onRemove: () => void;
 	onRename: (newName: string) => void;
 	onEdit: () => void;
-}
-
-function formatColorValue(color: PaletteColor, system: ColorSystem): string {
-	switch (system) {
-		case "hex":
-			return color.hex;
-		case "rgb":
-			return `RGB(${color.r}, ${color.g}, ${color.b})`;
-		case "hsl": {
-			const { h, s, l } = rgbToHsl(color.r, color.g, color.b);
-			return `HSL(${h}, ${s}%, ${l}%)`;
-		}
-		case "hsb": {
-			const { h, s, v } = rgbToHsv(color.r, color.g, color.b);
-			return `HSB(${h}, ${s}%, ${v}%)`;
-		}
-		case "cmyk": {
-			const { c, m, y, k } = rgbToCmyk(color.r, color.g, color.b);
-			return `CMYK(${c}%, ${m}%, ${y}%, ${k}%)`;
-		}
-	}
 }
 
 export function ColorSwatch({
@@ -104,7 +78,7 @@ export function ColorSwatch({
 				as="button"
 				className="color-swatch__chip"
 				style={{ backgroundColor: color.hex }}
-				title={formatColorValue(color, colorSystem)}
+				title={formatColorForSystem(color, colorSystem)}
 				onClick={(event: MouseEvent<HTMLButtonElement>) => {
 					event.stopPropagation();
 					onEdit();

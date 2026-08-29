@@ -1,6 +1,7 @@
 import { Button } from "@react95/core";
 import { useMemo, useState } from "react";
 import { rgbToHex } from "../../../../shared/color";
+import { evaluateNeutralBaseColor } from "../../../../shared/materialRamp/brdf";
 import {
 	nearestOklabIndex,
 	rgbBytesToLinear,
@@ -78,15 +79,22 @@ export function MaterialRampPreview({
 
 	// Highlights whichever stop is perceptually closest to the material's
 	// base color, so it's easy to spot where the picked color landed in the
-	// generated ramp at a glance.
+	// generated ramp at a glance. Matched against
+	// evaluateNeutralBaseColor(material, lighting) -- the same rendered
+	// appearance solveAlbedo.ts back-solves the albedo toward -- rather than
+	// the raw albedo bytes, since stop colors are themselves rendered/shaded
+	// values and comparing them to an un-rendered albedo would compare
+	// unlike quantities.
 	const closestToBaseStop = useMemo(() => {
 		if (stops.length === 0) return null;
-		const target = rgbLinearToOklab(rgbBytesToLinear(material.baseColor));
+		const target = rgbLinearToOklab(
+			evaluateNeutralBaseColor(material, lighting)
+		);
 		const stopOklab = stops.map((stop) =>
 			rgbLinearToOklab(rgbBytesToLinear(stop.color))
 		);
 		return stops[nearestOklabIndex(target, stopOklab)];
-	}, [stops, material]);
+	}, [stops, material, lighting]);
 
 	return (
 		<div className="material-ramp-dialog__preview">
@@ -151,9 +159,7 @@ export function MaterialRampPreview({
 							key={index}
 							className="material-ramp-dialog__value-swatch-wrapper"
 						>
-							<FloatingTooltip
-								text={isClosestToBase ? `${hex} (closest to base color)` : hex}
-							>
+							<FloatingTooltip text={hex}>
 								<div
 									className={className}
 									style={{ backgroundColor: hex }}

@@ -1,6 +1,8 @@
-import { Button, Input, Modal, TitleBar } from "@react95/core";
+import { Button, Modal, TitleBar } from "@react95/core";
 import { MouseEvent, useState } from "react";
 import { PngExportOptions } from "../../../../shared/palette-formats";
+import { Field } from "../Field/Field";
+import { NumberInput } from "../NumberInput/NumberInput";
 
 interface PngExportDialogProps {
 	colorCount: number;
@@ -66,8 +68,7 @@ export function PngExportDialog({
 				]}
 			>
 				<Modal.Content className="dialog-content">
-					<div className="endpoint-picker__field">
-						<span className="endpoint-picker__field-label">Shape</span>
+					<Field label="Shape">
 						<div className="endpoint-picker__mode-toggle">
 							<Button
 								className={modeButtonClass(shape === "row")}
@@ -88,11 +89,10 @@ export function PngExportDialog({
 								Grid
 							</Button>
 						</div>
-					</div>
+					</Field>
 
 					{shape === "grid" && (
-						<div className="endpoint-picker__field">
-							<span className="endpoint-picker__field-label">Specify by</span>
+						<Field label="Specify by">
 							<div className="endpoint-picker__mode-toggle">
 								<Button
 									className={modeButtonClass(gridDimension === "columns")}
@@ -107,19 +107,15 @@ export function PngExportDialog({
 									Rows
 								</Button>
 							</div>
-							<Input
-								type="number"
+							<NumberInput
 								min={1}
 								max={colorCount}
 								value={gridCount}
-								onChange={(event) =>
-									setGridCount(
-										clampCount(Number(event.target.value), colorCount)
-									)
-								}
+								onChange={setGridCount}
+								clamp={(v) => clampCount(v, colorCount)}
 								aria-label={`Number of ${gridDimension}`}
 							/>
-						</div>
+						</Field>
 					)}
 
 					<p className="png-export-dialog__preview">

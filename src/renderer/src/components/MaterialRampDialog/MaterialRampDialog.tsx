@@ -1,11 +1,15 @@
-import { Button, Frame, Input, Modal, TitleBar, Tooltip } from "@react95/core";
-import { MouseEvent, useEffect, useMemo, useState } from "react";
-import { ColorSystem, rgbToHex } from "../../../../shared/color";
+import { Button, Frame, Modal, TitleBar } from "@react95/core";
+import { MouseEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
-	DEFAULT_BASE_COLOR,
+	ColorSystem,
+	formatColorForSystem,
+	rgbToHex,
+} from "../../../../shared/color";
+import {
 	DEFAULT_METALLIC,
 	DEFAULT_ROUGHNESS,
 	DEFAULT_STOP_COUNT,
+	DEFAULT_TARGET_BASE_COLOR,
 	MAX_STOPS,
 	MAX_UNIT,
 	MIN_STOPS,
@@ -15,7 +19,8 @@ import {
 	clampIntensity,
 	clampStopCount,
 	clampUnit,
-	warningForBaseColor,
+	warningForAlbedoColor,
+	warningForUnreachableTarget,
 } from "../../../../shared/materialRamp/dialogValidation";
 import {
 	decodeEnvironmentImage,
@@ -31,6 +36,10 @@ import {
 import { PaletteGroup } from "../../../../shared/palette-formats";
 import { getDefaultEnvironmentMap } from "../../materialRamp/defaultEnvironmentMap";
 import { generateMaterialRamp } from "../../materialRamp/generateMaterialRamp";
+import {
+	StaleSolveError,
+	useAlbedoSolver,
+} from "../../materialRamp/useAlbedoSolver";
 import { usePaletteStore } from "../../store/paletteStore";
 import {
 	EndpointMode,
@@ -39,8 +48,17 @@ import {
 } from "../ColorPicker/EndpointPicker";
 import { GroupPicker, GroupSelection } from "../ColorPicker/GroupPicker";
 import { SwatchColorPicker } from "../ColorPicker/SwatchColorPicker";
+import { Banner } from "../Banner/Banner";
+import { Field, FieldLabel } from "../Field/Field";
+import { FloatingTooltip } from "../FloatingTooltip/FloatingTooltip";
+import { NumberInput } from "../NumberInput/NumberInput";
+import { VectorInput } from "../VectorInput/VectorInput";
 import { EnvironmentMapPreview } from "./EnvironmentMapPreview";
 import { MaterialRampPreview } from "./MaterialRampPreview";
+
+// Coalesces rapid-fire changes (e.g. dragging a NumberInput) into a single
+// solve request once the user pauses, instead of one per intermediate value.
+const ALBEDO_SOLVE_DEBOUNCE_MS = 200;
 
 interface MaterialRampDialogProps {
 	paletteId: string;
@@ -68,13 +86,33 @@ export function MaterialRampDialog({
 
 	const colors = groups.find((group) => group.id === groupId)?.colors ?? [];
 
-	const [mode, setMode] = useState<EndpointMode>(
+	// The material's actual albedo -- read-only in the UI (see the Color
+	// section below), solved automatically from the Target base color rather
+	// than picked directly, since artists think in terms of the desired final
+	// appearance, not the underlying BRDF input.
+	const [albedoRgb, setAlbedoRgb] = useState<Rgb>(
+		colors[0] ?? DEFAULT_TARGET_BASE_COLOR
+	);
+	const albedoLightnessWarning = warningForAlbedoColor(albedoRgb);
+
+	// Represents the desired final rendered appearance -- changing it (or
+	// changing metallic/roughness/lighting afterward) solves for the Albedo
+	// color above via evaluateNeutralBaseColor/solveAlbedoForTarget, rather
+	// than feeding the BRDF directly. Solves live on every change (not just
+	// on blur/commit) so the effect of a color pick is immediately visible.
+	const [targetMode, setTargetMode] = useState<EndpointMode>(
 		colors.length > 0 ? "palette" : "new"
 	);
-	const [paletteColorId, setPaletteColorId] = useState(colors[0]?.id ?? "");
-	const [customRgb, setCustomRgb] = useState<Rgb>(
-		colors[0] ?? DEFAULT_BASE_COLOR
+	const [targetPaletteColorId, setTargetPaletteColorId] = useState(
+		colors[0]?.id ?? ""
 	);
+	const [targetCustomRgb, setTargetCustomRgb] = useState<Rgb>(
+		colors[0] ?? DEFAULT_TARGET_BASE_COLOR
+	);
+	const [unreachableAchieved, setUnreachableAchieved] = useState<Rgb | null>(
+		null
+	);
+	const { isSolving, solve } = useAlbedoSolver();
 
 	const [metallic, setMetallic] = useState(DEFAULT_METALLIC);
 	const [roughness, setRoughness] = useState(DEFAULT_ROUGHNESS);
@@ -137,19 +175,22 @@ export function MaterialRampDialog({
 			? defaultEnvironmentMap
 			: customEnvironmentMap;
 
-	const baseRgb =
-		mode === "palette"
-			? (colors.find((color) => color.id === paletteColorId) ?? customRgb)
-			: customRgb;
-	const baseColorWarning = warningForBaseColor(baseRgb);
+	const targetRgb =
+		targetMode === "palette"
+			? (colors.find((color) => color.id === targetPaletteColorId) ??
+				targetCustomRgb)
+			: targetCustomRgb;
+	const unreachableWarning = unreachableAchieved
+		? warningForUnreachableTarget(targetRgb, unreachableAchieved, colorSystem)
+		: null;
 
 	const material: MaterialDefinition = useMemo(
 		() => ({
-			baseColor: { r: baseRgb.r, g: baseRgb.g, b: baseRgb.b },
+			baseColor: { r: albedoRgb.r, g: albedoRgb.g, b: albedoRgb.b },
 			metallic,
 			roughness,
 		}),
-		[baseRgb.r, baseRgb.g, baseRgb.b, metallic, roughness]
+		[albedoRgb.r, albedoRgb.g, albedoRgb.b, metallic, roughness]
 	);
 
 	const lighting: LightingConfig = useMemo(
@@ -192,8 +233,42 @@ export function MaterialRampDialog({
 		[material, stopCount, lighting]
 	);
 
+	const runSolve = useCallback(async (): Promise<void> => {
+		setUnreachableAchieved(null);
+		try {
+			const { albedo, achieved } = await solve(
+				targetRgb,
+				metallic,
+				roughness,
+				lighting
+			);
+			setAlbedoRgb(albedo);
+			setUnreachableAchieved(achieved);
+		} catch (error) {
+			if (!(error instanceof StaleSolveError)) throw error;
+		}
+	}, [solve, targetRgb, metallic, roughness, lighting]);
+
+	// Runs once on mount (solving for the default target as soon as the
+	// dialog opens) and again on every live change to the target color (not
+	// just on blur/commit -- the effect of a pick should be immediately
+	// clear) or to metallic/roughness/lighting. Debounced: metallic/
+	// roughness/ambient/light/environment intensity are all drag-to-scrub
+	// NumberInputs now, which fire onChange on every pixel of movement --
+	// without this, a single drag gesture would flood the solver worker
+	// with a solve request per pixel.
+	useEffect(() => {
+		const timeoutId = setTimeout(runSolve, ALBEDO_SOLVE_DEBOUNCE_MS);
+		return () => clearTimeout(timeoutId);
+		// Deliberately omits `runSolve` itself: its identity only ever changes
+		// because of the other listed deps (targetRgb/metallic/roughness/
+		// lighting), which are already here, so including it would be
+		// redundant, not incomplete.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [targetRgb.r, targetRgb.g, targetRgb.b, metallic, roughness, lighting]);
+
 	function handleSubmit(): void {
-		const namedStops = assignRampNames(stops, material.baseColor);
+		const namedStops = assignRampNames(stops, material, lighting);
 		const storedColors = namedStops.map(({ stop, name }) => ({
 			r: stop.color.r,
 			g: stop.color.g,
@@ -228,46 +303,86 @@ export function MaterialRampDialog({
 				]}
 			>
 				<Modal.Content className="dialog-content">
-					<div className="endpoint-picker__field">
-						<span className="endpoint-picker__field-label">
-							Preview ({stops.length} color{stops.length === 1 ? "" : "s"})
-						</span>
+					<Field
+						label={`Preview (${stops.length} color${stops.length === 1 ? "" : "s"})`}
+					>
 						<MaterialRampPreview
 							stops={stops}
 							material={material}
 							lighting={lighting}
 						/>
-					</div>
+					</Field>
 					<hr className="dialog-separator" />
 
-					<EndpointPicker
-						label="Base color"
-						mode={mode}
-						onModeChange={setMode}
-						colors={colors}
-						colorSystem={colorSystem}
-						paletteColorId={paletteColorId}
-						onPaletteColorChange={setPaletteColorId}
-						customRgb={customRgb}
-						onCustomRgbChange={setCustomRgb}
-					/>
-					{baseColorWarning && (
-						<div className="material-ramp-dialog__base-color-warning">
-							{baseColorWarning}
+					<Frame className="material-ramp-dialog__section">
+						<div className="material-ramp-dialog__section-title">Color</div>
+
+						<EndpointPicker
+							label="Target base color"
+							tooltip="The desired final rendered appearance — the Albedo color below is solved to match it."
+							mode={targetMode}
+							onModeChange={setTargetMode}
+							colors={colors}
+							colorSystem={colorSystem}
+							paletteColorId={targetPaletteColorId}
+							onPaletteColorChange={setTargetPaletteColorId}
+							customRgb={targetCustomRgb}
+							onCustomRgbChange={setTargetCustomRgb}
+						/>
+						{unreachableWarning && (
+							<Banner
+								type={unreachableWarning.severity}
+								message={unreachableWarning.message}
+							/>
+						)}
+						{albedoLightnessWarning && (
+							<Banner type="warning" message={albedoLightnessWarning} />
+						)}
+
+						<div className="material-ramp-dialog__albedo-field">
+							<div className="material-ramp-dialog__albedo-swatch-row">
+								<FieldLabel
+									text="Albedo color"
+									tooltip="The raw material input the ramp is actually generated from — solved automatically from the Target base color above. Rarely needed directly."
+								/>
+								<FloatingTooltip
+									text={formatColorForSystem(albedoRgb, colorSystem)}
+								>
+									<div
+										className="material-ramp-dialog__value-swatch"
+										style={{
+											backgroundColor: rgbToHex(
+												albedoRgb.r,
+												albedoRgb.g,
+												albedoRgb.b
+											),
+										}}
+										aria-label={`Albedo color: ${formatColorForSystem(albedoRgb, colorSystem)}`}
+									/>
+								</FloatingTooltip>
+								{isSolving && (
+									<span className="material-ramp-dialog__albedo-solving">
+										Calculating…
+									</span>
+								)}
+							</div>
 						</div>
-					)}
+					</Frame>
 
 					<Frame className="material-ramp-dialog__section">
 						<div className="material-ramp-dialog__section-title">
 							Properties
 						</div>
-						<div className="endpoint-picker__field">
-							<Tooltip text="Quickly set Metallic and Roughness to common material presets. Your base color is unchanged.">
-								<span className="endpoint-picker__field-label">Presets</span>
-							</Tooltip>
+						<Field
+							label="Presets"
+							tooltip="Quickly set Metallic and Roughness to common material presets. Your base color is unchanged."
+						>
 							<div className="material-preset-chips">
 								{MATERIAL_PRESETS.map((preset) => (
-									<Tooltip key={preset.name} text={`e.g. ${preset.examples}`}>
+									<FloatingTooltip
+										key={preset.name}
+										text={`e.g. ${preset.examples}`}
+									>
 										<Button
 											className="material-preset-chip"
 											onClick={() => {
@@ -278,63 +393,44 @@ export function MaterialRampDialog({
 										>
 											{preset.name}
 										</Button>
-									</Tooltip>
+									</FloatingTooltip>
 								))}
 							</div>
-						</div>
+						</Field>
 
 						<div className="material-ramp-dialog__row">
-							<div className="endpoint-picker__field">
-								<Tooltip text="How metallic the surface is. 0 = dielectric (plastic, cloth, stone); 1 = pure metal (steel, gold, copper).">
-									<span className="endpoint-picker__field-label">Metallic</span>
-								</Tooltip>
-								<Input
-									type="number"
-									min={MIN_UNIT}
-									max={MAX_UNIT}
-									step={0.01}
-									value={metallic}
-									onChange={(event) =>
-										setMetallic(clampUnit(Number(event.target.value)))
-									}
-									aria-label="Metallic"
-								/>
-							</div>
-							<div className="endpoint-picker__field">
-								<Tooltip text="How rough the surface is. Low values give a small, sharp, bright highlight; high values spread it into a soft, dim sheen.">
-									<span className="endpoint-picker__field-label">
-										Roughness
-									</span>
-								</Tooltip>
-								<Input
-									type="number"
-									min={MIN_UNIT}
-									max={MAX_UNIT}
-									step={0.01}
-									value={roughness}
-									onChange={(event) =>
-										setRoughness(clampUnit(Number(event.target.value)))
-									}
-									aria-label="Roughness"
-								/>
-							</div>
-							<div className="endpoint-picker__field">
-								<Tooltip text="How many colors to compress the material's full light response into. More colors preserve finer value changes; fewer colors force a tighter, more stylized ramp.">
-									<span className="endpoint-picker__field-label">
-										Ramp colors
-									</span>
-								</Tooltip>
-								<Input
-									type="number"
-									min={MIN_STOPS}
-									max={MAX_STOPS}
-									value={stopCount}
-									onChange={(event) =>
-										setStopCount(clampStopCount(Number(event.target.value)))
-									}
-									aria-label="Number of ramp colors"
-								/>
-							</div>
+							<NumberInput
+								label="Metallic"
+								tooltip="How metallic the surface is. 0 = dielectric (plastic, cloth, stone); 1 = pure metal (steel, gold, copper)."
+								min={MIN_UNIT}
+								max={MAX_UNIT}
+								step={0.01}
+								value={metallic}
+								onChange={setMetallic}
+								clamp={clampUnit}
+								aria-label="Metallic"
+							/>
+							<NumberInput
+								label="Roughness"
+								tooltip="How rough the surface is. Low values give a small, sharp, bright highlight; high values spread it into a soft, dim sheen."
+								min={MIN_UNIT}
+								max={MAX_UNIT}
+								step={0.01}
+								value={roughness}
+								onChange={setRoughness}
+								clamp={clampUnit}
+								aria-label="Roughness"
+							/>
+							<NumberInput
+								label="Ramp colors"
+								tooltip="How many colors to compress the material's full light response into. More colors preserve finer value changes; fewer colors force a tighter, more stylized ramp."
+								min={MIN_STOPS}
+								max={MAX_STOPS}
+								value={stopCount}
+								onChange={setStopCount}
+								clamp={clampStopCount}
+								aria-label="Number of ramp colors"
+							/>
 						</div>
 					</Frame>
 
@@ -348,25 +444,16 @@ export function MaterialRampDialog({
 								rgb={ambientColor}
 								onChange={setAmbientColor}
 							/>
-							<div className="endpoint-picker__field">
-								<Tooltip text="How bright the ambient fill light is.">
-									<span className="endpoint-picker__field-label">
-										Ambient intensity
-									</span>
-								</Tooltip>
-								<Input
-									type="number"
-									min={MIN_UNIT}
-									step={0.01}
-									value={ambientIntensity}
-									onChange={(event) =>
-										setAmbientIntensity(
-											clampIntensity(Number(event.target.value))
-										)
-									}
-									aria-label="Ambient intensity"
-								/>
-							</div>
+							<NumberInput
+								label="Ambient intensity"
+								tooltip="How bright the ambient fill light is."
+								min={MIN_UNIT}
+								step={0.01}
+								value={ambientIntensity}
+								onChange={setAmbientIntensity}
+								clamp={clampIntensity}
+								aria-label="Ambient intensity"
+							/>
 						</div>
 					</Frame>
 
@@ -374,12 +461,10 @@ export function MaterialRampDialog({
 						<div className="material-ramp-dialog__section-title">
 							Environment reflection
 						</div>
-						<div className="endpoint-picker__field">
-							<Tooltip text="A real reflection image sampled by the material's mirror direction and roughness — richer than the flat ambient fill above, especially for polished or metallic materials.">
-								<span className="endpoint-picker__field-label">
-									Environment
-								</span>
-							</Tooltip>
+						<Field
+							label="Environment"
+							tooltip="A real reflection image sampled by the material's mirror direction and roughness — richer than the flat ambient fill above, especially for polished or metallic materials."
+						>
 							<div className="endpoint-picker__mode-toggle">
 								<Button
 									className={
@@ -402,9 +487,9 @@ export function MaterialRampDialog({
 									Custom image
 								</Button>
 							</div>
-						</div>
+						</Field>
 						{environmentMode === "custom" && (
-							<div className="endpoint-picker__field">
+							<div className="field">
 								<Button onClick={handleChooseEnvironmentImage}>
 									Choose file…
 								</Button>
@@ -417,29 +502,18 @@ export function MaterialRampDialog({
 						)}
 						<EnvironmentMapPreview environmentMap={activeEnvironmentMap} />
 						{environmentError && (
-							<div className="material-ramp-dialog__base-color-warning">
-								{environmentError}
-							</div>
+							<Banner type="error" message={environmentError} />
 						)}
-						<div className="endpoint-picker__field">
-							<Tooltip text="How strongly the environment reflection contributes, on top of the ambient fill above.">
-								<span className="endpoint-picker__field-label">
-									Environment intensity
-								</span>
-							</Tooltip>
-							<Input
-								type="number"
-								min={MIN_UNIT}
-								step={0.01}
-								value={environmentIntensity}
-								onChange={(event) =>
-									setEnvironmentIntensity(
-										clampIntensity(Number(event.target.value))
-									)
-								}
-								aria-label="Environment intensity"
-							/>
-						</div>
+						<NumberInput
+							label="Environment intensity"
+							tooltip="How strongly the environment reflection contributes, on top of the ambient fill above."
+							min={MIN_UNIT}
+							step={0.01}
+							value={environmentIntensity}
+							onChange={setEnvironmentIntensity}
+							clamp={clampIntensity}
+							aria-label="Environment intensity"
+						/>
 					</Frame>
 
 					<Frame className="material-ramp-dialog__section">
@@ -454,68 +528,33 @@ export function MaterialRampDialog({
 								rgb={lightColor}
 								onChange={setLightColor}
 							/>
-							<div className="endpoint-picker__field">
-								<Tooltip text="How bright the direct light is.">
-									<span className="endpoint-picker__field-label">
-										Light intensity
-									</span>
-								</Tooltip>
-								<Input
-									type="number"
-									min={MIN_UNIT}
-									step={0.01}
-									value={lightIntensity}
-									onChange={(event) =>
-										setLightIntensity(
-											clampIntensity(Number(event.target.value))
-										)
-									}
-									aria-label="Light intensity"
-								/>
-							</div>
-							<div className="endpoint-picker__field">
-								<Tooltip text="Direction the light shines from, as a normalized (x, y, z) vector. Fixed for now — will be editable in a future version. Together with the view direction, this also defines the plane surface orientation is swept through to generate the ramp.">
-									<span className="endpoint-picker__field-label">
-										Light direction
-									</span>
-								</Tooltip>
-								<div className="material-ramp-dialog__vector">
-									{DEFAULT_LIGHTING.directionalLightDir.map(
-										(component, index) => (
-											<Input
-												key={index}
-												type="number"
-												value={component}
-												disabled
-												aria-label={`Light direction ${["X", "Y", "Z"][index]}`}
-											/>
-										)
-									)}
-								</div>
-							</div>
+							<NumberInput
+								label="Light intensity"
+								tooltip="How bright the direct light is."
+								min={MIN_UNIT}
+								step={0.01}
+								value={lightIntensity}
+								onChange={setLightIntensity}
+								clamp={clampIntensity}
+								aria-label="Light intensity"
+							/>
+							<VectorInput
+								label="Light direction"
+								tooltip="Direction the light shines from, as a normalized (x, y, z) vector. Fixed for now — will be editable in a future version. Together with the view direction, this also defines the plane surface orientation is swept through to generate the ramp."
+								value={DEFAULT_LIGHTING.directionalLightDir}
+								disabled
+							/>
 						</div>
 					</Frame>
 
 					<Frame className="material-ramp-dialog__section">
 						<div className="material-ramp-dialog__section-title">View</div>
-						<div className="endpoint-picker__field">
-							<Tooltip text="Direction the camera is looking from, as a normalized (x, y, z) vector. Fixed for now — will be editable in a future version. Pairs with the light direction to define the plane surface orientation is swept through.">
-								<span className="endpoint-picker__field-label">
-									View direction
-								</span>
-							</Tooltip>
-							<div className="material-ramp-dialog__vector">
-								{DEFAULT_LIGHTING.viewDir.map((component, index) => (
-									<Input
-										key={index}
-										type="number"
-										value={component}
-										disabled
-										aria-label={`View direction ${["X", "Y", "Z"][index]}`}
-									/>
-								))}
-							</div>
-						</div>
+						<VectorInput
+							label="View direction"
+							tooltip="Direction the camera is looking from, as a normalized (x, y, z) vector. Fixed for now — will be editable in a future version. Pairs with the light direction to define the plane surface orientation is swept through."
+							value={DEFAULT_LIGHTING.viewDir}
+							disabled
+						/>
 					</Frame>
 
 					<hr className="dialog-separator" />

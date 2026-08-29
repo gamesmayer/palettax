@@ -1,5 +1,5 @@
-import { Dropdown, Frame, Input, Modal, TitleBar } from "@react95/core";
-import { ChangeEvent, MouseEvent, useState } from "react";
+import { Frame, Modal, TitleBar } from "@react95/core";
+import { MouseEvent, useState } from "react";
 import {
 	ColorSystem,
 	generateShadesAndTints,
@@ -14,6 +14,9 @@ import {
 	Rgb,
 } from "../ColorPicker/EndpointPicker";
 import { GroupPicker, GroupSelection } from "../ColorPicker/GroupPicker";
+import { Dropdown } from "../Dropdown/Dropdown";
+import { Field } from "../Field/Field";
+import { NumberInput } from "../NumberInput/NumberInput";
 
 interface ShadeTintDialogProps {
 	paletteId: string;
@@ -212,157 +215,101 @@ export function ShadeTintDialog({
 						onCustomRgbChange={setCustomRgb}
 					/>
 
-					<div className="endpoint-picker__field">
-						<span className="endpoint-picker__field-label">Interpolation</span>
-						<Dropdown
-							options={Object.values(EASING_LABELS)}
-							value={EASING_LABELS[easing]}
-							onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-								setEasing(EASING_BY_LABEL[event.target.value])
-							}
-							aria-label="Interpolation method"
-						/>
-					</div>
+					<Dropdown
+						label="Interpolation"
+						options={Object.values(EASING_LABELS)}
+						value={EASING_LABELS[easing]}
+						onChange={(label) => setEasing(EASING_BY_LABEL[label])}
+						aria-label="Interpolation method"
+					/>
 
 					<Frame className="shade-tint-dialog__section">
 						<div className="shade-tint-dialog__section-title">Shades</div>
 						<div className="shade-tint-dialog__row">
-							<div className="endpoint-picker__field">
-								<span className="endpoint-picker__field-label">Amount</span>
-								<Input
-									type="number"
-									min={MIN_COUNT}
-									max={MAX_COUNT}
-									value={shadeCount}
-									onChange={(event) =>
-										setShadeCount(clampCount(Number(event.target.value)))
-									}
-									aria-label="Number of shades"
-								/>
-							</div>
-							<div className="endpoint-picker__field">
-								<span className="endpoint-picker__field-label">Darkness %</span>
-								<Input
-									type="number"
-									min={MIN_LIGHTNESS_SHIFT}
-									max={MAX_LIGHTNESS_SHIFT}
-									value={shadeDarkness}
-									onChange={(event) =>
-										setShadeDarkness(
-											clampLightnessShift(Number(event.target.value))
-										)
-									}
-									aria-label="Shade darkness"
-								/>
-							</div>
-							<div className="endpoint-picker__field">
-								<span className="endpoint-picker__field-label">
-									Hue Shift °
-								</span>
-								<Input
-									type="number"
-									min={MIN_HUE_SHIFT}
-									max={MAX_HUE_SHIFT}
-									value={shadeHueShift}
-									onChange={(event) =>
-										setShadeHueShift(clampHueShift(Number(event.target.value)))
-									}
-									aria-label="Shade hue shift"
-								/>
-							</div>
-							<div className="endpoint-picker__field">
-								<span className="endpoint-picker__field-label">
-									Chroma Shift %
-								</span>
-								<Input
-									type="number"
-									min={MIN_CHROMA_SHIFT}
-									max={MAX_CHROMA_SHIFT}
-									value={shadeChromaShift}
-									onChange={(event) =>
-										setShadeChromaShift(
-											clampChromaShift(Number(event.target.value))
-										)
-									}
-									aria-label="Shade chroma shift"
-								/>
-							</div>
+							<NumberInput
+								label="Amount"
+								min={MIN_COUNT}
+								max={MAX_COUNT}
+								value={shadeCount}
+								onChange={setShadeCount}
+								clamp={clampCount}
+								aria-label="Number of shades"
+							/>
+							<NumberInput
+								label="Darkness %"
+								min={MIN_LIGHTNESS_SHIFT}
+								max={MAX_LIGHTNESS_SHIFT}
+								value={shadeDarkness}
+								onChange={setShadeDarkness}
+								clamp={clampLightnessShift}
+								aria-label="Shade darkness"
+							/>
+							<NumberInput
+								label="Hue Shift °"
+								min={MIN_HUE_SHIFT}
+								max={MAX_HUE_SHIFT}
+								value={shadeHueShift}
+								onChange={setShadeHueShift}
+								clamp={clampHueShift}
+								aria-label="Shade hue shift"
+							/>
+							<NumberInput
+								label="Chroma Shift %"
+								min={MIN_CHROMA_SHIFT}
+								max={MAX_CHROMA_SHIFT}
+								value={shadeChromaShift}
+								onChange={setShadeChromaShift}
+								clamp={clampChromaShift}
+								aria-label="Shade chroma shift"
+							/>
 						</div>
 					</Frame>
 
 					<Frame className="shade-tint-dialog__section">
 						<div className="shade-tint-dialog__section-title">Tints</div>
 						<div className="shade-tint-dialog__row">
-							<div className="endpoint-picker__field">
-								<span className="endpoint-picker__field-label">Amount</span>
-								<Input
-									type="number"
-									min={MIN_COUNT}
-									max={MAX_COUNT}
-									value={tintCount}
-									onChange={(event) =>
-										setTintCount(clampCount(Number(event.target.value)))
-									}
-									aria-label="Number of tints"
-								/>
-							</div>
-							<div className="endpoint-picker__field">
-								<span className="endpoint-picker__field-label">
-									Lightness %
-								</span>
-								<Input
-									type="number"
-									min={MIN_LIGHTNESS_SHIFT}
-									max={MAX_LIGHTNESS_SHIFT}
-									value={tintLightness}
-									onChange={(event) =>
-										setTintLightness(
-											clampLightnessShift(Number(event.target.value))
-										)
-									}
-									aria-label="Tint lightness"
-								/>
-							</div>
-							<div className="endpoint-picker__field">
-								<span className="endpoint-picker__field-label">
-									Hue Shift °
-								</span>
-								<Input
-									type="number"
-									min={MIN_HUE_SHIFT}
-									max={MAX_HUE_SHIFT}
-									value={tintHueShift}
-									onChange={(event) =>
-										setTintHueShift(clampHueShift(Number(event.target.value)))
-									}
-									aria-label="Tint hue shift"
-								/>
-							</div>
-							<div className="endpoint-picker__field">
-								<span className="endpoint-picker__field-label">
-									Chroma Shift %
-								</span>
-								<Input
-									type="number"
-									min={MIN_CHROMA_SHIFT}
-									max={MAX_CHROMA_SHIFT}
-									value={tintChromaShift}
-									onChange={(event) =>
-										setTintChromaShift(
-											clampChromaShift(Number(event.target.value))
-										)
-									}
-									aria-label="Tint chroma shift"
-								/>
-							</div>
+							<NumberInput
+								label="Amount"
+								min={MIN_COUNT}
+								max={MAX_COUNT}
+								value={tintCount}
+								onChange={setTintCount}
+								clamp={clampCount}
+								aria-label="Number of tints"
+							/>
+							<NumberInput
+								label="Lightness %"
+								min={MIN_LIGHTNESS_SHIFT}
+								max={MAX_LIGHTNESS_SHIFT}
+								value={tintLightness}
+								onChange={setTintLightness}
+								clamp={clampLightnessShift}
+								aria-label="Tint lightness"
+							/>
+							<NumberInput
+								label="Hue Shift °"
+								min={MIN_HUE_SHIFT}
+								max={MAX_HUE_SHIFT}
+								value={tintHueShift}
+								onChange={setTintHueShift}
+								clamp={clampHueShift}
+								aria-label="Tint hue shift"
+							/>
+							<NumberInput
+								label="Chroma Shift %"
+								min={MIN_CHROMA_SHIFT}
+								max={MAX_CHROMA_SHIFT}
+								value={tintChromaShift}
+								onChange={setTintChromaShift}
+								clamp={clampChromaShift}
+								aria-label="Tint chroma shift"
+							/>
 						</div>
 					</Frame>
 
-					<div className="endpoint-picker__field">
-						<span className="endpoint-picker__field-label">
-							Preview ({newColorCount} new color{newColorCount === 1 ? "" : "s"}
-							)
-						</span>
+					<Field
+						label={`Preview (${newColorCount} new color${newColorCount === 1 ? "" : "s"})`}
+					>
 						<div className="shade-tint-dialog__preview">
 							{preview.map(({ r, g, b }, index) => (
 								<div
@@ -373,7 +320,7 @@ export function ShadeTintDialog({
 								/>
 							))}
 						</div>
-					</div>
+					</Field>
 
 					<hr className="dialog-separator" />
 					<GroupPicker

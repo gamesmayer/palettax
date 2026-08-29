@@ -1,4 +1,3 @@
-import { Input } from "@react95/core";
 import { useEffect, useState } from "react";
 import {
 	HexColorPicker,
@@ -18,6 +17,8 @@ import {
 	rgbToHsl,
 	rgbToHsv,
 } from "../../../../shared/color";
+import { NumberInput } from "../NumberInput/NumberInput";
+import { TextInput } from "../TextInput/TextInput";
 
 interface ColorSystemFieldsProps {
 	colorSystem: ColorSystem;
@@ -98,207 +99,133 @@ export function ColorSystemFields({
 			</div>
 
 			{colorSystem === "hex" && (
-				<div className="color-picker__field">
-					<span className="color-picker__field-label">Hex</span>
-					<Input
-						type="text"
-						value={hexDraft}
-						onChange={(event) => handleHexInput(event.target.value)}
-						aria-label="Hex code"
-					/>
-				</div>
+				<TextInput
+					label="Hex"
+					value={hexDraft}
+					onChange={handleHexInput}
+					aria-label="Hex code"
+				/>
 			)}
 			{colorSystem === "rgb" && (
 				<div className="color-picker__channels">
-					<div className="color-picker__field">
-						<span className="color-picker__field-label">R</span>
-						<Input
-							type="number"
-							min={0}
-							max={255}
-							value={rgb.r}
-							onChange={(event) =>
-								onChange({ ...rgb, r: clampByte(Number(event.target.value)) })
-							}
-							aria-label="Red"
-						/>
-					</div>
-					<div className="color-picker__field">
-						<span className="color-picker__field-label">G</span>
-						<Input
-							type="number"
-							min={0}
-							max={255}
-							value={rgb.g}
-							onChange={(event) =>
-								onChange({ ...rgb, g: clampByte(Number(event.target.value)) })
-							}
-							aria-label="Green"
-						/>
-					</div>
-					<div className="color-picker__field">
-						<span className="color-picker__field-label">B</span>
-						<Input
-							type="number"
-							min={0}
-							max={255}
-							value={rgb.b}
-							onChange={(event) =>
-								onChange({ ...rgb, b: clampByte(Number(event.target.value)) })
-							}
-							aria-label="Blue"
-						/>
-					</div>
+					<NumberInput
+						label="R"
+						min={0}
+						max={255}
+						value={rgb.r}
+						onChange={(v) => onChange({ ...rgb, r: clampByte(v) })}
+						aria-label="Red"
+					/>
+					<NumberInput
+						label="G"
+						min={0}
+						max={255}
+						value={rgb.g}
+						onChange={(v) => onChange({ ...rgb, g: clampByte(v) })}
+						aria-label="Green"
+					/>
+					<NumberInput
+						label="B"
+						min={0}
+						max={255}
+						value={rgb.b}
+						onChange={(v) => onChange({ ...rgb, b: clampByte(v) })}
+						aria-label="Blue"
+					/>
 				</div>
 			)}
 			{colorSystem === "hsl" && (
 				<div className="color-picker__channels">
-					<div className="color-picker__field">
-						<span className="color-picker__field-label">H</span>
-						<Input
-							type="number"
-							min={0}
-							max={360}
-							value={hsl.h}
-							onChange={(event) =>
-								onChange(hslToRgb(Number(event.target.value), hsl.s, hsl.l))
-							}
-							aria-label="Hue"
-						/>
-					</div>
-					<div className="color-picker__field">
-						<span className="color-picker__field-label">S</span>
-						<Input
-							type="number"
-							min={0}
-							max={100}
-							value={hsl.s}
-							onChange={(event) =>
-								onChange(hslToRgb(hsl.h, Number(event.target.value), hsl.l))
-							}
-							aria-label="Saturation"
-						/>
-					</div>
-					<div className="color-picker__field">
-						<span className="color-picker__field-label">L</span>
-						<Input
-							type="number"
-							min={0}
-							max={100}
-							value={hsl.l}
-							onChange={(event) =>
-								onChange(hslToRgb(hsl.h, hsl.s, Number(event.target.value)))
-							}
-							aria-label="Lightness"
-						/>
-					</div>
+					<NumberInput
+						label="H"
+						min={0}
+						max={360}
+						dragSensitivity={8}
+						value={hsl.h}
+						onChange={(v) => onChange(hslToRgb(v, hsl.s, hsl.l))}
+						aria-label="Hue"
+					/>
+					<NumberInput
+						label="S"
+						min={0}
+						max={100}
+						value={hsl.s}
+						onChange={(v) => onChange(hslToRgb(hsl.h, v, hsl.l))}
+						aria-label="Saturation"
+					/>
+					<NumberInput
+						label="L"
+						min={0}
+						max={100}
+						value={hsl.l}
+						onChange={(v) => onChange(hslToRgb(hsl.h, hsl.s, v))}
+						aria-label="Lightness"
+					/>
 				</div>
 			)}
 			{colorSystem === "hsb" && (
 				<div className="color-picker__channels">
-					<div className="color-picker__field">
-						<span className="color-picker__field-label">H</span>
-						<Input
-							type="number"
-							min={0}
-							max={360}
-							value={hsv.h}
-							onChange={(event) =>
-								onChange(hsvToRgb(Number(event.target.value), hsv.s, hsv.v))
-							}
-							aria-label="Hue"
-						/>
-					</div>
-					<div className="color-picker__field">
-						<span className="color-picker__field-label">S</span>
-						<Input
-							type="number"
-							min={0}
-							max={100}
-							value={hsv.s}
-							onChange={(event) =>
-								onChange(hsvToRgb(hsv.h, Number(event.target.value), hsv.v))
-							}
-							aria-label="Saturation"
-						/>
-					</div>
-					<div className="color-picker__field">
-						<span className="color-picker__field-label">B</span>
-						<Input
-							type="number"
-							min={0}
-							max={100}
-							value={hsv.v}
-							onChange={(event) =>
-								onChange(hsvToRgb(hsv.h, hsv.s, Number(event.target.value)))
-							}
-							aria-label="Brightness"
-						/>
-					</div>
+					<NumberInput
+						label="H"
+						min={0}
+						max={360}
+						dragSensitivity={8}
+						value={hsv.h}
+						onChange={(v) => onChange(hsvToRgb(v, hsv.s, hsv.v))}
+						aria-label="Hue"
+					/>
+					<NumberInput
+						label="S"
+						min={0}
+						max={100}
+						value={hsv.s}
+						onChange={(v) => onChange(hsvToRgb(hsv.h, v, hsv.v))}
+						aria-label="Saturation"
+					/>
+					<NumberInput
+						label="B"
+						min={0}
+						max={100}
+						value={hsv.v}
+						onChange={(v) => onChange(hsvToRgb(hsv.h, hsv.s, v))}
+						aria-label="Brightness"
+					/>
 				</div>
 			)}
 			{colorSystem === "cmyk" && (
 				<div className="color-picker__channels">
-					<div className="color-picker__field">
-						<span className="color-picker__field-label">C</span>
-						<Input
-							type="number"
-							min={0}
-							max={100}
-							value={cmyk.c}
-							onChange={(event) =>
-								onChange(
-									cmykToRgb(Number(event.target.value), cmyk.m, cmyk.y, cmyk.k)
-								)
-							}
-							aria-label="Cyan"
-						/>
-					</div>
-					<div className="color-picker__field">
-						<span className="color-picker__field-label">M</span>
-						<Input
-							type="number"
-							min={0}
-							max={100}
-							value={cmyk.m}
-							onChange={(event) =>
-								onChange(
-									cmykToRgb(cmyk.c, Number(event.target.value), cmyk.y, cmyk.k)
-								)
-							}
-							aria-label="Magenta"
-						/>
-					</div>
-					<div className="color-picker__field">
-						<span className="color-picker__field-label">Y</span>
-						<Input
-							type="number"
-							min={0}
-							max={100}
-							value={cmyk.y}
-							onChange={(event) =>
-								onChange(
-									cmykToRgb(cmyk.c, cmyk.m, Number(event.target.value), cmyk.k)
-								)
-							}
-							aria-label="Yellow"
-						/>
-					</div>
-					<div className="color-picker__field">
-						<span className="color-picker__field-label">K</span>
-						<Input
-							type="number"
-							min={0}
-							max={100}
-							value={cmyk.k}
-							onChange={(event) =>
-								onChange(
-									cmykToRgb(cmyk.c, cmyk.m, cmyk.y, Number(event.target.value))
-								)
-							}
-							aria-label="Key (black)"
-						/>
-					</div>
+					<NumberInput
+						label="C"
+						min={0}
+						max={100}
+						value={cmyk.c}
+						onChange={(v) => onChange(cmykToRgb(v, cmyk.m, cmyk.y, cmyk.k))}
+						aria-label="Cyan"
+					/>
+					<NumberInput
+						label="M"
+						min={0}
+						max={100}
+						value={cmyk.m}
+						onChange={(v) => onChange(cmykToRgb(cmyk.c, v, cmyk.y, cmyk.k))}
+						aria-label="Magenta"
+					/>
+					<NumberInput
+						label="Y"
+						min={0}
+						max={100}
+						value={cmyk.y}
+						onChange={(v) => onChange(cmykToRgb(cmyk.c, cmyk.m, v, cmyk.k))}
+						aria-label="Yellow"
+					/>
+					<NumberInput
+						label="K"
+						min={0}
+						max={100}
+						value={cmyk.k}
+						onChange={(v) => onChange(cmykToRgb(cmyk.c, cmyk.m, cmyk.y, v))}
+						aria-label="Key (black)"
+					/>
 				</div>
 			)}
 		</>

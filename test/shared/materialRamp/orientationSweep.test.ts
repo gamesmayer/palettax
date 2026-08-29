@@ -1,8 +1,8 @@
+import { DEFAULT_LIGHTING } from "../../../src/shared/materialRamp/lightingConstants";
 import {
 	computeSweepBasis,
 	normalAtT,
 } from "../../../src/shared/materialRamp/orientationSweep";
-import { DEFAULT_LIGHTING } from "../../../src/shared/materialRamp/types";
 import { dot3, normalize3 } from "../../../src/shared/materialRamp/vec3";
 
 const basis = computeSweepBasis(DEFAULT_LIGHTING);

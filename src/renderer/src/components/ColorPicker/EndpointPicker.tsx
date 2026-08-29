@@ -1,6 +1,8 @@
 import { Button, Frame } from "@react95/core";
-import { ColorSystem } from "../../../../shared/color";
+import { ColorSystem, formatColorForSystem } from "../../../../shared/color";
 import { PaletteColor } from "../../../../shared/palette-formats";
+import { FieldLabel } from "../Field/Field";
+import { FloatingTooltip } from "../FloatingTooltip/FloatingTooltip";
 import { SwatchColorPicker } from "./SwatchColorPicker";
 
 export type EndpointMode = "palette" | "new";
@@ -8,6 +10,8 @@ export type Rgb = { r: number; g: number; b: number };
 
 interface EndpointPickerProps {
 	label: string;
+	/** Optional tooltip for the field label, portaled via FloatingTooltip (not react95's Tooltip) so it isn't clipped near the edge of the dialog's scrolling content. */
+	tooltip?: string;
 	mode: EndpointMode;
 	onModeChange: (mode: EndpointMode) => void;
 	colors: PaletteColor[];
@@ -20,6 +24,7 @@ interface EndpointPickerProps {
 
 export function EndpointPicker({
 	label,
+	tooltip,
 	mode,
 	onModeChange,
 	colors,
@@ -30,8 +35,8 @@ export function EndpointPicker({
 	onCustomRgbChange,
 }: EndpointPickerProps): JSX.Element {
 	return (
-		<div className="endpoint-picker__field">
-			<span className="endpoint-picker__field-label">{label}</span>
+		<div className="field">
+			<FieldLabel text={label} tooltip={tooltip} />
 			<div className="endpoint-picker__mode-toggle">
 				<Button
 					className={
@@ -58,18 +63,22 @@ export function EndpointPicker({
 			{mode === "palette" ? (
 				<div className="endpoint-picker__swatch-picker">
 					{colors.map((color) => (
-						<Frame
+						<FloatingTooltip
 							key={color.id}
-							as="button"
-							className={
-								color.id === paletteColorId
-									? "endpoint-picker__chip endpoint-picker__chip--selected"
-									: "endpoint-picker__chip"
-							}
-							style={{ backgroundColor: color.hex }}
-							onClick={() => onPaletteColorChange(color.id)}
-							aria-label={`${label}: ${color.hex}`}
-						/>
+							text={formatColorForSystem(color, colorSystem)}
+						>
+							<Frame
+								as="button"
+								className={
+									color.id === paletteColorId
+										? "endpoint-picker__chip endpoint-picker__chip--selected"
+										: "endpoint-picker__chip"
+								}
+								style={{ backgroundColor: color.hex }}
+								onClick={() => onPaletteColorChange(color.id)}
+								aria-label={`${label}: ${formatColorForSystem(color, colorSystem)}`}
+							/>
+						</FloatingTooltip>
 					))}
 				</div>
 			) : (
