@@ -21,10 +21,10 @@ import {
 	decodeEnvironmentImage,
 	EnvironmentMap,
 } from "../../../../shared/materialRamp/environmentMap";
+import { DEFAULT_LIGHTING } from "../../../../shared/materialRamp/lightingConstants";
 import { MATERIAL_PRESETS } from "../../../../shared/materialRamp/materialPresets";
 import { assignRampNames } from "../../../../shared/materialRamp/rampNaming";
 import {
-	DEFAULT_LIGHTING,
 	LightingConfig,
 	MaterialDefinition,
 } from "../../../../shared/materialRamp/types";
@@ -60,10 +60,11 @@ export function MaterialRampDialog({
 	const addColors = usePaletteStore((state) => state.addColors);
 	const addGroup = usePaletteStore((state) => state.addGroup);
 
-	const [groupSelection, setGroupSelection] = useState<GroupSelection>({
-		kind: "existing",
-		groupId,
-	});
+	const [groupSelection, setGroupSelection] = useState<GroupSelection>(
+		groups.length > 0
+			? { kind: "existing", groupId }
+			: { kind: "new", name: "" }
+	);
 
 	const colors = groups.find((group) => group.id === groupId)?.colors ?? [];
 
@@ -103,7 +104,9 @@ export function MaterialRampDialog({
 		string | null
 	>(null);
 	const [environmentError, setEnvironmentError] = useState<string | null>(null);
-	const [environmentIntensity, setEnvironmentIntensity] = useState(1);
+	const [environmentIntensity, setEnvironmentIntensity] = useState(
+		DEFAULT_LIGHTING.environmentIntensity
+	);
 
 	useEffect(() => {
 		let cancelled = false;

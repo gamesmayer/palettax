@@ -13,7 +13,6 @@ interface PaletteToolbarProps {
 	onOpenBlend: () => void;
 	onOpenShadeTint: () => void;
 	onOpenMaterialRamp: () => void;
-	canAddColor: boolean;
 	onUndo: () => void;
 	onRedo: () => void;
 	canUndo: boolean;
@@ -44,7 +43,6 @@ export function PaletteToolbar({
 	onOpenBlend,
 	onOpenShadeTint,
 	onOpenMaterialRamp,
-	canAddColor,
 	onUndo,
 	onRedo,
 	canUndo,
@@ -87,18 +85,12 @@ export function PaletteToolbar({
 					<Button onClick={onAddGroup}>
 						<PlusIcon /> Add group
 					</Button>
-					<Button onClick={onAddColor} disabled={!canAddColor}>
+					<Button onClick={onAddColor}>
 						<PlusIcon /> Add color
 					</Button>
-					<Button onClick={onOpenBlend} disabled={!canAddColor}>
-						Blending
-					</Button>
-					<Button onClick={onOpenShadeTint} disabled={!canAddColor}>
-						Shades/Tints
-					</Button>
-					<Button onClick={onOpenMaterialRamp} disabled={!canAddColor}>
-						Material Ramp
-					</Button>
+					<Button onClick={onOpenBlend}>Blending</Button>
+					<Button onClick={onOpenShadeTint}>Shades/Tints</Button>
+					<Button onClick={onOpenMaterialRamp}>Material Ramp</Button>
 				</div>
 			</div>
 		</Frame>

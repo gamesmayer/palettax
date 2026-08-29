@@ -34,7 +34,7 @@ export function computeSweepBasis(lighting: LightingConfig): SweepBasis {
  * brightest); N·V stays positive throughout (surface always camera-visible);
  * the specular peak (N aligned with the fixed half-vector H) lands at the
  * interior position t = 1 - phi/180deg. See DEFAULT_LIGHTING's comment in
- * types.ts for the full derivation and its limits.
+ * lightingConstants.ts for the full derivation and its limits.
  */
 export function normalAtT(t: number, basis: SweepBasis): Vec3 {
 	const alpha = basis.phi - Math.PI / 2 + (Math.PI / 2) * t;

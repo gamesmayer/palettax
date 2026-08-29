@@ -51,7 +51,6 @@ export function PaletteView(): JSX.Element {
 		);
 	}
 
-	const canAddColor = activePalette.groups.length > 0;
 	const defaultGroupId = activePalette.groups[0]?.id ?? "";
 
 	return (
@@ -66,7 +65,6 @@ export function PaletteView(): JSX.Element {
 				onOpenBlend={() => setIsBlendDialogOpen(true)}
 				onOpenShadeTint={() => setIsShadeTintDialogOpen(true)}
 				onOpenMaterialRamp={() => setIsMaterialRampDialogOpen(true)}
-				canAddColor={canAddColor}
 				onUndo={() => undo(activePalette.id)}
 				onRedo={() => redo(activePalette.id)}
 				canUndo={canUndo}

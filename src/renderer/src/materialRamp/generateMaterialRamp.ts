@@ -3,9 +3,9 @@ import {
 	computeSweepBasis,
 	normalAtT,
 } from "../../../shared/materialRamp/orientationSweep";
+import { DEFAULT_LIGHTING } from "../../../shared/materialRamp/lightingConstants";
 import { DenseSample, posterize } from "../../../shared/materialRamp/posterize";
 import {
-	DEFAULT_LIGHTING,
 	LightingConfig,
 	MaterialDefinition,
 	MaterialRampStop,

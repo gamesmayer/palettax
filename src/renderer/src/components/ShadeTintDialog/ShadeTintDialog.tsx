@@ -79,10 +79,11 @@ export function ShadeTintDialog({
 	);
 	const addGroup = usePaletteStore((state) => state.addGroup);
 
-	const [groupSelection, setGroupSelection] = useState<GroupSelection>({
-		kind: "existing",
-		groupId,
-	});
+	const [groupSelection, setGroupSelection] = useState<GroupSelection>(
+		groups.length > 0
+			? { kind: "existing", groupId }
+			: { kind: "new", name: "" }
+	);
 	const colors =
 		groupSelection.kind === "existing"
 			? (groups.find((group) => group.id === groupSelection.groupId)?.colors ??

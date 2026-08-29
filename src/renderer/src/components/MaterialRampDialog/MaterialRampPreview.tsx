@@ -42,6 +42,16 @@ export function MaterialRampPreview({
 	lighting,
 }: MaterialRampPreviewProps): JSX.Element {
 	const [shape, setShape] = useState<PreviewShape>("sphere");
+	const [hoveredPixel, setHoveredPixel] = useState<{
+		r: number;
+		g: number;
+		b: number;
+	} | null>(null);
+	const [hoveredSwatchColor, setHoveredSwatchColor] = useState<{
+		r: number;
+		g: number;
+		b: number;
+	} | null>(null);
 	const renderShape =
 		shape === "sphere" ? renderMaterialSphere : renderMaterialCube;
 
@@ -108,12 +118,16 @@ export function MaterialRampPreview({
 					size={CONTINUOUS_SPHERE_SIZE}
 					label="Continuous"
 					pixelated={false}
+					onHoverPixel={setHoveredPixel}
+					highlightColor={hoveredSwatchColor}
 				/>
 				<MaterialSphereCanvas
 					pixels={posterizedPixels}
 					size={POSTERIZED_SPHERE_SIZE}
 					label="Posterized"
 					pixelated
+					onHoverPixel={setHoveredPixel}
+					highlightColor={hoveredSwatchColor}
 				/>
 			</div>
 
@@ -121,22 +135,42 @@ export function MaterialRampPreview({
 				{valueOrderedStops.map((stop, index) => {
 					const hex = rgbToHex(stop.color.r, stop.color.g, stop.color.b);
 					const isClosestToBase = stop === closestToBaseStop;
+					const isHovered =
+						hoveredPixel !== null &&
+						stop.color.r === hoveredPixel.r &&
+						stop.color.g === hoveredPixel.g &&
+						stop.color.b === hoveredPixel.b;
+					const className = [
+						"material-ramp-dialog__value-swatch",
+						isHovered && "material-ramp-dialog__value-swatch--hovered",
+					]
+						.filter(Boolean)
+						.join(" ");
 					return (
-						<FloatingTooltip
+						<div
 							key={index}
-							text={isClosestToBase ? `${hex} (closest to base color)` : hex}
+							className="material-ramp-dialog__value-swatch-wrapper"
 						>
-							<div
-								className={
-									isClosestToBase
-										? "material-ramp-dialog__value-swatch material-ramp-dialog__value-swatch--base"
-										: "material-ramp-dialog__value-swatch"
-								}
-								style={{ backgroundColor: hex }}
-								tabIndex={0}
-								aria-label={hex}
-							/>
-						</FloatingTooltip>
+							<FloatingTooltip
+								text={isClosestToBase ? `${hex} (closest to base color)` : hex}
+							>
+								<div
+									className={className}
+									style={{ backgroundColor: hex }}
+									tabIndex={0}
+									aria-label={hex}
+									onMouseEnter={() => setHoveredSwatchColor(stop.color)}
+									onMouseLeave={() => setHoveredSwatchColor(null)}
+									onFocus={() => setHoveredSwatchColor(stop.color)}
+									onBlur={() => setHoveredSwatchColor(null)}
+								/>
+							</FloatingTooltip>
+							{isClosestToBase && (
+								<span className="material-ramp-dialog__value-swatch-label">
+									Base
+								</span>
+							)}
+						</div>
 					);
 				})}
 			</div>

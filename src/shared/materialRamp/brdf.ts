@@ -14,7 +14,7 @@ const DIELECTRIC_F0 = 0.04;
 // sweep. Note this is a pre-tonemap statement: reinhardTonemap (c/(1+c))
 // still compresses that radiance afterward, so actual DEFAULT_LIGHTING
 // intensities are chosen post-tonemap against the curve, not from this
-// constant alone -- see the comment on DEFAULT_LIGHTING in types.ts.
+// constant alone -- see the comment on DEFAULT_LIGHTING in lightingConstants.ts.
 const LIGHT_POWER = Math.PI;
 
 /** Trowbridge-Reitz / GGX normal distribution function. */

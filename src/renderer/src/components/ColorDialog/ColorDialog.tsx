@@ -26,10 +26,11 @@ export function ColorDialog({
 	const addColor = usePaletteStore((state) => state.addColor);
 	const updateColor = usePaletteStore((state) => state.updateColor);
 	const addGroup = usePaletteStore((state) => state.addGroup);
-	const [groupSelection, setGroupSelection] = useState<GroupSelection>({
-		kind: "existing",
-		groupId,
-	});
+	const [groupSelection, setGroupSelection] = useState<GroupSelection>(
+		groups.length > 0
+			? { kind: "existing", groupId }
+			: { kind: "new", name: "" }
+	);
 	const [rgb, setRgb] = useState({
 		r: color?.r ?? 255,
 		g: color?.g ?? 255,
