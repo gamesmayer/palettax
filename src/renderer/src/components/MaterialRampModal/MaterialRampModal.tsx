@@ -318,6 +318,22 @@ export function MaterialRampModal({
 
 			<Frame className="material-ramp-modal__section">
 				<div className="material-ramp-modal__section-title">
+					{t("app:materialRampModal.sections.colorRamp")}
+				</div>
+				<NumberInput
+					label={t("app:materialRampModal.rampColorsLabel")}
+					tooltip={t("app:materialRampModal.tooltips.rampColors")}
+					min={MIN_STOPS}
+					max={MAX_STOPS}
+					value={stopCount}
+					onChange={setStopCount}
+					clamp={clampStopCount}
+					aria-label={t("app:materialRampModal.rampColorsAriaLabel")}
+				/>
+			</Frame>
+
+			<Frame className="material-ramp-modal__section">
+				<div className="material-ramp-modal__section-title">
 					{t("app:materialRampModal.sections.color")}
 				</div>
 
@@ -434,16 +450,6 @@ export function MaterialRampModal({
 						onChange={setRoughness}
 						clamp={clampUnit}
 						aria-label={t("app:materialRampModal.roughnessLabel")}
-					/>
-					<NumberInput
-						label={t("app:materialRampModal.rampColorsLabel")}
-						tooltip={t("app:materialRampModal.tooltips.rampColors")}
-						min={MIN_STOPS}
-						max={MAX_STOPS}
-						value={stopCount}
-						onChange={setStopCount}
-						clamp={clampStopCount}
-						aria-label={t("app:materialRampModal.rampColorsAriaLabel")}
 					/>
 				</div>
 			</Frame>

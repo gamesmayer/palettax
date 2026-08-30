@@ -176,6 +176,7 @@
 		"sections": {
 			"color": "Color",
 			"properties": "Propiedades",
+			"colorRamp": "Rampa de color",
 			"ambient": "Ambiente",
 			"environmentReflection": "Reflejo del entorno",
 			"directionalLight": "Luz direccional",
