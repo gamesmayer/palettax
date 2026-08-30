@@ -1,9 +1,7 @@
 import { DEFAULT_LIGHTING } from "../../../src/shared/materialRamp/lightingConstants";
 import {
-	baseT,
 	computeSweepBasis,
 	normalAtT,
-	SweepBasis,
 } from "../../../src/shared/materialRamp/orientationSweep";
 import { dot3, normalize3 } from "../../../src/shared/materialRamp/vec3";
 
@@ -75,31 +73,6 @@ describe("normalAtT", () => {
 		expect(bestT).toBeLessThan(0.95);
 		// analytic prediction: t = 1 - phi/180deg = 0.75 for phi=45deg
 		expect(bestT).toBeCloseTo(0.75, 1);
-	});
-});
-
-describe("baseT", () => {
-	it("is 0.5 for DEFAULT_LIGHTING's phi=45deg", () => {
-		expect(baseT(basis)).toBeCloseTo(0.5, 10);
-	});
-
-	it("normalAtT(baseT(basis), basis) equals the view direction exactly", () => {
-		const n = normalAtT(baseT(basis), basis);
-		expect(n[0]).toBeCloseTo(V[0], 10);
-		expect(n[1]).toBeCloseTo(V[1], 10);
-		expect(n[2]).toBeCloseTo(V[2], 10);
-	});
-
-	it("clamps to 1 when phi=0 (light and view coincide)", () => {
-		const degenerate: SweepBasis = { e1: V, e2: basis.e2, phi: 0 };
-		expect(baseT(degenerate)).toBe(1);
-	});
-
-	it("clamps to 0 when phi is at or past 90deg", () => {
-		const grazing: SweepBasis = { e1: V, e2: basis.e2, phi: Math.PI / 2 };
-		expect(baseT(grazing)).toBe(0);
-		const beyond: SweepBasis = { e1: V, e2: basis.e2, phi: Math.PI };
-		expect(baseT(beyond)).toBe(0);
 	});
 });
 

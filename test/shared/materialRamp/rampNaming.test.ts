@@ -18,12 +18,8 @@ jest.mock("../../../src/shared/materialRamp/brdf", () => ({
 
 const DUMMY_LIGHTING = {} as LightingConfig;
 
-function stopAt(t: number, r: number, g: number, b: number): MaterialRampStop {
-	return { position: t, color: { r, g, b } };
-}
-
 function gray(v: number): MaterialRampStop {
-	return stopAt(v / 255, v, v, v);
+	return { color: { r: v, g: v, b: v } };
 }
 
 function grayMaterial(v: number): MaterialDefinition {
@@ -104,8 +100,8 @@ describe("assignRampNames", () => {
 
 	it("re-sorts dark-to-light regardless of input order", () => {
 		// A specular peak lands mid-array, out of lightness order -- mirrors
-		// posterize()'s actual output, which is sorted by sweep position, not
-		// lightness (see stopLightness.ts / posterize.ts).
+		// posterize()'s actual output, which has no inherent lightness order
+		// (see stopLightness.ts / posterize.ts).
 		const stops = [gray(64), gray(255), gray(0), gray(160)];
 		const named = assignRampNames(stops, grayMaterial(64), DUMMY_LIGHTING);
 		expect(named.map((n) => n.stop.color.r)).toEqual([0, 64, 160, 255]);

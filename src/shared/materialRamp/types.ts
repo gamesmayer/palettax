@@ -29,6 +29,5 @@ export interface LightingConfig {
 }
 
 export interface MaterialRampStop {
-	position: number; // 0..1 orientation-sweep position, NOT evenly spaced
 	color: { r: number; g: number; b: number }; // sRGB 0-255
 }

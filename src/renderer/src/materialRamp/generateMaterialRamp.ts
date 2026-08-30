@@ -1,115 +1,61 @@
-import {
-	evaluateBaseColor,
-	evaluateMaterial,
-} from "../../../shared/materialRamp/brdf";
-import {
-	baseT,
-	computeSweepBasis,
-	normalAtT,
-} from "../../../shared/materialRamp/orientationSweep";
+import { evaluateBaseColor } from "../../../shared/materialRamp/brdf";
 import { DEFAULT_LIGHTING } from "../../../shared/materialRamp/lightingConstants";
-import { DenseSample, posterize } from "../../../shared/materialRamp/posterize";
+import { posterize } from "../../../shared/materialRamp/posterize";
+import { renderMaterialSphere } from "../../../shared/materialRamp/sphereRender";
 import {
 	LightingConfig,
 	MaterialDefinition,
 	MaterialRampStop,
+	RgbLinear,
 } from "../../../shared/materialRamp/types";
-import { materialStripRenderer } from "./webglStripRenderer";
 
-const DEFAULT_SAMPLE_WIDTH = 512;
-
-function denseFromCpu(
-	material: MaterialDefinition,
-	lighting: LightingConfig,
-	width: number
-): DenseSample[] {
-	const basis = computeSweepBasis(lighting);
-	const dense: DenseSample[] = [];
-	for (let i = 0; i < width; i++) {
-		const t = i / (width - 1);
-		dense.push({
-			t,
-			rgbLinear: evaluateMaterial(material, lighting, normalAtT(t, basis)),
-		});
-	}
-	return dense;
-}
+// Resolution of the sphere sampled to build the color population stops are
+// quantized from -- independent of (and coarser than) the preview panes' own
+// render sizes (see MaterialRampPreview.tsx). Measured empirically against a
+// polished-metal material (near-mirror, sharp environment reflections): at
+// 32/48 this undersamples the reflection near the sphere's silhouette edge
+// badly enough to actually score WORSE (higher max quantization error against
+// a dense reference render) than the retired 1-D-arc algorithm it replaced;
+// 64 is the smallest size that consistently beats it on both mean and max
+// error. Still far cheaper than the continuous preview's own 128x128 CPU
+// render that already runs on every material/lighting change.
+const STOP_SAMPLE_SPHERE_SIZE = 64;
 
 export interface MaterialRampResult {
 	stops: MaterialRampStop[];
-	dense: DenseSample[];
 }
 
 /**
- * Patches the single dense sample nearest to the exact Base sweep position
- * (baseT, i.e. N=viewDir) in place, overwriting it with evaluateBaseColor's
- * literal output -- the same function solveAlbedo.ts solves the albedo
- * against. Neither the GPU strip render nor the CPU sweep's regular t-grid
- * lands on that position exactly (see baseT's comment in
- * orientationSweep.ts), so without this, no ramp stop could ever be
- * guaranteed to exactly match the material's solved Base color -- the
- * "Base" stop shown in MaterialRampPreview.tsx/rampNaming.ts would only ever
- * be the *nearest available* one, with an unbounded perceptual gap.
- * Overwriting in place (rather than inserting a new sample) keeps
- * `dense.length` at exactly `sampleWidth` and preserves ascending `t` order,
- * since the patched t is by definition within the gap between its immediate
- * neighbors.
- */
-function withExactBaseSample(
-	dense: DenseSample[],
-	material: MaterialDefinition,
-	lighting: LightingConfig
-): { dense: DenseSample[]; baseIndex: number } {
-	const t = baseT(computeSweepBasis(lighting));
-	let baseIndex = 0;
-	let bestDistance = Infinity;
-	for (let i = 0; i < dense.length; i++) {
-		const distance = Math.abs(dense[i].t - t);
-		if (distance < bestDistance) {
-			bestDistance = distance;
-			baseIndex = i;
-		}
-	}
-	const patched = [...dense];
-	patched[baseIndex] = { t, rgbLinear: evaluateBaseColor(material, lighting) };
-	return { dense: patched, baseIndex };
-}
-
-/**
- * Orchestrates the full pipeline: render the dense material-response strip
- * (GPU, falling back to the CPU reference implementation if WebGL2 isn't
- * available at all), guarantee the exact Base sample is present (see
- * withExactBaseSample), then adaptively posterize it into `stopCount` ramp
- * stops. Deterministic for identical inputs (spec point 13).
+ * Orchestrates the full pipeline: render the material over the actual
+ * visible hemisphere (reusing renderMaterialSphere -- the same function the
+ * sphere preview itself renders with, see sphereRender.ts) to build a real
+ * color population, guarantee the exact solved Base color
+ * (evaluateBaseColor -- the same function solveAlbedo.ts solves the albedo
+ * against) is present in it, then median-cut quantize that population into
+ * `stopCount` ramp stops (see posterize.ts). Sampling the real hemisphere
+ * rather than a single light/view-plane arc is what keeps the generated
+ * stops representative of what the sphere preview actually shows --
+ * particularly important for reflective materials, whose appearance varies
+ * with the full 3-D surface normal, not just how directly it faces the
+ * light (see sphereRender.ts's nearestStopColors doc comment). Deterministic
+ * for identical inputs (spec point 13).
  */
 export function generateMaterialRamp(
 	material: MaterialDefinition,
 	stopCount: number,
-	lighting: LightingConfig = DEFAULT_LIGHTING,
-	sampleWidth: number = DEFAULT_SAMPLE_WIDTH
+	lighting: LightingConfig = DEFAULT_LIGHTING
 ): MaterialRampResult {
-	const gpuResult = materialStripRenderer.render(
+	const cells = renderMaterialSphere(
 		material,
 		lighting,
-		sampleWidth
+		STOP_SAMPLE_SPHERE_SIZE
 	);
+	const population: RgbLinear[] = cells
+		.filter((cell): cell is { rgbLinear: RgbLinear } => cell !== null)
+		.map((cell) => cell.rgbLinear);
 
-	const rawDense: DenseSample[] = gpuResult
-		? Array.from({ length: sampleWidth }, (_, i) => ({
-				t: i / (sampleWidth - 1),
-				rgbLinear: {
-					r: gpuResult.samples[i * 4],
-					g: gpuResult.samples[i * 4 + 1],
-					b: gpuResult.samples[i * 4 + 2],
-				},
-			}))
-		: denseFromCpu(material, lighting, sampleWidth);
+	const mandatoryIndex = population.length;
+	population.push(evaluateBaseColor(material, lighting));
 
-	const { dense, baseIndex } = withExactBaseSample(
-		rawDense,
-		material,
-		lighting
-	);
-
-	return { stops: posterize(dense, stopCount, baseIndex), dense };
+	return { stops: posterize(population, stopCount, mandatoryIndex) };
 }

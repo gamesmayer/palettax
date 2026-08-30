@@ -12,7 +12,6 @@ import {
 	normalAtT,
 } from "../../../src/shared/materialRamp/orientationSweep";
 import { DEFAULT_LIGHTING } from "../../../src/shared/materialRamp/lightingConstants";
-import { posterize } from "../../../src/shared/materialRamp/posterize";
 
 describe("ggxDistribution", () => {
 	it("peaks at NdotH=1", () => {
@@ -195,102 +194,6 @@ describe("evaluateMaterial", () => {
 		expect(widthAboveThreshold(materialA)).toBe(0);
 		expect(widthAboveThreshold(materialC)).toBeGreaterThan(0);
 		expect(widthAboveThreshold(materialD)).toBe(0);
-	});
-});
-
-describe("evaluateMaterial + posterize (point-16 scenario)", () => {
-	// Same base color, four materials spanning the metallic/roughness corners
-	// (spec point 16): A rough dielectric, B glossy dielectric, C glossy
-	// metal, D rough metal. Same requested stop count for all four. Adaptive
-	// posterization should NOT produce the same (or evenly-spaced) stop
-	// positions for every material -- glossy materials should cluster stops
-	// tightly around the analytic specular-peak sweep position, rough
-	// materials should spread stops more broadly across the domain.
-	const baseColor = { r: 180, g: 120, b: 90 };
-	const materialA = { baseColor, metallic: 0, roughness: 0.9 };
-	const materialB = { baseColor, metallic: 0, roughness: 0.15 };
-	const materialC = { baseColor, metallic: 1, roughness: 0.15 };
-	const materialD = { baseColor, metallic: 1, roughness: 0.8 };
-
-	const basis = computeSweepBasis(DEFAULT_LIGHTING);
-	// t = 1 - phi/180deg (phi in degrees) = 1 - phi_radians/PI. NOT phi/(PI/2)
-	// -- that would be double the correct subtraction. See the derivation in
-	// orientationSweep.ts (whose normalAtT implements this correctly; this
-	// constant only re-derives the peak position for test assertions).
-	const specularPeakT = 1 - basis.phi / Math.PI;
-
-	function rampPositions(
-		material: typeof materialA,
-		stopCount: number,
-		sampleWidth = 513
-	): number[] {
-		const dense = [];
-		for (let i = 0; i < sampleWidth; i++) {
-			const t = i / (sampleWidth - 1);
-			dense.push({
-				t,
-				rgbLinear: evaluateMaterial(
-					material,
-					DEFAULT_LIGHTING,
-					normalAtT(t, basis)
-				),
-			});
-		}
-		return posterize(dense, stopCount).map((s) => s.position);
-	}
-
-	it("produces different stop-position distributions for glossy vs. rough materials", () => {
-		const positionsA = rampPositions(materialA, 7);
-		const positionsB = rampPositions(materialB, 7);
-		const positionsC = rampPositions(materialC, 7);
-		const positionsD = rampPositions(materialD, 7);
-
-		expect(positionsB).not.toEqual(positionsA);
-		expect(positionsC).not.toEqual(positionsD);
-	});
-
-	it("glossy materials cluster the majority of their interior stops near the analytic specular-peak position", () => {
-		const inNarrowBand = (p: number): boolean =>
-			Math.abs(p - specularPeakT) <= 0.2;
-
-		const positionsB = rampPositions(materialB, 7);
-		const positionsC = rampPositions(materialC, 7);
-		const positionsA = rampPositions(materialA, 7);
-		const positionsD = rampPositions(materialD, 7);
-
-		// Interior stops only (exclude the always-preserved 0/1 endpoints).
-		const interiorFraction = (positions: number[]): number => {
-			const interior = positions.slice(1, -1);
-			return interior.filter(inNarrowBand).length / interior.length;
-		};
-
-		expect(interiorFraction(positionsB)).toBeGreaterThan(
-			interiorFraction(positionsA)
-		);
-		expect(interiorFraction(positionsC)).toBeGreaterThan(
-			interiorFraction(positionsD)
-		);
-	});
-
-	it("glossy materials place multiple stops within a tight band around the specular peak, rough materials place at most one", () => {
-		// A global "smallest gap anywhere" comparison is confounded by the
-		// near-black OKLab compression artifact (see PERCEPTUAL_FLOOR in
-		// posterize.ts) landing the same finest bisection step for every
-		// material regardless of its specular behavior. Restricting to a
-		// tight band around the analytic peak isolates the actual signal:
-		// does this material's response have enough local curvature there to
-		// pull more than one stop into a narrow neighborhood?
-		const inTightBand = (p: number): boolean =>
-			Math.abs(p - specularPeakT) <= 0.1;
-		const countInTightBand = (positions: number[]): number =>
-			positions.filter(inTightBand).length;
-
-		expect(countInTightBand(rampPositions(materialB, 7))).toBeGreaterThan(
-			countInTightBand(rampPositions(materialA, 7))
-		);
-		expect(countInTightBand(rampPositions(materialC, 7))).toBeGreaterThan(
-			countInTightBand(rampPositions(materialD, 7))
-		);
 	});
 });
 

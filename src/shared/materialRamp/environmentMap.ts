@@ -9,18 +9,17 @@ export interface EnvironmentMapLevel {
 }
 
 // levels[0] is full resolution; each subsequent level is a 2x2 box-downsample
-// of the previous one, down to 1x1. This is the CPU-side stand-in for GPU
-// mipmaps (see webglStripRenderer.ts, which uses real hardware mipmaps
-// instead) -- sampleEnvironment blends between levels based on roughness to
+// of the previous one, down to 1x1 -- a manual mip chain, since this is
+// consumed on the CPU (sampleEnvironment) rather than uploaded as a GPU
+// texture. sampleEnvironment blends between levels based on roughness to
 // fake the prefiltered-blur look of a rough reflection without an actual
 // convolution.
 //
 // srgbBytes holds the same full-resolution image as levels[0], but still
-// sRGB-encoded (not linearized) -- this is what webglStripRenderer.ts uploads
-// as an SRGB8 GPU texture, letting the hardware sampler do the sRGB->linear
-// decode instead of duplicating that conversion in GLSL (the CPU mip chain in
-// `levels` still needs its own pre-linearized copy since evaluateMaterial's
-// CPU path does all its math in linear space).
+// sRGB-encoded (not linearized) -- this is what EnvironmentMapPreview.tsx
+// renders directly to a canvas (the CPU mip chain in `levels` needs its own
+// pre-linearized copy since evaluateMaterial's CPU path does all its math in
+// linear space).
 export interface EnvironmentMap {
 	levels: EnvironmentMapLevel[];
 	srgbBytes: Uint8Array; // RGB, length width*height*3, row-major, sRGB-encoded

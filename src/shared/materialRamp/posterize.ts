@@ -1,5 +1,4 @@
 import {
-	lerpOklab,
 	linearToRgbBytes,
 	OklabColor,
 	oklabDeltaE,
@@ -7,44 +6,78 @@ import {
 } from "./colorSpace";
 import { MaterialRampStop, RgbLinear } from "./types";
 
-export interface DenseSample {
-	t: number; // illumination position, 0..1
-	rgbLinear: RgbLinear;
+interface Bucket {
+	indices: number[];
 }
 
-interface Interval {
-	loIndex: number;
-	hiIndex: number;
+type Axis = "L" | "a" | "b";
+const AXES: Axis[] = ["L", "a", "b"];
+
+function rangeAlong(bucket: Bucket, oklab: OklabColor[], axis: Axis): number {
+	let min = Infinity;
+	let max = -Infinity;
+	for (const i of bucket.indices) {
+		const v = oklab[i][axis];
+		if (v < min) min = v;
+		if (v > max) max = v;
+	}
+	return max - min;
 }
 
-// OKLab lightness is proportional to the cube root of linear luminance,
-// which has an unbounded derivative at exactly zero. Any response that
-// starts at true black (as ours always does at intensity=0 -- see
-// evaluateMaterial) therefore shows a sharp, near-singular perceptual rise
-// in a narrow band just above zero, *regardless of the material* -- a
-// straight diffuse ramp and a glossy specular knee both trigger it equally.
-// Left unchecked, this artifact's error always dwarfs any real
-// material-specific curvature (e.g. an actual specular knee further out),
-// so a small requested stop count gets entirely consumed reproducing it,
-// and every material ends up with the same near-black-clustered ramp. This
-// floor caps how far that cube-root steepness is allowed to dominate the
-// split decision -- it does not touch the final stop colors, only which
-// intervals are judged to need more resolution. 0.02 (linear RGB, roughly
-// an 8-bit-sRGB value in the high 30s) sits comfortably below the visible
-// mid-tone range while safely above the near-zero singularity band, which
-// is more than sufficient for a low-resolution hand-painted texture ramp.
-const PERCEPTUAL_FLOOR = 0.02;
-
-function floorForError(rgb: RgbLinear): RgbLinear {
-	return {
-		r: Math.max(rgb.r, PERCEPTUAL_FLOOR),
-		g: Math.max(rgb.g, PERCEPTUAL_FLOOR),
-		b: Math.max(rgb.b, PERCEPTUAL_FLOOR),
-	};
+function widestAxis(
+	bucket: Bucket,
+	oklab: OklabColor[]
+): { axis: Axis; range: number } {
+	let axis: Axis = "L";
+	let range = -Infinity;
+	for (const candidate of AXES) {
+		const candidateRange = rangeAlong(bucket, oklab, candidate);
+		if (candidateRange > range) {
+			range = candidateRange;
+			axis = candidate;
+		}
+	}
+	return { axis, range };
 }
 
-function midIndexOf(iv: Interval): number {
-	return iv.loIndex + Math.round((iv.hiIndex - iv.loIndex) / 2);
+function splitBucket(
+	bucket: Bucket,
+	oklab: OklabColor[],
+	axis: Axis
+): [Bucket, Bucket] {
+	const sorted = [...bucket.indices].sort((i, j) => {
+		const diff = oklab[i][axis] - oklab[j][axis];
+		return diff !== 0 ? diff : i - j;
+	});
+	const mid = Math.floor(sorted.length / 2);
+	return [{ indices: sorted.slice(0, mid) }, { indices: sorted.slice(mid) }];
+}
+
+// The bucket's actual medoid member (nearest to its own OKLab mean) --
+// deliberately not the mean itself, so a stop is always a literal,
+// physically achievable BRDF output rather than a blended/synthetic color.
+function medoidOf(bucket: Bucket, oklab: OklabColor[]): number {
+	const n = bucket.indices.length;
+	let sumL = 0;
+	let sumA = 0;
+	let sumB = 0;
+	for (const i of bucket.indices) {
+		sumL += oklab[i].L;
+		sumA += oklab[i].a;
+		sumB += oklab[i].b;
+	}
+	const mean: OklabColor = { L: sumL / n, a: sumA / n, b: sumB / n };
+
+	let best = bucket.indices[0];
+	let bestDistance = Infinity;
+	for (const i of bucket.indices) {
+		const distance = oklabDeltaE(oklab[i], mean);
+		if (distance < bestDistance) {
+			bestDistance = distance;
+			best = i;
+		}
+	}
+	return best;
 }
 
 function colorKey(rgb: RgbLinear): string {
@@ -52,131 +85,102 @@ function colorKey(rgb: RgbLinear): string {
 	return `${bytes.r},${bytes.g},${bytes.b}`;
 }
 
-function scoreInterval(
-	iv: Interval,
-	dense: DenseSample[],
-	oklab: OklabColor[]
-): { midIndex: number; error: number } | null {
-	const midIndex = midIndexOf(iv);
-	if (midIndex === iv.loIndex || midIndex === iv.hiIndex) {
-		return null; // adjacent samples -- not splittable further
-	}
-	const loT = dense[iv.loIndex].t;
-	const hiT = dense[iv.hiIndex].t;
-	const frac = hiT === loT ? 0.5 : (dense[midIndex].t - loT) / (hiT - loT);
-	const interpolated = lerpOklab(oklab[iv.loIndex], oklab[iv.hiIndex], frac);
-	const error = oklabDeltaE(interpolated, oklab[midIndex]);
-	return { midIndex, error };
-}
-
 /**
- * Recursive error-driven adaptive posterization: starting from the two
- * endpoints (always preserved) plus, if given, `mandatoryIndex` (also always
- * preserved -- used by generateMaterialRamp.ts to guarantee the material's
- * exact solved Base color is always one of the stops, see baseT in
- * orientationSweep.ts), repeatedly splits whichever interval has the
- * largest OKLab perceptual error between its linear interpolation and the
- * true dense-sampled midpoint, until `stopCount` stops have been placed.
- * Deterministic -- no randomness, and ties are broken by a fixed, total
- * ordering (error desc, then span desc, then lower start index asc).
+ * Reduces a color population (e.g. every visible pixel of a rendered
+ * material sphere -- see generateMaterialRamp.ts) to `stopCount`
+ * representative stops via median-cut quantization in OKLab space:
+ * starting from one bucket containing the whole population, repeatedly
+ * splits whichever splittable bucket has the widest spread along any single
+ * OKLab axis, dividing it at the median along that axis, until there are
+ * `stopCount` buckets or none are splittable left (every remaining bucket
+ * is a singleton or has zero spread -- the population genuinely doesn't
+ * have that many distinguishable colors). Deterministic -- no randomness,
+ * ties broken by a fixed ordering (range desc, then bucket size desc, then
+ * lowest member index asc).
  *
- * If `stopCount` is too small to fit all three mandatory anchors (only
- * possible at the MIN_STOPS=2 floor), `mandatoryIndex` wins unconditionally
- * and whichever endpoint is perceptually farthest from it is kept, dropping
- * the other endpoint.
+ * Each bucket's reported color is its medoid (the actual population member
+ * closest to the bucket's OKLab mean), never a blended average -- every
+ * stop is always a literal, physically achievable material response.
  *
- * Never places two stops with the identical rounded sRGB byte color: near a
- * Reinhard-tonemap-saturated highlight (or any other genuine plateau in the
- * response), the highest-remaining-error candidate can still be a point
- * that happens to round to a color already claimed by another stop -- since
- * that split wouldn't add anything a viewer could tell apart, it's skipped
- * in favor of the next-best genuinely distinct candidate. If a candidate's
- * interval has no distinct alternative available yet, it's still subdivided
- * (without consuming stop budget) so a genuinely different color deeper
- * inside it gets a chance to be found later. If truly nothing distinct
- * remains anywhere, the loop ends with fewer than `stopCount` stops rather
- * than padding the result with duplicates.
+ * `mandatoryIndex`, if given, is always reported exactly by whichever
+ * bucket ends up containing it (used by generateMaterialRamp.ts to
+ * guarantee the material's exact solved Base color is always one of the
+ * stops), overriding that bucket's own computed medoid.
+ *
+ * Never returns two stops with the identical rounded sRGB byte color: if
+ * two buckets' representative colors round to the same byte value, the
+ * later one is dropped rather than padding the result with a duplicate --
+ * so the result can have fewer than `stopCount` stops when the population
+ * doesn't support that many visually distinct colors.
  */
 export function posterize(
-	dense: DenseSample[],
+	population: RgbLinear[],
 	stopCount: number,
 	mandatoryIndex?: number
 ): MaterialRampStop[] {
-	if (dense.length < 2) {
-		throw new Error("posterize requires at least 2 dense samples");
+	if (population.length === 0) {
+		throw new Error("posterize requires at least 1 population sample");
 	}
-	const width = dense.length;
-	const targetCount = Math.max(2, Math.min(stopCount, width));
-	const oklab = dense.map((s) => rgbLinearToOklab(floorForError(s.rgbLinear)));
+	const targetCount = Math.max(2, Math.min(stopCount, population.length));
+	const oklab = population.map(rgbLinearToOklab);
 
-	let anchors: number[];
-	if (mandatoryIndex === undefined) {
-		anchors = [0, width - 1];
-	} else {
-		const seed = [...new Set([0, mandatoryIndex, width - 1])].sort(
-			(a, b) => a - b
-		);
-		anchors =
-			seed.length > targetCount
-				? [
-						mandatoryIndex,
-						oklabDeltaE(oklab[0], oklab[mandatoryIndex]) >=
-						oklabDeltaE(oklab[width - 1], oklab[mandatoryIndex])
-							? 0
-							: width - 1,
-					].sort((a, b) => a - b)
-				: seed;
-	}
+	let buckets: Bucket[] = [{ indices: population.map((_, i) => i) }];
 
-	let intervals: Interval[] = [];
-	for (let i = 0; i < anchors.length - 1; i++) {
-		intervals.push({ loIndex: anchors[i], hiIndex: anchors[i + 1] });
-	}
-	const stopIndices = new Set<number>(anchors);
-	const chosenColors = new Set<string>(
-		anchors.map((i) => colorKey(dense[i].rgbLinear))
-	);
-
-	while (stopIndices.size < targetCount) {
-		const candidates = intervals
-			.map((iv) => {
-				const scored = scoreInterval(iv, dense, oklab);
-				return scored ? { iv, ...scored } : null;
+	while (buckets.length < targetCount) {
+		const candidates = buckets
+			.map((bucket, index) => {
+				if (bucket.indices.length < 2) return null;
+				const { axis, range } = widestAxis(bucket, oklab);
+				if (range <= 0) return null; // every member is the same color
+				return {
+					index,
+					axis,
+					range,
+					size: bucket.indices.length,
+					minIndex: Math.min(...bucket.indices),
+				};
 			})
-			.filter(
-				(c): c is { iv: Interval; midIndex: number; error: number } =>
-					c !== null
-			);
+			.filter((c): c is NonNullable<typeof c> => c !== null);
 
-		if (candidates.length === 0) break; // dense array exhausted
+		if (candidates.length === 0) break; // nothing left splittable
 
 		candidates.sort((a, b) => {
-			if (b.error !== a.error) return b.error - a.error;
-			const spanA = a.iv.hiIndex - a.iv.loIndex;
-			const spanB = b.iv.hiIndex - b.iv.loIndex;
-			if (spanB !== spanA) return spanB - spanA;
-			return a.iv.loIndex - b.iv.loIndex;
+			if (b.range !== a.range) return b.range - a.range;
+			if (b.size !== a.size) return b.size - a.size;
+			return a.minIndex - b.minIndex;
 		});
 
-		const distinctChoice = candidates.find(
-			(c) => !chosenColors.has(colorKey(dense[c.midIndex].rgbLinear))
+		const chosen = candidates[0];
+		const [left, right] = splitBucket(
+			buckets[chosen.index],
+			oklab,
+			chosen.axis
 		);
-		const chosen = distinctChoice ?? candidates[0];
+		buckets = [
+			...buckets.slice(0, chosen.index),
+			left,
+			right,
+			...buckets.slice(chosen.index + 1),
+		];
+	}
 
-		intervals = intervals.filter((iv) => iv !== chosen.iv);
-		intervals.push({ loIndex: chosen.iv.loIndex, hiIndex: chosen.midIndex });
-		intervals.push({ loIndex: chosen.midIndex, hiIndex: chosen.iv.hiIndex });
-
-		if (distinctChoice) {
-			stopIndices.add(chosen.midIndex);
-			chosenColors.add(colorKey(dense[chosen.midIndex].rgbLinear));
+	const representatives = buckets.map((bucket) => medoidOf(bucket, oklab));
+	if (mandatoryIndex !== undefined) {
+		const ownerBucket = buckets.findIndex((bucket) =>
+			bucket.indices.includes(mandatoryIndex)
+		);
+		if (ownerBucket !== -1) {
+			representatives[ownerBucket] = mandatoryIndex;
 		}
 	}
 
-	return [...stopIndices]
-		.sort((a, b) => a - b)
-		.map((i) => ({
-			position: dense[i].t,
-			color: linearToRgbBytes(dense[i].rgbLinear),
-		}));
+	const seenColors = new Set<string>();
+	const stops: MaterialRampStop[] = [];
+	for (const index of representatives) {
+		const key = colorKey(population[index]);
+		if (seenColors.has(key)) continue;
+		seenColors.add(key);
+		stops.push({ color: linearToRgbBytes(population[index]) });
+	}
+	return stops;
 }

@@ -2,7 +2,7 @@ import { lightnessOf } from "../../../src/shared/materialRamp/stopLightness";
 import { MaterialRampStop } from "../../../src/shared/materialRamp/types";
 
 function stopAt(r: number, g: number, b: number): MaterialRampStop {
-	return { position: 0, color: { r, g, b } };
+	return { color: { r, g, b } };
 }
 
 describe("lightnessOf", () => {

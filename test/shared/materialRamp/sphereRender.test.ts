@@ -82,9 +82,9 @@ describe("renderMaterialCube", () => {
 describe("nearestStopColors", () => {
 	it("picks the exact matching stop when a cell's color coincides with it", () => {
 		const stops = [
-			{ position: 0, color: { r: 10, g: 10, b: 10 } },
-			{ position: 0.5, color: { r: 120, g: 60, b: 200 } },
-			{ position: 1, color: { r: 255, g: 255, b: 255 } },
+			{ color: { r: 10, g: 10, b: 10 } },
+			{ color: { r: 120, g: 60, b: 200 } },
+			{ color: { r: 255, g: 255, b: 255 } },
 		];
 		const cells = [{ rgbLinear: rgbBytesToLinear(stops[1].color) }, null];
 		const result = nearestStopColors(cells, stops);
