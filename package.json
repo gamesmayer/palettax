@@ -1,6 +1,6 @@
 {
   "name": "palettax",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Manage color palettes in any format.",
   "main": "./out/main/index.js",
   "private": true,
