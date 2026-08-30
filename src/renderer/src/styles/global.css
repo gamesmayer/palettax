@@ -591,11 +591,6 @@ which only matters inside react95's own stacking context. */
 	width: 0;
 }
 
-.material-ramp-modal__section {
-	padding: var(--r95-space-8);
-	margin-bottom: var(--r95-space-8);
-}
-
 .material-preset-chips {
 	display: flex;
 	flex-wrap: wrap;
@@ -607,9 +602,51 @@ which only matters inside react95's own stacking context. */
 	white-space: nowrap;
 }
 
-.material-ramp-modal__section-title {
-	font-weight: bold;
+.accordion {
+	display: flex;
+	flex-direction: column;
+}
+
+.accordion-section {
+	padding: 0;
 	margin-bottom: var(--r95-space-8);
+}
+
+.accordion-section__header {
+	display: flex;
+	align-items: center;
+	gap: var(--r95-space-6);
+	width: 100%;
+	padding: var(--r95-space-8);
+	border: none;
+	background: var(--r95-color-material);
+	box-shadow: var(--r95-shadow-out);
+	font: inherit;
+	font-weight: bold;
+	line-height: 1;
+	color: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.accordion-section__header:hover {
+	background: var(--r95-color-headerBackground);
+	color: var(--r95-color-headerText);
+}
+
+.accordion-section__header:active {
+	box-shadow: var(--r95-shadow-in);
+}
+
+.accordion-section__toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+}
+
+.accordion-section__content {
+	padding: var(--r95-space-8);
 }
 
 /* Inline status banner (Banner component) -- always used with a variant

@@ -1,4 +1,4 @@
-import { Button, Frame } from "@react95/core";
+import { Button } from "@react95/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -36,6 +36,7 @@ import {
 	MaterialDefinition,
 } from "../../../../shared/materialRamp/types";
 import { PaletteGroup } from "../../../../shared/palette-formats";
+import { Accordion, AccordionSection } from "../Accordion/Accordion";
 import { getDefaultEnvironmentMap } from "../../materialRamp/defaultEnvironmentMap";
 import { generateMaterialRamp } from "../../materialRamp/generateMaterialRamp";
 import {
@@ -316,268 +317,267 @@ export function MaterialRampModal({
 			</Field>
 			<hr className="modal-separator" />
 
-			<Frame className="material-ramp-modal__section">
-				<div className="material-ramp-modal__section-title">
-					{t("app:materialRampModal.sections.colorRamp")}
-				</div>
-				<NumberInput
-					label={t("app:materialRampModal.rampColorsLabel")}
-					tooltip={t("app:materialRampModal.tooltips.rampColors")}
-					min={MIN_STOPS}
-					max={MAX_STOPS}
-					value={stopCount}
-					onChange={setStopCount}
-					clamp={clampStopCount}
-					aria-label={t("app:materialRampModal.rampColorsAriaLabel")}
-				/>
-			</Frame>
-
-			<Frame className="material-ramp-modal__section">
-				<div className="material-ramp-modal__section-title">
-					{t("app:materialRampModal.sections.color")}
-				</div>
-
-				<EndpointPicker
-					label={t("app:materialRampModal.targetBaseColorLabel")}
-					tooltip={t("app:materialRampModal.tooltips.targetBaseColor")}
-					mode={targetMode}
-					onModeChange={setTargetMode}
-					colors={colors}
-					colorSystem={colorSystem}
-					paletteColorId={targetPaletteColorId}
-					onPaletteColorChange={setTargetPaletteColorId}
-					customRgb={targetCustomRgb}
-					onCustomRgbChange={setTargetCustomRgb}
-				/>
-
-				<div className="material-ramp-modal__albedo-field">
-					<div className="material-ramp-modal__albedo-swatch-row">
-						<FieldLabel
-							text={t("app:materialRampModal.albedoColorLabel")}
-							tooltip={t("app:materialRampModal.tooltips.albedoColor")}
-						/>
-						<FloatingTooltip
-							text={formatColorForSystem(albedoRgb, colorSystem)}
-						>
-							<div
-								className="material-ramp-modal__value-swatch"
-								style={{
-									backgroundColor: rgbToHex(
-										albedoRgb.r,
-										albedoRgb.g,
-										albedoRgb.b
-									),
-								}}
-								aria-label={t("app:materialRampModal.albedoColorAriaLabel", {
-									color: formatColorForSystem(albedoRgb, colorSystem),
-								})}
-							/>
-						</FloatingTooltip>
-						{isSolving && (
-							<span className="material-ramp-modal__albedo-solving">
-								{t("app:materialRampModal.calculating")}
-							</span>
-						)}
-					</div>
-				</div>
-				{unreachableWarning && (
-					<Banner
-						type={unreachableWarning.severity}
-						message={unreachableWarning.message}
-					/>
-				)}
-				{albedoLightnessWarning && (
-					<Banner type="warning" message={albedoLightnessWarning} />
-				)}
-			</Frame>
-
-			<Frame className="material-ramp-modal__section">
-				<div className="material-ramp-modal__section-title">
-					{t("app:materialRampModal.sections.properties")}
-				</div>
-				<Field
-					label={t("app:materialRampModal.presetsLabel")}
-					tooltip={t("app:materialRampModal.tooltips.presets")}
+			<Accordion>
+				<AccordionSection
+					title={t("app:materialRampModal.sections.colorRamp")}
+					defaultOpen={false}
 				>
-					<div className="material-preset-chips">
-						{MATERIAL_PRESETS.map((preset) => {
-							const name = t(`app:materialPresets.${preset.id}.name`);
-							const examples = t(`app:materialPresets.${preset.id}.examples`);
-							return (
-								<FloatingTooltip
-									key={preset.id}
-									text={t("app:materialRampModal.presetExampleTooltip", {
-										examples,
+					<NumberInput
+						label={t("app:materialRampModal.rampColorsLabel")}
+						tooltip={t("app:materialRampModal.tooltips.rampColors")}
+						min={MIN_STOPS}
+						max={MAX_STOPS}
+						value={stopCount}
+						onChange={setStopCount}
+						clamp={clampStopCount}
+						aria-label={t("app:materialRampModal.rampColorsAriaLabel")}
+					/>
+				</AccordionSection>
+
+				<AccordionSection title={t("app:materialRampModal.sections.color")}>
+					<EndpointPicker
+						label={t("app:materialRampModal.targetBaseColorLabel")}
+						tooltip={t("app:materialRampModal.tooltips.targetBaseColor")}
+						mode={targetMode}
+						onModeChange={setTargetMode}
+						colors={colors}
+						colorSystem={colorSystem}
+						paletteColorId={targetPaletteColorId}
+						onPaletteColorChange={setTargetPaletteColorId}
+						customRgb={targetCustomRgb}
+						onCustomRgbChange={setTargetCustomRgb}
+					/>
+
+					<div className="material-ramp-modal__albedo-field">
+						<div className="material-ramp-modal__albedo-swatch-row">
+							<FieldLabel
+								text={t("app:materialRampModal.albedoColorLabel")}
+								tooltip={t("app:materialRampModal.tooltips.albedoColor")}
+							/>
+							<FloatingTooltip
+								text={formatColorForSystem(albedoRgb, colorSystem)}
+							>
+								<div
+									className="material-ramp-modal__value-swatch"
+									style={{
+										backgroundColor: rgbToHex(
+											albedoRgb.r,
+											albedoRgb.g,
+											albedoRgb.b
+										),
+									}}
+									aria-label={t("app:materialRampModal.albedoColorAriaLabel", {
+										color: formatColorForSystem(albedoRgb, colorSystem),
 									})}
-								>
-									<Button
-										className="material-preset-chip"
-										onClick={() => {
-											setMetallic(preset.metallic);
-											setRoughness(preset.roughness);
-										}}
-										aria-label={t("app:materialRampModal.presetAriaLabel", {
-											name,
+								/>
+							</FloatingTooltip>
+							{isSolving && (
+								<span className="material-ramp-modal__albedo-solving">
+									{t("app:materialRampModal.calculating")}
+								</span>
+							)}
+						</div>
+					</div>
+					{unreachableWarning && (
+						<Banner
+							type={unreachableWarning.severity}
+							message={unreachableWarning.message}
+						/>
+					)}
+					{albedoLightnessWarning && (
+						<Banner type="warning" message={albedoLightnessWarning} />
+					)}
+				</AccordionSection>
+
+				<AccordionSection
+					title={t("app:materialRampModal.sections.properties")}
+				>
+					<Field
+						label={t("app:materialRampModal.presetsLabel")}
+						tooltip={t("app:materialRampModal.tooltips.presets")}
+					>
+						<div className="material-preset-chips">
+							{MATERIAL_PRESETS.map((preset) => {
+								const name = t(`app:materialPresets.${preset.id}.name`);
+								const examples = t(`app:materialPresets.${preset.id}.examples`);
+								return (
+									<FloatingTooltip
+										key={preset.id}
+										text={t("app:materialRampModal.presetExampleTooltip", {
+											examples,
 										})}
 									>
-										{name}
-									</Button>
-								</FloatingTooltip>
-							);
-						})}
+										<Button
+											className="material-preset-chip"
+											onClick={() => {
+												setMetallic(preset.metallic);
+												setRoughness(preset.roughness);
+											}}
+											aria-label={t("app:materialRampModal.presetAriaLabel", {
+												name,
+											})}
+										>
+											{name}
+										</Button>
+									</FloatingTooltip>
+								);
+							})}
+						</div>
+					</Field>
+
+					<div className="material-ramp-modal__row">
+						<NumberInput
+							label={t("app:materialRampModal.metallicLabel")}
+							tooltip={t("app:materialRampModal.tooltips.metallic")}
+							min={MIN_UNIT}
+							max={MAX_UNIT}
+							step={0.01}
+							value={metallic}
+							onChange={setMetallic}
+							clamp={clampUnit}
+							aria-label={t("app:materialRampModal.metallicLabel")}
+						/>
+						<NumberInput
+							label={t("app:materialRampModal.roughnessLabel")}
+							tooltip={t("app:materialRampModal.tooltips.roughness")}
+							min={MIN_UNIT}
+							max={MAX_UNIT}
+							step={0.01}
+							value={roughness}
+							onChange={setRoughness}
+							clamp={clampUnit}
+							aria-label={t("app:materialRampModal.roughnessLabel")}
+						/>
 					</div>
-				</Field>
+				</AccordionSection>
 
-				<div className="material-ramp-modal__row">
-					<NumberInput
-						label={t("app:materialRampModal.metallicLabel")}
-						tooltip={t("app:materialRampModal.tooltips.metallic")}
-						min={MIN_UNIT}
-						max={MAX_UNIT}
-						step={0.01}
-						value={metallic}
-						onChange={setMetallic}
-						clamp={clampUnit}
-						aria-label={t("app:materialRampModal.metallicLabel")}
-					/>
-					<NumberInput
-						label={t("app:materialRampModal.roughnessLabel")}
-						tooltip={t("app:materialRampModal.tooltips.roughness")}
-						min={MIN_UNIT}
-						max={MAX_UNIT}
-						step={0.01}
-						value={roughness}
-						onChange={setRoughness}
-						clamp={clampUnit}
-						aria-label={t("app:materialRampModal.roughnessLabel")}
-					/>
-				</div>
-			</Frame>
-
-			<Frame className="material-ramp-modal__section">
-				<div className="material-ramp-modal__section-title">
-					{t("app:materialRampModal.sections.ambient")}
-				</div>
-				<div className="material-ramp-modal__row">
-					<SwatchColorPicker
-						label={t("app:materialRampModal.ambientColorLabel")}
-						tooltip={t("app:materialRampModal.tooltips.ambientColor")}
-						colorSystem={colorSystem}
-						rgb={ambientColor}
-						onChange={setAmbientColor}
-					/>
-					<NumberInput
-						label={t("app:materialRampModal.ambientIntensityLabel")}
-						tooltip={t("app:materialRampModal.tooltips.ambientIntensity")}
-						min={MIN_UNIT}
-						step={0.01}
-						value={ambientIntensity}
-						onChange={setAmbientIntensity}
-						clamp={clampIntensity}
-						aria-label={t("app:materialRampModal.ambientIntensityLabel")}
-					/>
-				</div>
-			</Frame>
-
-			<Frame className="material-ramp-modal__section">
-				<div className="material-ramp-modal__section-title">
-					{t("app:materialRampModal.sections.environmentReflection")}
-				</div>
-				<Field
-					label={t("app:materialRampModal.environmentLabel")}
-					tooltip={t("app:materialRampModal.tooltips.environment")}
+				<AccordionSection
+					title={t("app:materialRampModal.sections.ambient")}
+					defaultOpen={false}
 				>
-					<div className="endpoint-picker__mode-toggle">
-						<Button
-							className={
-								environmentMode === "default"
-									? "endpoint-picker__mode-btn endpoint-picker__mode-btn--active"
-									: "endpoint-picker__mode-btn"
-							}
-							onClick={() => setEnvironmentMode("default")}
-						>
-							{t("app:materialRampModal.defaultImage")}
-						</Button>
-						<Button
-							className={
-								environmentMode === "custom"
-									? "endpoint-picker__mode-btn endpoint-picker__mode-btn--active"
-									: "endpoint-picker__mode-btn"
-							}
-							onClick={() => setEnvironmentMode("custom")}
-						>
-							{t("app:materialRampModal.customImage")}
-						</Button>
+					<div className="material-ramp-modal__row">
+						<SwatchColorPicker
+							label={t("app:materialRampModal.ambientColorLabel")}
+							tooltip={t("app:materialRampModal.tooltips.ambientColor")}
+							colorSystem={colorSystem}
+							rgb={ambientColor}
+							onChange={setAmbientColor}
+						/>
+						<NumberInput
+							label={t("app:materialRampModal.ambientIntensityLabel")}
+							tooltip={t("app:materialRampModal.tooltips.ambientIntensity")}
+							min={MIN_UNIT}
+							step={0.01}
+							value={ambientIntensity}
+							onChange={setAmbientIntensity}
+							clamp={clampIntensity}
+							aria-label={t("app:materialRampModal.ambientIntensityLabel")}
+						/>
 					</div>
-				</Field>
-				{environmentMode === "custom" && (
-					<div className="field">
-						<Button onClick={handleChooseEnvironmentImage}>
-							{t("app:materialRampModal.chooseFile")}
-						</Button>
-						{customEnvironmentFileName && (
-							<span className="material-ramp-modal__environment-filename">
-								{customEnvironmentFileName}
-							</span>
-						)}
-					</div>
-				)}
-				<EnvironmentMapPreview environmentMap={activeEnvironmentMap} />
-				{environmentError && <Banner type="error" message={environmentError} />}
-				<NumberInput
-					label={t("app:materialRampModal.environmentIntensityLabel")}
-					tooltip={t("app:materialRampModal.tooltips.environmentIntensity")}
-					min={MIN_UNIT}
-					step={0.01}
-					value={environmentIntensity}
-					onChange={setEnvironmentIntensity}
-					clamp={clampIntensity}
-					aria-label={t("app:materialRampModal.environmentIntensityLabel")}
-				/>
-			</Frame>
+				</AccordionSection>
 
-			<Frame className="material-ramp-modal__section">
-				<div className="material-ramp-modal__section-title">
-					{t("app:materialRampModal.sections.directionalLight")}
-				</div>
-				<div className="material-ramp-modal__row">
-					<SwatchColorPicker
-						label={t("app:materialRampModal.lightColorLabel")}
-						tooltip={t("app:materialRampModal.tooltips.lightColor")}
-						colorSystem={colorSystem}
-						rgb={lightColor}
-						onChange={setLightColor}
-					/>
+				<AccordionSection
+					title={t("app:materialRampModal.sections.environmentReflection")}
+					defaultOpen={false}
+				>
+					<Field
+						label={t("app:materialRampModal.environmentLabel")}
+						tooltip={t("app:materialRampModal.tooltips.environment")}
+					>
+						<div className="endpoint-picker__mode-toggle">
+							<Button
+								className={
+									environmentMode === "default"
+										? "endpoint-picker__mode-btn endpoint-picker__mode-btn--active"
+										: "endpoint-picker__mode-btn"
+								}
+								onClick={() => setEnvironmentMode("default")}
+							>
+								{t("app:materialRampModal.defaultImage")}
+							</Button>
+							<Button
+								className={
+									environmentMode === "custom"
+										? "endpoint-picker__mode-btn endpoint-picker__mode-btn--active"
+										: "endpoint-picker__mode-btn"
+								}
+								onClick={() => setEnvironmentMode("custom")}
+							>
+								{t("app:materialRampModal.customImage")}
+							</Button>
+						</div>
+					</Field>
+					{environmentMode === "custom" && (
+						<div className="field">
+							<Button onClick={handleChooseEnvironmentImage}>
+								{t("app:materialRampModal.chooseFile")}
+							</Button>
+							{customEnvironmentFileName && (
+								<span className="material-ramp-modal__environment-filename">
+									{customEnvironmentFileName}
+								</span>
+							)}
+						</div>
+					)}
+					<EnvironmentMapPreview environmentMap={activeEnvironmentMap} />
+					{environmentError && (
+						<Banner type="error" message={environmentError} />
+					)}
 					<NumberInput
-						label={t("app:materialRampModal.lightIntensityLabel")}
-						tooltip={t("app:materialRampModal.tooltips.lightIntensity")}
+						label={t("app:materialRampModal.environmentIntensityLabel")}
+						tooltip={t("app:materialRampModal.tooltips.environmentIntensity")}
 						min={MIN_UNIT}
 						step={0.01}
-						value={lightIntensity}
-						onChange={setLightIntensity}
+						value={environmentIntensity}
+						onChange={setEnvironmentIntensity}
 						clamp={clampIntensity}
-						aria-label={t("app:materialRampModal.lightIntensityLabel")}
+						aria-label={t("app:materialRampModal.environmentIntensityLabel")}
 					/>
+				</AccordionSection>
+
+				<AccordionSection
+					title={t("app:materialRampModal.sections.directionalLight")}
+					defaultOpen={false}
+				>
+					<div className="material-ramp-modal__row">
+						<SwatchColorPicker
+							label={t("app:materialRampModal.lightColorLabel")}
+							tooltip={t("app:materialRampModal.tooltips.lightColor")}
+							colorSystem={colorSystem}
+							rgb={lightColor}
+							onChange={setLightColor}
+						/>
+						<NumberInput
+							label={t("app:materialRampModal.lightIntensityLabel")}
+							tooltip={t("app:materialRampModal.tooltips.lightIntensity")}
+							min={MIN_UNIT}
+							step={0.01}
+							value={lightIntensity}
+							onChange={setLightIntensity}
+							clamp={clampIntensity}
+							aria-label={t("app:materialRampModal.lightIntensityLabel")}
+						/>
+						<VectorInput
+							label={t("app:materialRampModal.lightDirectionLabel")}
+							tooltip={t("app:materialRampModal.tooltips.lightDirection")}
+							value={DEFAULT_LIGHTING.directionalLightDir}
+							disabled
+						/>
+					</div>
+				</AccordionSection>
+
+				<AccordionSection
+					title={t("app:materialRampModal.sections.view")}
+					defaultOpen={false}
+				>
 					<VectorInput
-						label={t("app:materialRampModal.lightDirectionLabel")}
-						tooltip={t("app:materialRampModal.tooltips.lightDirection")}
-						value={DEFAULT_LIGHTING.directionalLightDir}
+						label={t("app:materialRampModal.viewDirectionLabel")}
+						tooltip={t("app:materialRampModal.tooltips.viewDirection")}
+						value={DEFAULT_LIGHTING.viewDir}
 						disabled
 					/>
-				</div>
-			</Frame>
-
-			<Frame className="material-ramp-modal__section">
-				<div className="material-ramp-modal__section-title">
-					{t("app:materialRampModal.sections.view")}
-				</div>
-				<VectorInput
-					label={t("app:materialRampModal.viewDirectionLabel")}
-					tooltip={t("app:materialRampModal.tooltips.viewDirection")}
-					value={DEFAULT_LIGHTING.viewDir}
-					disabled
-				/>
-			</Frame>
+				</AccordionSection>
+			</Accordion>
 
 			<hr className="modal-separator" />
 			<GroupPicker
