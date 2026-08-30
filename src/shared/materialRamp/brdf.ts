@@ -5,6 +5,22 @@ import { dot3, normalize3, reflect3 } from "./vec3";
 
 const DIELECTRIC_F0 = 0.04;
 
+// Ambient/environment specular reflectance uses only F0 (no NdotL falloff,
+// and near-zero grazing-Fresnel boost at the Base view angle) -- for a fully
+// metallic material, whose ENTIRE appearance depends on this term (no
+// diffuse fallback), the flat ambientLightIntensity/environmentIntensity
+// calibration -- tuned with diffuse-dominated dielectrics in mind, see
+// DEFAULT_LIGHTING's comment -- leaves barely half the sRGB range reachable
+// even for a pure-white metal. Scale the ambient/environment SPECULAR
+// contribution up as metallic increases (dielectrics are unaffected at
+// metallic=0, since they get this energy back through their diffuse term)
+// so a fully metallic material's achievable range at the Base view is
+// comparable to a fully dielectric one's. 6x was picked by solving for the
+// multiplier that brings a pure-white polished metal's Base-point ceiling in
+// line with a pure-white dielectric's under DEFAULT_LIGHTING -- retune by
+// eye in the ramp preview if metals end up looking under- or over-lit.
+const METALLIC_AMBIENT_SPECULAR_BOOST = 6;
+
 // Cancels the diffuse term's 1/pi Lambertian normalization, so pre-tonemap
 // radiance for a white albedo under the reference light (lightIntensity=1,
 // NdotL=1) is the albedo itself rather than a muted ~0.3 fraction of it. This
@@ -154,13 +170,15 @@ export function evaluateMaterial(
 
 	const ambientLinear = rgbBytesToLinear(lighting.ambientLightColor);
 	const fresnelAmbient = schlickFresnel(geometry.NdotV, f0);
+	const specularBoost =
+		1 + material.metallic * (METALLIC_AMBIENT_SPECULAR_BOOST - 1);
 	const ambientDiffuse = scaleRgb(
 		mulRgb(ambientLinear, albedoDiffuse),
 		lighting.ambientLightIntensity
 	);
 	const ambientSpecular = scaleRgb(
 		mulRgb(ambientLinear, fresnelAmbient),
-		lighting.ambientLightIntensity
+		lighting.ambientLightIntensity * specularBoost
 	);
 	const ambientLit = addRgb(ambientDiffuse, ambientSpecular);
 
@@ -179,13 +197,16 @@ export function evaluateMaterial(
 						sampleEnvironment(lighting.environmentMap, geometry.N, 1),
 						albedoDiffuse
 					),
-					mulRgb(
-						sampleEnvironment(
-							lighting.environmentMap,
-							reflect3(geometry.V, geometry.N),
-							material.roughness
+					scaleRgb(
+						mulRgb(
+							sampleEnvironment(
+								lighting.environmentMap,
+								reflect3(geometry.V, geometry.N),
+								material.roughness
+							),
+							fresnelAmbient
 						),
-						fresnelAmbient
+						specularBoost
 					)
 				),
 				lighting.environmentIntensity

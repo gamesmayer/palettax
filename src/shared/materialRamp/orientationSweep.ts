@@ -46,3 +46,18 @@ export function normalAtT(t: number, basis: SweepBasis): Vec3 {
 		c * basis.e1[2] + s * basis.e2[2],
 	];
 }
+
+/**
+ * The sweep position t at which normalAtT(t, basis) exactly equals the view
+ * direction (N=V, alpha=0) -- inverse of normalAtT's alpha(t) formula. This
+ * is the exact sweep point evaluateBaseColor evaluates at (see brdf.ts), so
+ * generateMaterialRamp.ts uses it to guarantee one ramp stop exactly matches
+ * the material's solved Base color instead of merely approximating it via
+ * the nearest sampled grid point. Clamped to [0,1]: only in-range when
+ * phi <= 90deg (mirrors normalAtT's own N.V>=0 assumption) -- not reachable
+ * today since lightDir/viewDir aren't user-configurable, only relevant if
+ * that ever changes.
+ */
+export function baseT(basis: SweepBasis): number {
+	return Math.min(1, Math.max(0, 1 - basis.phi / (Math.PI / 2)));
+}
